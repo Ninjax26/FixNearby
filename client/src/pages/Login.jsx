@@ -1,25 +1,55 @@
+import { useNavigate } from "react-router-dom";
+
 const Login = () => {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("User logged in");
+
+    // redirect
+    navigate("/dashboard");
+    e.preventDefault(); // stops page reload
+    // TODO: add API logic here
+    const formData = new FormData(e.target);
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    console.log({ email, password });
+    alert("You are logged in now! Redirecting to homepage...");    
+    navigate("/");
+  };
+
   return (
     <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">Sign in</h2>
-        </div>
-        {/* TODO: Add authentication logic and API connection */}
-        <form className="mt-8 space-y-6" action="#" method="POST">
+        <h2 className="text-center text-3xl font-extrabold text-gray-900">
+          Sign in
+        </h2>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input id="email-address" name="email" type="email" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Email address" />
-            </div>
-            <div>
-              <input id="password" name="password" type="password" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Password" />
-            </div>
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="Email address"
+              className="w-full px-3 py-2 border border-gray-300 rounded-t-md"
+            />
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="Password"
+              className="w-full px-3 py-2 border border-gray-300 rounded-b-md"
+            />
           </div>
-          <div>
-            <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              Sign in
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            className="w-full py-2 px-4 text-white bg-blue-600 rounded-md"
+          >
+            Sign in
+          </button>
         </form>
       </div>
     </div>
