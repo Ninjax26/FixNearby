@@ -220,6 +220,56 @@ const Bookings = () => {
           ))}
         </div>
       )}
+        </div>
+      )}
+
+      {/* Booking List */}
+      {!loading && filteredBookings.length > 0 && (
+        <div className="bg-white shadow rounded-lg divide-y">
+          {filteredBookings.map((booking) => (
+            <div key={booking.id} className="p-4 hover:bg-gray-50">
+              <div className="flex justify-between items-center">
+                <p className="font-medium text-blue-600">
+                  {booking.service} with {booking.worker}
+                </p>
+
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  booking.status === "Completed"
+                    ? "bg-green-100 text-green-700"
+                    : booking.status === "Pending"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
+                }`}>
+                  {booking.status}
+                </span>
+              </div>
+
+              <div className="text-sm text-gray-500 mt-2 flex justify-between">
+                <span>ID: {booking.id}</span>
+                <span>{booking.date}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-3 flex gap-4">
+                {booking.status === "Pending" && (
+                  <button
+                    onClick={() => handleCancel(booking.id)}
+                    className="text-red-600 hover:underline text-sm"
+                  >
+                    Cancel
+                  </button>
+                )}
+
+                {booking.status === "Completed" && (
+                  <button className="text-blue-600 hover:underline text-sm">
+                    Leave Review
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

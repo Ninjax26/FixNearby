@@ -1,75 +1,39 @@
 import { Link } from 'react-router-dom';
-import { FaSearch, FaMapMarkerAlt, FaStar } from "react-icons/fa";
 
 const Home = () => {
   return (
     <div className="bg-white">
 
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-blue-50 via-white to-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
+      <div className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="text-center">
+            
+            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl leading-tight">
+              <span className="block">Find Reliable Workers</span>
+              <span className="block text-blue-600">In Your Neighborhood</span>
+            </h1>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight">
-            Hire Trusted Local Workers
-            <span className="block text-blue-600 mt-2">
-              Fast, Easy & Reliable
-            </span>
-          </h1>
+            <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-lg md:text-xl">
+              FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
+            </p>
 
-          <p className="mt-5 max-w-2xl mx-auto text-gray-600 text-lg md:text-xl">
-            From electricians to cleaners, FixNearby helps you find skilled professionals near you in minutes.
-          </p>
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+              
+              <Link
+                to="/services"
+                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+              >
+                Browse Services
+              </Link>
 
-          {/* Search Bar */}
-          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3 max-w-2xl mx-auto">
-            <div className="flex items-center bg-white border rounded-lg px-4 py-2 shadow-sm w-full">
-              <FaSearch className="text-gray-400 mr-2" />
-              <input
-                type="text"
-                placeholder="What service do you need?"
-                className="w-full outline-none text-sm"
-              />
-            </div>
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-blue-600 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md transition"
+              >
+                Join as a Worker
+              </Link>
 
-            <div className="flex items-center bg-white border rounded-lg px-4 py-2 shadow-sm w-full sm:w-auto">
-              <FaMapMarkerAlt className="text-gray-400 mr-2" />
-              <input
-                type="text"
-                placeholder="Your location"
-                className="w-full outline-none text-sm"
-              />
-            </div>
-
-            <Link
-              to="/services"
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 shadow-md transition flex items-center justify-center"
-            >
-              Search
-            </Link>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              to="/services"
-              className="px-8 py-3 rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md transition"
-            >
-              Browse Services
-            </Link>
-
-            <Link
-              to="/register"
-              className="px-8 py-3 rounded-lg text-blue-600 bg-white border hover:bg-gray-50 shadow-sm transition"
-            >
-              Become a Worker
-            </Link>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="mt-10 flex justify-center gap-8 text-sm text-gray-500 flex-wrap">
-            <div className="flex items-center gap-1">
-              <FaStar className="text-yellow-400" />
-              4.8 Avg Rating
             </div>
             <div>10,000+ Users</div>
             <div>Verified Professionals</div>
@@ -131,32 +95,23 @@ const Home = () => {
 
       {/* Popular Categories */}
       <div className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-
-          <h2 className="text-4xl font-bold text-gray-900 mb-10">
-            Popular Services
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">
+            Popular Categories
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              "Electrician",
-              "Plumber",
-              "Carpenter",
-              "Cleaning",
-              "Painting",
-              "AC Repair",
-              "Pest Control",
-              "Moving"
-            ].map((category, idx) => (
-
+            {['Electrician', 'Plumber', 'Carpenter', 'Cleaning', 'Painting', 'AC Repair', 'Pest Control', 'Moving'].map((category, idx) => (
+              
               <Link
                 key={idx}
                 to="/services"
-                className="bg-white p-6 rounded-xl border hover:border-blue-500 hover:text-blue-600 shadow-sm hover:shadow-lg transition transform hover:-translate-y-1"
+                className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition"
               >
-                <span className="font-medium">{category}</span>
+                <div className="text-3xl mb-3">{icon}</div>
+                <span className="font-medium text-lg">{name}</span>
               </Link>
-
             ))}
           </div>
 
