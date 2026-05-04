@@ -7,6 +7,7 @@ const Bookings = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState({}); // For individual button loading
 
   // Review State
   const [activeReview, setActiveReview] = useState(null);
@@ -32,24 +33,42 @@ const Bookings = () => {
     }, 1000);
   }, []);
 
-  const handleCancel = (id) => {
-    const updated = bookings.map((b) =>
-      b.id === id ? { ...b, status: "Cancelled" } : b
-    );
-    setBookings(updated);
+  const handleCancel = async (id) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    try {
+      // TODO: API call to cancel booking
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const updated = bookings.map((b) =>
+        b.id === id ? { ...b, status: "Cancelled" } : b
+      );
+      setBookings(updated);
+    } catch (error) {
+      console.error('Cancel failed:', error);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: false }));
+    }
   };
 
-  const handleReviewSubmit = (id) => {
+  const handleReviewSubmit = async (id) => {
     if (rating === 0) return alert("Please select a rating");
 
-    const updated = bookings.map((b) =>
-      b.id === id ? { ...b, review: { rating, comment } } : b
-    );
+    setActionLoading(prev => ({ ...prev, [`review-${id}`]: true }));
+    try {
+      // TODO: API call to submit review
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const updated = bookings.map((b) =>
+        b.id === id ? { ...b, review: { rating, comment } } : b
+      );
 
-    setBookings(updated);
-    setActiveReview(null);
-    setRating(0);
-    setComment("");
+      setBookings(updated);
+      setActiveReview(null);
+      setRating(0);
+      setComment("");
+    } catch (error) {
+      console.error('Review submit failed:', error);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`review-${id}`]: false }));
+    }
   };
 
   const filteredBookings = bookings.filter((b) => {
@@ -148,9 +167,11 @@ const Bookings = () => {
                 {booking.status === "Pending" && (
                   <button
                     onClick={() => handleCancel(booking.id)}
-                    className="text-red-600 hover:underline text-sm"
+                    disabled={actionLoading[booking.id]}
+                    className="text-red-600 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    <span className={`btn-text ${actionLoading[booking.id] ? 'hidden' : ''}`}>Cancel</span>
+                    <span className={`btn-loader ${actionLoading[booking.id] ? '' : 'hidden'}`}>Loading...</span>
                   </button>
                 )}
 
@@ -202,9 +223,11 @@ const Bookings = () => {
                   <div className="flex gap-3">
                     <button
                       onClick={() => handleReviewSubmit(booking.id)}
-                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                      disabled={actionLoading[`review-${booking.id}`]}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Submit
+                      <span className={`btn-text ${actionLoading[`review-${booking.id}`] ? 'hidden' : ''}`}>Submit</span>
+                      <span className={`btn-loader ${actionLoading[`review-${booking.id}`] ? '' : 'hidden'}`}>Loading...</span>
                     </button>
 
                     <button
