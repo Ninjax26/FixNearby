@@ -23,27 +23,12 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Home</Link>
             <Link to="/services" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Services</Link>
-
-            {isAuthenticated ? (
-              <>
-                <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Dashboard</Link>
-                <Link to="/bookings" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Bookings</Link>
-                <Link to="/profile" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">
-                  {user?.name ?? 'Profile'}
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-700 hover:text-red-600 font-medium transition duration-200 hover:underline underline-offset-4"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Login</Link>
-                <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">Register</Link>
-              </>
-            )}
+            <Link to="/login" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Login</Link>
+            <Link to="/register" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5">Register</Link>
+            <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Dashboard</Link>
+            <Link to="/bookings" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Bookings</Link>
+            <Link to="/profile" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Profile</Link>
+            <Link to="/help" className="text-gray-700 hover:text-blue-600 font-medium transition duration-200 hover:underline underline-offset-4">Help</Link>
           </div>
         </div>
       </div>

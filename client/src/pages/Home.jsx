@@ -21,6 +21,7 @@ const iconMap = {
   Electrician: "⚡", Plumber: "🚰", Carpenter: "🪵", Painter: "🎨",
   "AC Technician": "❄️", Cleaner: "🧹", Mechanic: "🔧", Gardener: "🌱",
   "Appliance Repair": "🔌", "Pest Control": "🐜",
+  Cleaning: "🧹", Painting: "🎨", "AC Repair": "❄️", Moving: "📦"
 };
 
 const Home = () => {
@@ -44,55 +45,45 @@ const Home = () => {
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
+          <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl leading-tight">
+            <span className="block">Find Reliable Workers</span>
+            <span className="block text-blue-600">In Your Neighborhood</span>
+          </h1>
 
-            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl leading-tight">
-              <span className="block">Find Reliable Workers</span>
-              <span className="block text-blue-600">In Your Neighborhood</span>
-            </h1>
+          <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-lg md:text-xl">
+            FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
+          </p>
 
-            <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-lg md:text-xl">
-              FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              
-              <Link
-                to="/services"
-                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
-              >
-                Browse Services
-              </Link>
-
-              <Link
-                to="/register"
-                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-blue-600 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md transition"
-              >
-                Join as a Worker
-              </Link>
-
-            </div>
-            <div>10,000+ Users</div>
-            <div>Verified Professionals</div>
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              to="/services"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+            >
+              Browse Services
+            </Link>
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-blue-600 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md transition"
+            >
+              Join as a Worker
+            </Link>
           </div>
 
+          <div className="mt-10 flex justify-center items-center gap-8 text-gray-400 text-sm font-semibold">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-lg">✓</span> 10,000+ Users
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-lg">✓</span> Verified Professionals
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* How It Works */}
-      <div className="py-20">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            How It Works
-          </h2>
-          <p className="text-gray-500 mb-16">
-            Get your job done in 3 simple steps
-          </p>
       {/* ── Near You Section ── */}
       {(geoLoading || coords || geoError) && (
-        <div className="py-20 bg-gradient-to-br from-blue-50 via-white to-green-50">
+        <div className="py-20 bg-gradient-to-br from-blue-50 via-white to-green-50 border-y border-blue-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
@@ -140,7 +131,6 @@ const Home = () => {
                           <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
                             {iconMap[worker.profession] || '👷'}
                           </div>
-                          {/* Distance badge */}
                           <div className="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
                             📍 {formatDistance(worker.distanceKm)}
                           </div>
@@ -182,137 +172,72 @@ const Home = () => {
       )}
 
       {/* How it Works Section */}
-      <div className="py-20 bg-white">
+      <div className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900">
-              How It Works
-            </h2>
-            <p className="mt-4 text-lg text-gray-500">
-              Get your tasks done in three simple steps.
-            </p>
+            <h2 className="text-4xl font-extrabold text-gray-900">How It Works</h2>
+            <p className="mt-4 text-lg text-gray-500">Get your tasks done in three simple steps.</p>
           </div>
 
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-
-            {/* Connector Line */}
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-200"></div>
-
-            {/* Step 1 */}
-            <div className="relative p-8 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl transition group">
-
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-sm px-3 py-1 rounded-full shadow">
-                1
-              </div>
-
-              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-bold group-hover:scale-110 transition">
-                1
-              </div>
-
-              <h3 className="text-xl font-semibold mb-2">Search</h3>
-              <p className="text-gray-500">
-                Find the right professional based on reviews, skills, and proximity.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative p-8 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl transition group">
-
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-3 py-1 rounded-full shadow">
-                2
-              </div>
-
-              <div className="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-bold group-hover:scale-110 transition">
-                2
-              </div>
-
-          <div className="grid md:grid-cols-3 gap-10">
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
-              {
-                step: "1",
-                title: "Search",
-                desc: "Find nearby professionals based on skills, ratings, and location.",
-                color: "blue"
-              },
-              {
-                step: "2",
-                title: "Book",
-                desc: "Choose a time slot and confirm your booking instantly.",
-                color: "green"
-              },
-              {
-                step: "3",
-                title: "Relax",
-                desc: "Sit back while the expert completes your task efficiently.",
-                color: "yellow"
-              }
+              { step: "1", title: "Search", desc: "Find nearby professionals based on skills, ratings, and location.", color: "blue", icon: "🔍" },
+              { step: "2", title: "Book", desc: "Choose a time slot and confirm your booking instantly.", color: "green", icon: "📅" },
+              { step: "3", title: "Relax", desc: "Sit back while the expert completes your task efficiently.", color: "yellow", icon: "🏠" }
             ].map((item, i) => (
-
-              <div key={i} className="p-8 rounded-2xl border hover:shadow-xl transition group">
-
-                <div className={`w-14 h-14 mx-auto mb-5 rounded-full flex items-center justify-center text-white text-lg font-bold bg-${item.color}-500 group-hover:scale-110 transition`}>
-                  {item.step}
+              <div key={i} className="relative p-10 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-white text-2xl font-bold bg-${item.color}-500 group-hover:rotate-6 transition-transform`}>
+                  {item.icon}
                 </div>
-
-                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                <p className="text-gray-500">{item.desc}</p>
-            {/* Step 3 */}
-            <div className="relative p-8 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl transition group">
-
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white text-sm px-3 py-1 rounded-full shadow">
-                3
+                <div className="absolute top-6 right-6 text-4xl font-black text-gray-50 opacity-10 group-hover:opacity-20 transition-opacity">
+                  0{item.step}
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                <p className="text-gray-500 leading-relaxed">{item.desc}</p>
               </div>
-
-              </div>
-
             ))}
-
           </div>
         </div>
       </div>
 
       {/* Popular Categories */}
-      <div className="py-20 bg-gray-50">
+      <div className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">
-            Popular Categories
-          </h2>
-
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-12 text-center">Popular Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {['Electrician', 'Plumber', 'Carpenter', 'Cleaning', 'Painting', 'AC Repair', 'Pest Control', 'Moving'].map((category, idx) => (
-              
+            {[
+              'Electrician', 'Plumber', 'Carpenter', 'Cleaning', 
+              'Painting', 'AC Repair', 'Pest Control', 'Moving'
+            ].map((category, idx) => (
               <Link
                 key={idx}
-                to="/services"
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition"
+                to={`/services?category=${category}`}
+                className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-xl transition-all duration-300 group"
               >
-                <div className="text-3xl mb-3">{icon}</div>
-                <span className="font-medium text-lg">{name}</span>
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">
+                  {iconMap[category] || '🛠️'}
+                </div>
+                <span className="font-bold text-lg text-gray-900 group-hover:text-blue-600">{category}</span>
               </Link>
             ))}
           </div>
-
         </div>
       </div>
 
       {/* Final CTA Section */}
       <div className="py-20 bg-blue-600 text-center text-white">
-        <h2 className="text-3xl font-bold mb-4">
-          Need Help Today?
-        </h2>
-        <p className="mb-6 text-blue-100">
-          Book trusted professionals instantly and get your job done without hassle.
-        </p>
-
-        <Link
-          to="/services"
-          className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
-        >
-          Get Started
-        </Link>
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-4xl font-bold mb-4">Need Help Today?</h2>
+          <p className="mb-10 text-xl text-blue-100">
+            Book trusted professionals instantly and get your job done without hassle.
+          </p>
+          <Link
+            to="/services"
+            className="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"
+          >
+            Get Started Now
+          </Link>
+        </div>
       </div>
 
     </div>

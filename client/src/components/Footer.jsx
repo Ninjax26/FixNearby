@@ -1,48 +1,105 @@
+import { Link, useLocation } from "react-router-dom";
+import { FaGithub, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+
 const Footer = () => {
+  const location = useLocation();
+
+  const linkClass = (path) =>
+    `transition ${
+      location.pathname === path
+        ? "text-blue-400 font-medium"
+        : "text-gray-200 hover:text-blue-400"
+    }`;
+
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-auto">
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="bg-gray-900 text-gray-200 mt-auto">
+      
+      {/* Main Section */}
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         
         {/* Brand */}
         <div>
-          <h2 className="text-xl font-semibold text-white">FixNearby</h2>
-          <p className="mt-3 text-sm text-gray-400">
+          <h2 className="text-2xl font-bold text-white tracking-wide">
+            FixNearby
+          </h2>
+          <p className="mt-4 text-sm text-gray-300 leading-relaxed">
             Connecting you with trusted local service providers quickly and easily.
           </p>
+
+          <div className="flex items-center gap-2 mt-3 text-sm text-gray-400">
+            <FaMapMarkerAlt />
+            <span>Serving your local area</span>
+          </div>
         </div>
 
-        {/* Links */}
+        {/* Navigation */}
         <div>
-          <h3 className="text-white font-medium mb-3">Quick Links</h3>
+          <h3 className="text-white font-semibold mb-4">Navigation</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:text-blue-400">Home</a></li>
-            <li><a href="/services" className="hover:text-blue-400">Services</a></li>
-            <li><a href="/bookings" className="hover:text-blue-400">Bookings</a></li>
-            <li><a href="/about" className="hover:text-blue-400">About</a></li>
+            <li><Link to="/" className={linkClass("/")}>Home</Link></li>
+            <li><Link to="/services" className={linkClass("/services")}>Services</Link></li>
+            <li><Link to="/bookings" className={linkClass("/bookings")}>Bookings</Link></li>
+            <li><Link to="/about" className={linkClass("/about")}>About</Link></li>
           </ul>
         </div>
 
         {/* Support */}
         <div>
-          <h3 className="text-white font-medium mb-3">Support</h3>
+          <h3 className="text-white font-semibold mb-4">Support</h3>
           <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-blue-400">Help Center</a></li>
-            <li><a href="#" className="hover:text-blue-400">Privacy Policy</a></li>
-            <li><a href="#" className="hover:text-blue-400">Terms of Service</a></li>
+            <li><Link to="/help" className={linkClass("/help")}>Help Center</Link></li>
+            <li><Link to="/contact" className={linkClass("/contact")}>Contact</Link></li>
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h3 className="text-white font-semibold mb-4">Legal</h3>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/privacy" className={linkClass("/privacy")}>Privacy Policy</Link></li>
+            <li><Link to="/terms" className={linkClass("/terms")}>Terms of Service</Link></li>
           </ul>
         </div>
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-gray-700" />
+
       {/* Bottom Bar */}
-      <div className="border-t border-gray-700 py-4 px-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-        <p>
-          &copy; {new Date().getFullYear()} FixNearby. All rights reserved.
+      <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-300">
+        
+        <p className="text-center sm:text-left">
+          © {new Date().getFullYear()} FixNearby. All rights reserved.
         </p>
 
-        <div className="flex space-x-4 mt-3 md:mt-0">
-          <a href="#" className="hover:text-blue-400">GitHub</a>
-          <a href="#" className="hover:text-blue-400">Contribute</a>
-          <a href="#" className="hover:text-blue-400">Contact</a>
+        <div className="flex items-center space-x-6 mt-3 sm:mt-0">
+          
+          <a
+            href="https://github.com/your-repo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-gray-200 hover:text-blue-400 transition"
+          >
+            <FaGithub />
+            GitHub
+          </a>
+
+          <a
+            href="https://github.com/your-repo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-200 hover:text-blue-400 transition"
+          >
+            Contribute
+          </a>
+
+          <Link
+            to="/contact"
+            className="flex items-center gap-1 text-gray-200 hover:text-blue-400 transition"
+          >
+            <FaEnvelope />
+            Contact
+          </Link>
         </div>
       </div>
     </footer>
