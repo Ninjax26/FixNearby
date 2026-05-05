@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaGithub, FaEnvelope } from "react-icons/fa";
+import { FaGithub, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 
 const Footer = () => {
   const location = useLocation();
@@ -15,7 +15,7 @@ const Footer = () => {
     <footer className="bg-gray-900 text-gray-300 mt-auto">
       
       {/* Main Section */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
         
         {/* Brand */}
         <div>
@@ -24,34 +24,23 @@ const Footer = () => {
           </h2>
           <p className="mt-4 text-sm text-gray-400 leading-relaxed">
             Connecting you with trusted local service providers quickly and easily.
-            Built for communities, powered by open source.
           </p>
+
+          {/* Location hint (fits your app concept) */}
+          <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
+            <FaMapMarkerAlt />
+            <span>Serving your local area</span>
+          </div>
         </div>
 
-        {/* Quick Links */}
+        {/* Navigation */}
         <div>
-          <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+          <h3 className="text-white font-semibold mb-4">Navigation</h3>
           <ul className="space-y-2 text-sm">
-            <li>
-              <Link to="/" className={linkClass("/")}>
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link to="/services" className={linkClass("/services")}>
-                Services
-              </Link>
-            </li>
-            <li>
-              <Link to="/bookings" className={linkClass("/bookings")}>
-                Bookings
-              </Link>
-            </li>
-            <li>
-              <Link to="/about" className={linkClass("/about")}>
-                About
-              </Link>
-            </li>
+            <li><Link to="/" className={linkClass("/")}>Home</Link></li>
+            <li><Link to="/services" className={linkClass("/services")}>Services</Link></li>
+            <li><Link to="/bookings" className={linkClass("/bookings")}>Bookings</Link></li>
+            <li><Link to="/about" className={linkClass("/about")}>About</Link></li>
           </ul>
         </div>
 
@@ -59,21 +48,17 @@ const Footer = () => {
         <div>
           <h3 className="text-white font-semibold mb-4">Support</h3>
           <ul className="space-y-2 text-sm">
-            <li>
-              <Link to="/help" className={linkClass("/help")}>
-                Help Center
-              </Link>
-            </li>
-            <li>
-              <Link to="/privacy" className={linkClass("/privacy")}>
-                Privacy Policy
-              </Link>
-            </li>
-            <li>
-              <Link to="/terms" className={linkClass("/terms")}>
-                Terms of Service
-              </Link>
-            </li>
+            <li><Link to="/help" className={linkClass("/help")}>Help Center</Link></li>
+            <li><Link to="/contact" className={linkClass("/contact")}>Contact</Link></li>
+          </ul>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h3 className="text-white font-semibold mb-4">Legal</h3>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/privacy" className={linkClass("/privacy")}>Privacy Policy</Link></li>
+            <li><Link to="/terms" className={linkClass("/terms")}>Terms of Service</Link></li>
           </ul>
         </div>
       </div>
@@ -95,8 +80,7 @@ const Footer = () => {
             href="https://github.com/your-repo"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="GitHub Repository"
-            className="flex items-center gap-1 hover:text-blue-400 transition transform hover:scale-105"
+            className="flex items-center gap-1 hover:text-blue-400 transition hover:scale-105"
           >
             <FaGithub />
             GitHub
@@ -107,8 +91,7 @@ const Footer = () => {
             href="https://github.com/your-repo"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Contribute to project"
-            className="hover:text-blue-400 transition transform hover:scale-105"
+            className="hover:text-blue-400 transition hover:scale-105"
           >
             Contribute
           </a>
@@ -116,8 +99,7 @@ const Footer = () => {
           {/* Contact */}
           <Link
             to="/contact"
-            aria-label="Contact Support"
-            className="flex items-center gap-1 hover:text-blue-400 transition transform hover:scale-105"
+            className="flex items-center gap-1 hover:text-blue-400 transition hover:scale-105"
           >
             <FaEnvelope />
             Contact
