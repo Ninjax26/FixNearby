@@ -3,8 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import authMiddleware from './middleware/authMiddleware.js';
 
-dotenv.config({ path: '../.env' }); // Adjust if .env is in server root
+dotenv.config(); // Adjust if .env is in server root
 
 const app = express();
 
@@ -14,10 +15,18 @@ app.use(express.json());
 
 // Connect to Database
 // TODO: Uncomment when ready to connect to MongoDB
-// connectDB();
+connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
+
+// Protected test route
+app.get('/api/protected', authMiddleware, (req, res) => {
+  res.status(200).json({
+    message: "Access granted",
+    user: req.user
+  });
+});
 
 // Basic health check route
 app.get('/api/health', (req, res) => {

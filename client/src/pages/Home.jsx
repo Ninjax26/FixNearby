@@ -16,10 +16,28 @@ const ALL_WORKERS = [
   { id: 10, name: "Neha Gupta",    profession: "Pest Control",     rating: 4.5, price: "$40/hr", mockOffset: { lat: 0.025,  lon: -0.005 } },
 ];
 
-const iconMap = {
-  Electrician: "⚡", Plumber: "🚰", Carpenter: "🪵", Painter: "🎨",
-  "AC Technician": "❄️", Cleaner: "🧹", Mechanic: "🔧", Gardener: "🌱",
-  "Appliance Repair": "🔌", "Pest Control": "🐜",
+const categoryIconMap = {
+  Electrician: IconBolt,
+  Plumber: IconPipe,
+  Carpenter: IconSaw,
+  Cleaning: IconBroom,
+  Painting: IconBrush,
+  "AC Repair": IconSnowflake,
+  "Pest Control": IconBug,
+  Moving: IconBox,
+};
+
+const workerIconMap = {
+  Electrician: IconBolt,
+  Plumber: IconPipe,
+  Carpenter: IconSaw,
+  Painter: IconBrush,
+  Cleaner: IconBroom,
+  "AC Technician": IconSnowflake,
+  Mechanic: IconSaw,
+  Gardener: IconBroom,
+  "Appliance Repair": IconBolt,
+  "Pest Control": IconBug,
 };
 
 const categoryIconMap = {
@@ -34,9 +52,12 @@ const Home = () => {
     if (!coords) return [];
     return ALL_WORKERS
       .map((w) => {
-        const workerLat = coords.latitude  + w.mockOffset.lat;
+        const workerLat = coords.latitude + w.mockOffset.lat;
         const workerLon = coords.longitude + w.mockOffset.lon;
-        return { ...w, distanceKm: getDistanceKm(coords.latitude, coords.longitude, workerLat, workerLon) };
+        return {
+          ...w,
+          distanceKm: getDistanceKm(coords.latitude, coords.longitude, workerLat, workerLon),
+        };
       })
       .sort((a, b) => a.distanceKm - b.distanceKm)
       .slice(0, 3);
@@ -44,20 +65,91 @@ const Home = () => {
 
   return (
     <div className="bg-white">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          {/* Wrapper reserves space for the card (so it won't get clipped) */}
+          <div className="relative pb-24 sm:pb-28">
+            {/* Image panel stays rounded + clipped */}
+            <div className="relative rounded-[36px] shadow-[0_18px_40px_rgba(15,23,42,0.18)] overflow-hidden">
+              <div className="relative h-[320px] sm:h-[380px] lg:h-[420px]">
+                <img
+                  src="/hero-section.png"
+                  alt="Home service professional helping customers"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-black/0" />
+              </div>
+            </div>
 
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-gray-50 to-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+            {/* Card sits lower and can overflow below the image (no clipping) */}
+            <div className="absolute left-1/2 top-[220px] sm:top-[260px] lg:top-[290px] -translate-x-1/2 w-full px-5 sm:px-8">
+              <div className="mx-auto w-full max-w-[560px] rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-[0_14px_32px_rgba(15,23,42,0.18)] px-7 py-7 sm:px-10 sm:py-9">
+                <div className="text-center">
+                  <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900">
+                    Your Home. <span className="text-[#0056D2]">Better</span>
+                  </h1>
+                  <p className="mt-3 text-slate-600">
+                    Connect with trusted local professionals for all your home service needs. From repairs to renovations, we’ve got you covered.
+                  </p>
+                </div>
+
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <Link
+                    to="/services"
+                    className="inline-flex items-center justify-center rounded-lg bg-[#0056D2] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0047AF] transition"
+                  >
+                    Find a Pro
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2 text-sm font-semibold text-slate-800 border border-slate-300 hover:bg-slate-50 transition"
+                  >
+                    Become a Pro
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-24 sm:py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            <h2 className="text-5xl sm:text-6xl font-extrabold text-slate-900">How it works</h2>
+            <p className="mt-3 text-lg sm:text-xl text-slate-600">Search, book, and relax — three steps to get it done.</p>
+          </div>
 
-            <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl leading-tight">
-              <span className="block">Find Reliable Workers</span>
-              <span className="block text-blue-600">In Your Neighborhood</span>
-            </h1>
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-14 text-center relative">
+            {/* connector line */}
+            <div className="hidden md:block absolute top-[46px] left-0 w-full h-px bg-slate-200" />
 
-            <p className="mt-4 max-w-2xl mx-auto text-base text-gray-500 sm:text-lg md:text-xl">
-              FixNearby connects you with trusted electricians, plumbers, carpenters, and more. Fast, secure, and hassle-free.
-            </p>
+            {[
+              { step: '1', title: 'Search & Select', desc: 'Browse profiles, read reviews, and choose the best fit.', IconComp: IconSearch },
+              { step: '2', title: 'Book Directly', desc: 'Schedule appointments instantly based on real-time availability.', IconComp: IconCalendar },
+              { step: '3', title: 'Relax & Enjoy', desc: 'Let the expert handle the job with peace of mind.', IconComp: IconCheckCircle },
+            ].map((s) => (
+              <div key={s.step} className="relative">
+                {/* arrow to next */}
+                {s.step !== '3' ? (
+                  <div className="hidden md:block absolute top-[36px] right-[-22px] text-slate-300 text-xl">
+                    →
+                  </div>
+                ) : null}
+
+                <div className="mx-auto w-[92px] h-[92px] rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center">
+                  <s.IconComp className="h-11 w-11 text-slate-900" />
+                </div>
+                <div className="mt-6 text-base sm:text-lg font-extrabold text-slate-900">{s.step}. {s.title}</div>
+                <div className="mt-2 text-sm sm:text-base text-slate-600 max-w-md mx-auto">{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link
@@ -70,7 +162,14 @@ const Home = () => {
                 to="/worker-register"
                 className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-blue-600 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md transition"
               >
-                Join as a Worker
+                <div className="flex flex-col items-center text-center gap-3">
+                  {CategoryIcon ? (
+                    <CategoryIcon className="h-12 w-12 sm:h-14 sm:w-14 text-slate-900 group-hover:text-[#0056D2] transition-colors" />
+                  ) : (
+                    <IconBolt className="h-12 w-12 sm:h-14 sm:w-14 text-slate-900 group-hover:text-[#0056D2] transition-colors" />
+                  )}
+                  <div className="font-semibold text-slate-900 text-base sm:text-lg">{category}</div>
+                </div>
               </Link>
             </div>
 
@@ -81,41 +180,46 @@ const Home = () => {
 
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Near You Section */}
       {(geoLoading || coords || geoError) && (
-        <div className="py-20 bg-gradient-to-br from-blue-50 via-white to-green-50">
+        <section className="py-16 sm:py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
-                <span className={`w-2 h-2 rounded-full bg-green-500 ${coords ? 'animate-pulse' : ''}`} />
-                {coords ? 'Live Location' : geoLoading ? 'Detecting Location…' : 'Location Unavailable'}
+            <div className="flex items-start justify-between gap-6 flex-col md:flex-row md:items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-full text-sm font-semibold border border-emerald-100">
+                  <span className={`w-2 h-2 rounded-full bg-emerald-500 ${coords ? 'animate-pulse' : ''}`} />
+                  {coords ? 'Live location' : geoLoading ? 'Detecting location…' : 'Location unavailable'}
+                </div>
+                <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-slate-900">Closest to you</h2>
+                <p className="mt-2 text-slate-600">
+                  {coords
+                    ? 'Top professionals sorted by proximity to your current location.'
+                    : geoLoading
+                      ? 'Fetching your location to show nearby workers…'
+                      : 'Enable location access to see workers near you.'}
+                </p>
               </div>
-              <h2 className="text-4xl font-extrabold text-gray-900">Closest to You</h2>
-              <p className="mt-3 text-lg text-gray-500">
-                {coords
-                  ? 'Top professionals sorted by proximity to your current location.'
-                  : geoLoading
-                  ? 'Fetching your location to show nearby workers…'
-                  : 'Enable location access to see workers near you.'}
-              </p>
+              <Link to="/services" className="font-semibold text-[#0056D2] hover:underline underline-offset-4">
+                Browse all pros →
+              </Link>
             </div>
 
             {geoLoading && (
               <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <div className="w-12 h-12 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
-                <p className="text-gray-400 font-medium">Requesting location permission…</p>
+                <div className="w-12 h-12 rounded-full border-4 border-[#0056D2]/20 border-t-[#0056D2] animate-spin" />
+                <p className="text-slate-500 font-medium">Requesting location permission…</p>
               </div>
             )}
 
             {geoError && !geoLoading && (
-              <div className="text-center py-10 bg-amber-50 rounded-2xl border border-amber-100 max-w-lg mx-auto">
+              <div className="mt-10 text-center py-10 bg-amber-50 rounded-2xl border border-amber-100 max-w-xl mx-auto">
                 <div className="text-4xl mb-3">⚠️</div>
-                <p className="text-amber-800 font-semibold mb-2">Location access required</p>
-                <p className="text-amber-600 text-sm mb-6">{geoError}</p>
-                <Link to="/services" className="inline-block px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">
-                  Browse All Services →
+                <p className="text-amber-900 font-semibold mb-2">Location access required</p>
+                <p className="text-amber-700 text-sm mb-6">{geoError}</p>
+                <Link to="/services" className="inline-block px-6 py-2.5 bg-[#0056D2] hover:bg-[#0047AF] text-white font-bold rounded-xl transition">
+                  Browse services →
                 </Link>
               </div>
             )}
@@ -148,29 +252,31 @@ const Home = () => {
                           <div className="font-bold text-gray-900">{worker.price}</div>
                         </div>
                       </div>
-                      <div className="px-7 pb-7">
-                        <Link
-                          to={`/worker/${worker.id}`}
-                          className="block w-full text-center bg-gray-900 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 shadow-md hover:shadow-blue-200"
-                        >
-                          View &amp; Book
-                        </Link>
+                      <h3 className="text-xl font-bold text-slate-900 mb-0.5 group-hover:text-[#0056D2] transition-colors">{worker.name}</h3>
+                      <p className="text-[#0056D2] font-semibold text-sm mb-4">{worker.profession}</p>
+                      <div className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                        <div className="flex items-center gap-1">
+                          <span className="text-yellow-400">★</span>
+                          <span className="font-bold text-slate-900">{worker.rating}</span>
+                        </div>
+                        <div className="w-px h-4 bg-slate-300" />
+                        <div className="font-bold text-slate-900">{worker.price}</div>
                       </div>
                     </div>
-                  ))}
-                </div>
-                <div className="text-center mt-10">
-                  <Link
-                    to="/services"
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-white border-2 border-blue-200 hover:border-blue-500 text-blue-600 font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    See All Services →
-                  </Link>
-                </div>
-              </>
+                    <div className="px-7 pb-7">
+                      <Link
+                        to={`/worker/${worker.id}`}
+                        className="block w-full text-center bg-slate-900 hover:bg-[#0056D2] text-white font-bold py-3.5 rounded-xl transition shadow-sm"
+                      >
+                        View &amp; Book
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-        </div>
+        </section>
       )}
 
       {/* How It Works Section */}

@@ -1,23 +1,52 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("User logged in");
+    setError(null);
+    setLoading(true);
 
-    // redirect
-    navigate("/dashboard");
-    e.preventDefault(); // stops page reload
-    // TODO: add API logic here
-    const formData = new FormData(e.target);
-    const email = formData.get("email");
-    const password = formData.get("password");
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
 
-    console.log({ email, password });
-    alert("You are logged in now! Redirecting to homepage...");    
-    navigate("/");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Login failed. Please try again.');
+        return;
+      }
+
+      // Persist user + token via AuthContext
+      login(data);
+      navigate('/dashboard');
+    } catch {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,31 +55,50 @@ const Login = () => {
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
           Sign in
         </h2>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <input
               name="email"
               type="email"
               required
+              value={formData.email}
+              onChange={handleChange}
               placeholder="Email address"
-              className="w-full px-3 py-2 border border-gray-300 rounded-t-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
             <input
               name="password"
               type="password"
               required
+              value={formData.password}
+              onChange={handleChange}
               placeholder="Password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-b-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-2 px-4 text-white bg-blue-600 rounded-md"
+            disabled={loading}
+            className="w-full py-2 px-4 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
           >
-            Sign in
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className="text-center text-sm text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline font-medium">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );
