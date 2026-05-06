@@ -6,10 +6,17 @@ const Services = () => {
   const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || ""
+  );
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [priceRange, setPriceRange] = useState([20, 80]);
   const [workers, setWorkers] = useState([]);
   const [error, setError] = useState(null);
+
+  // 🌍 Location state (FIXED)
+  const [coords, setCoords] = useState(null);
+  const [locationStatus, setLocationStatus] = useState("idle");
 
   const categories = [
     "All",
@@ -87,7 +94,7 @@ const Services = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-
+      
       {/* Header */}
       <div className="mb-6 text-center">
         <h1 className="text-4xl font-bold">
@@ -99,7 +106,7 @@ const Services = () => {
         </p>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <div className="mb-10 space-y-6">
 
         <div className="flex flex-col sm:flex-row gap-4 max-w-3xl mx-auto">
