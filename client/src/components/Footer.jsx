@@ -25,10 +25,9 @@ const Footer = () => {
           <p className="mt-4 text-sm text-gray-300 leading-relaxed">
             Connecting you with trusted local service providers quickly and easily.
           </p>
-
-          <div className="flex items-center gap-2 mt-3 text-sm text-gray-400">
-            <FaMapMarkerAlt />
-            <span>Serving your local area</span>
+          <div className="mt-4 text-sm text-gray-400 space-y-1">
+            <div className="font-semibold text-gray-200">Trust-first marketplace</div>
+            <div>Vetted pros • Secure booking • Clear pricing</div>
           </div>
         </div>
 
@@ -36,10 +35,10 @@ const Footer = () => {
         <div>
           <h3 className="text-white font-semibold mb-4">Navigation</h3>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/" className={linkClass("/")}>Home</Link></li>
-            <li><Link to="/services" className={linkClass("/services")}>Services</Link></li>
-            <li><Link to="/bookings" className={linkClass("/bookings")}>Bookings</Link></li>
-            <li><Link to="/about" className={linkClass("/about")}>About</Link></li>
+            <li><a href="/" className="hover:text-blue-400">Home</a></li>
+            <li><a href="/#how-it-works" className="hover:text-blue-400">How it works</a></li>
+            <li><a href="/services" className="hover:text-blue-400">Services</a></li>
+            <li><a href="/register" className="hover:text-blue-400">Join as a Pro</a></li>
           </ul>
         </div>
 
@@ -59,6 +58,13 @@ const Footer = () => {
             <li><Link to="/privacy" className={linkClass("/privacy")}>Privacy Policy</Link></li>
             <li><Link to="/terms" className={linkClass("/terms")}>Terms of Service</Link></li>
           </ul>
+          <div className="mt-5">
+            <h3 className="text-white font-medium mb-3">Contact</h3>
+            <div className="text-sm text-gray-400 space-y-2">
+              <div><span className="text-gray-300 font-semibold">Email:</span> support@fixnearby.com</div>
+              <div><span className="text-gray-300 font-semibold">Phone:</span> +1 (000) 000-0000</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -72,34 +78,10 @@ const Footer = () => {
           © {new Date().getFullYear()} FixNearby. All rights reserved.
         </p>
 
-        <div className="flex items-center space-x-6 mt-3 sm:mt-0">
-          
-          <a
-            href="https://github.com/your-repo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-gray-200 hover:text-blue-400 transition"
-          >
-            <FaGithub />
-            GitHub
-          </a>
-
-          <a
-            href="https://github.com/your-repo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-200 hover:text-blue-400 transition"
-          >
-            Contribute
-          </a>
-
-          <Link
-            to="/contact"
-            className="flex items-center gap-1 text-gray-200 hover:text-blue-400 transition"
-          >
-            <FaEnvelope />
-            Contact
-          </Link>
+        <div className="flex space-x-4 mt-3 md:mt-0">
+          <a href="#" className="hover:text-blue-400">Help</a>
+          <a href="#" className="hover:text-blue-400">Privacy</a>
+          <a href="#" className="hover:text-blue-400">Terms</a>
         </div>
       </div>
     </footer>
