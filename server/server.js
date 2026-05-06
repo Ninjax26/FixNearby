@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import workerRoutes from './routes/workerRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 
 dotenv.config(); // Adjust if .env is in server root
@@ -19,6 +20,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/workers', workerRoutes);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
