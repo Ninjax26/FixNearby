@@ -42,10 +42,10 @@ const Footer = () => {
             FixNearby
           </h2>
 
-          <p className="mt-4 text-sm text-gray-400 leading-relaxed max-w-sm">
-            Connecting you with trusted local service providers quickly,
-            safely, and efficiently — whenever you need help.
-          </p>
+          <p className="mt-4 text-lg sm:text-xl leading-relaxed text-slate-600 max-w-2xl mx-auto">
+  Book trusted local professionals for repairs, maintenance, and home services 
+  with confidence — verified experts, quick response times, and seamless booking.
+</p>
 
           <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
             <FaMapMarkerAlt />
