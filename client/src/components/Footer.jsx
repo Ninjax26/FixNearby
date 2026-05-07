@@ -1,3 +1,5 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaGithub,
@@ -9,6 +11,18 @@ import {
 
 const Footer = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // ✅ Search state
+  const [query, setQuery] = useState("");
+
+  // ✅ Handle search
+  const handleSearch = () => {
+    if (query.trim() !== "") {
+      navigate(`/services?search=${query}`);
+      setQuery("");
+    }
+  };
 
   const linkClass = (path) =>
     `transition duration-200 ${
@@ -89,6 +103,7 @@ const Footer = () => {
           </ul>
         </div>
 
+        {/* Newsletter + Search */}
         {/* Newsletter */}
         <div className="lg:col-span-2">
           <h3 className="text-white font-semibold mb-4 tracking-wide">
@@ -99,6 +114,27 @@ const Footer = () => {
             Get updates on new services, offers, and features directly to your inbox.
           </p>
 
+          {/* 🔍 Footer Search */}
+          <div className="mb-5">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search services..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 text-sm focus:outline-none focus:border-blue-400"
+              />
+              <button
+                onClick={handleSearch}
+                className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm transition"
+              >
+                🔍
+              </button>
+            </div>
+          </div>
+
+          {/* Newsletter Form */}
           <form className="flex flex-col sm:flex-row gap-3">
             <input
               type="email"
