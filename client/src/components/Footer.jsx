@@ -1,30 +1,55 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaGithub, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import {
+  FaGithub,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaTwitter,
+  FaLinkedin,
+} from "react-icons/fa";
 
 const Footer = () => {
   const location = useLocation();
 
   const linkClass = (path) =>
-    `transition ${
+    `transition duration-200 ${
       location.pathname === path
         ? "text-blue-400 font-medium"
-        : "text-gray-200 hover:text-blue-400"
+        : "text-gray-300 hover:text-blue-400"
     }`;
 
   return (
-    <footer className="bg-gray-900 text-gray-200 mt-auto">
+    <footer className="bg-gray-950 text-gray-300 mt-auto border-t border-gray-800">
       
-      {/* Main Section */}
-      <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      {/* Main Grid */}
+      <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10">
         
         {/* Brand */}
-        <div>
+        <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold text-white tracking-wide">
             FixNearby
           </h2>
-          <p className="mt-4 text-sm text-gray-300 leading-relaxed">
-            Connecting you with trusted local service providers quickly and easily.
+
+          <p className="mt-4 text-sm text-gray-400 leading-relaxed max-w-sm">
+            Connecting you with trusted local service providers quickly,
+            safely, and efficiently — whenever you need help.
           </p>
+
+          <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
+            <FaMapMarkerAlt />
+            <span>Available in your local area</span>
+          </div>
+
+          {/* Socials */}
+          <div className="flex gap-4 mt-6 text-lg">
+            <a href="#" className="hover:text-blue-400 transition">
+              <FaTwitter />
+            </a>
+            <a href="#" className="hover:text-blue-400 transition">
+              <FaLinkedin />
+            </a>
+            <a href="#" className="hover:text-blue-400 transition">
+              <FaGithub />
+            </a>
           <div className="mt-4 text-sm text-gray-400 space-y-1">
             <div className="font-semibold text-gray-200">Trust-first marketplace</div>
             <div>Vetted pros • Secure booking • Clear pricing</div>
@@ -33,6 +58,14 @@ const Footer = () => {
 
         {/* Navigation */}
         <div>
+          <h3 className="text-white font-semibold mb-4 tracking-wide">
+            Navigation
+          </h3>
+          <ul className="space-y-2.5 text-sm">
+            <li><Link to="/" className={linkClass("/")}>Home</Link></li>
+            <li><Link to="/services" className={linkClass("/services")}>Services</Link></li>
+            <li><Link to="/bookings" className={linkClass("/bookings")}>Bookings</Link></li>
+            <li><Link to="/about" className={linkClass("/about")}>About</Link></li>
           <h3 className="text-white font-semibold mb-4">Navigation</h3>
           <ul className="space-y-2 text-sm">
             <li><a href="/" className="hover:text-blue-400">Home</a></li>
@@ -44,13 +77,39 @@ const Footer = () => {
 
         {/* Support */}
         <div>
-          <h3 className="text-white font-semibold mb-4">Support</h3>
-          <ul className="space-y-2 text-sm">
+          <h3 className="text-white font-semibold mb-4 tracking-wide">
+            Support
+          </h3>
+          <ul className="space-y-2.5 text-sm">
             <li><Link to="/help" className={linkClass("/help")}>Help Center</Link></li>
             <li><Link to="/contact" className={linkClass("/contact")}>Contact</Link></li>
+            <li><Link to="/faq" className="hover:text-blue-400">FAQs</Link></li>
           </ul>
         </div>
 
+        {/* Newsletter */}
+        <div className="lg:col-span-2">
+          <h3 className="text-white font-semibold mb-4 tracking-wide">
+            Stay Updated
+          </h3>
+
+          <p className="text-sm text-gray-400 mb-4 max-w-sm">
+            Get updates on new services, offers, and features directly to your inbox.
+          </p>
+
+          <form className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 text-sm focus:outline-none focus:border-blue-400"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm transition"
+            >
+              Subscribe
+            </button>
+          </form>
         {/* Legal */}
         <div>
           <h3 className="text-white font-semibold mb-4">Legal</h3>
@@ -69,15 +128,42 @@ const Footer = () => {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-gray-700" />
+      <div className="border-t border-gray-800" />
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-300">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-400">
         
         <p className="text-center sm:text-left">
           © {new Date().getFullYear()} FixNearby. All rights reserved.
         </p>
 
+        <div className="flex items-center flex-wrap justify-center gap-6 mt-3 sm:mt-0">
+          
+          <Link to="/privacy" className="hover:text-blue-400 transition">
+            Privacy Policy
+          </Link>
+
+          <Link to="/terms" className="hover:text-blue-400 transition">
+            Terms
+          </Link>
+
+          <a
+            href="https://github.com/your-repo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 hover:text-blue-400 transition"
+          >
+            <FaGithub />
+            GitHub
+          </a>
+
+          <Link
+            to="/contact"
+            className="flex items-center gap-1 hover:text-blue-400 transition"
+          >
+            <FaEnvelope />
+            Contact
+          </Link>
         <div className="flex space-x-4 mt-3 md:mt-0">
           <a href="#" className="hover:text-blue-400">Help</a>
           <a href="#" className="hover:text-blue-400">Privacy</a>
