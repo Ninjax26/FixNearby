@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useMemo } from 'react';
 import { useLocation } from '../context/LocationContext';
 import { getDistanceKm, formatDistance } from '../utils/distance';
@@ -245,6 +246,51 @@ const Home = () => {
         </div>
       </section>
 
+            {/* 🔍 Search Bar (Quick Access) */}
+<div className="mt-6 max-w-2xl mx-auto">
+
+  <div className="flex items-center bg-white shadow-md rounded-xl overflow-hidden border border-gray-200 focus-within:ring-2 focus-within:ring-blue-500 transition">
+
+    <input
+      type="text"
+      placeholder="Search services like Electrician, Plumber..."
+      className="flex-1 px-5 py-3 outline-none text-gray-700"
+    />
+
+    <Link
+      to="/services"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 font-medium transition"
+    >
+      Search
+    </Link>
+
+  </div>
+
+  {/* ⚡ Quick Access Buttons */}
+  <div className="mt-4 flex flex-wrap justify-center gap-3">
+    {["Electrician", "Plumber", "Cleaner", "AC Technician"].map((item) => (
+      <Link
+        key={item}
+        to={`/services?category=${item}`}
+        className="px-4 py-2 bg-gray-100 hover:bg-blue-100 text-sm rounded-full transition"
+      >
+        {item}
+      </Link>
+    ))}
+  </div>
+
+</div>
+
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+              <Link
+                to="/services"
+                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+              >
+                Browse Services
+              </Link>
+              <Link
+                to="/worker-register"
+                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-lg text-blue-600 bg-white border border-gray-200 hover:bg-gray-50 shadow-sm hover:shadow-md transition"
       {/* Popular categories */}
       <section className="py-20 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -278,6 +324,28 @@ const Home = () => {
         </div>
       </section>
 
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            How It Works
+          </h2>
+          <p className="text-gray-500 mb-16">
+            Get your job done in 3 simple steps
+          </p>
+
+          <div className="max-w-6xl mx-auto mt-10 grid md:grid-cols-3 gap-8">
+    {[
+      { step: "1", title: "Search", desc: "Find skilled workers near you" },
+      { step: "2", title: "Book", desc: "Choose time and confirm instantly" },
+      { step: "3", title: "Relax", desc: "Get your job done stress-free" },
+    ].map((s) => (
+      <div key={s.step} className="p-6 border rounded-xl hover:shadow-lg transition">
+        <div className="text-blue-600 font-bold text-xl">{s.step}</div>
+        <h3 className="font-semibold mt-2">{s.title}</h3>
+        <p className="text-gray-500 mt-1">{s.desc}</p>
+      </div>
+    ))}
+    </div>
+      {/* ── Near You Section ── */}
+      {/* Near You Section */}
       {/* Nearby (location-driven) */}
       {(geoLoading || coords || geoError) && (
         <section className="py-16 sm:py-20 bg-white">
@@ -365,6 +433,152 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* How It Works Section */}
+      <div className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-gray-900">How It Works</h2>
+            <p className="mt-4 text-lg text-gray-500">Get your tasks done in three simple steps.</p>
+          </div>
+
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-200"></div>
+
+            {[
+              { step: "1", title: "Search", desc: "Find nearby professionals based on skills, ratings, and location.", color: "blue" },
+              { step: "2", title: "Book",   desc: "Choose a time slot and confirm your booking instantly.",           color: "green" },
+              { step: "3", title: "Relax",  desc: "Sit back while the expert completes your task efficiently.",       color: "yellow" },
+            ].map((item) => (
+              <div key={item.step} className="relative p-8 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl transition group">
+                <div className={`absolute -top-4 left-1/2 transform -translate-x-1/2 bg-${item.color}-500 text-white text-sm px-3 py-1 rounded-full shadow`}>
+                  {item.step}
+                </div>
+                <div className={`w-14 h-14 bg-${item.color}-100 text-${item.color}-600 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-bold group-hover:scale-110 transition`}>
+                  {item.step}
+                </div>
+                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                <p className="text-gray-500">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Popular Categories */}
+      {/* Popular Categories */}
+<div className="py-20 bg-gray-50">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <h2 className="text-4xl font-extrabold text-gray-900 mb-4 text-center">
+      Popular Categories
+    </h2>
+
+    <p className="text-center text-gray-500 mb-12">
+      Explore services based on your needs — from home repairs to cleaning and maintenance.
+    </p>
+
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+      {[
+        {
+          name: "Electrician",
+          icon: "⚡",
+          desc: "Wiring, repairs & installations"
+        },
+        {
+          name: "Plumber",
+          icon: "🚰",
+          desc: "Pipes, leaks & fittings"
+        },
+        {
+          name: "Carpenter",
+          icon: "🪵",
+          desc: "Furniture & woodwork"
+        },
+        {
+          name: "Cleaner",
+          icon: "🧹",
+          desc: "Home & office cleaning"
+        },
+        {
+          name: "Painter",
+          icon: "🎨",
+          desc: "Wall painting & polishing"
+        },
+        {
+          name: "AC Repair",
+          icon: "❄️",
+          desc: "Cooling system service"
+        },
+        {
+          name: "Pest Control",
+          icon: "🐜",
+          desc: "Remove insects & rodents"
+        },
+        {
+          name: "Mechanic",
+          icon: "🔧",
+          desc: "Vehicle & machine repair"
+        }
+      ].map((category, idx) => (
+
+        <Link
+          key={idx}
+          to={`/services?category=${category.name}`}
+          className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:shadow-xl transition-all duration-300"
+        >
+
+          <div className="text-4xl mb-4 group-hover:scale-110 transition">
+            {category.icon}
+          </div>
+
+          <h3 className="font-semibold text-lg text-gray-800 group-hover:text-blue-600 transition">
+            {category.name}
+          </h3>
+
+          <p className="text-sm text-gray-500 mt-2">
+            {category.desc}
+          </p>
+
+        </Link>
+      ))}
+
+    </div>
+
+  </div>
+</div>
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">Popular Categories</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {['Electrician', 'Plumber', 'Carpenter', 'Cleaning', 'Painting', 'AC Repair', 'Pest Control', 'Moving'].map((category, idx) => (
+              <Link
+                key={idx}
+                to="/services"
+                className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center hover:border-blue-500 hover:text-blue-600 hover:shadow-md transition"
+              >
+                <div className="text-3xl mb-3">{categoryIconMap[category] || '🔧'}</div>
+                <span className="font-medium text-lg">{category}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Final CTA Section */}
+      <div className="py-20 bg-blue-600 text-center text-white">
+        <h2 className="text-3xl font-bold mb-4">Need Help Today?</h2>
+        <p className="mb-6 text-blue-100">
+          Book trusted professionals instantly and get your job done without hassle.
+        </p>
+        <Link
+          to="/services"
+          className="bg-white text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
+        >
+          Get Started
+        </Link>
+      </div>
 
       {/* Final CTA */}
       <section className="py-16 sm:py-20 bg-[#0056D2] text-center text-white">
