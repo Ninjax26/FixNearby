@@ -1237,6 +1237,8 @@ const Services = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or service (e.g. Electrician)..."
+              className="input-search pl-10"
               placeholder="Search by name or service..."
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition"
             />
@@ -1244,7 +1246,7 @@ const Services = () => {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition"
+              className="btn-secondary"
             >
               Clear
             </button>
@@ -1256,10 +1258,8 @@ const Services = () => {
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-                categoryFilter === cat
-                  ? 'bg-blue-600 text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-400 hover:text-blue-600 shadow-sm'
+              className={`btn-icon-toggle ${
+                categoryFilter === cat ? 'active' : 'inactive'
               }`}
             >
               {cat !== "All" && iconMap[cat] && <span className="mr-2">{iconMap[cat]}</span>}
@@ -1275,6 +1275,9 @@ const Services = () => {
             { id: 'price', label: '💰 Lowest Price', icon: '💰' }
           ].map((type) => (
             <button
+              onClick={() => setSortByDistance(prev => !prev)}
+              className={`btn-icon-toggle ${
+                sortByDistance ? 'active' : 'inactive'
               key={type.id}
               onClick={() => setSortBy(type.id)}
               className={`px-4 py-2 rounded-lg border transition ${
@@ -1322,6 +1325,7 @@ const Services = () => {
               setSearchQuery('');
               setCategoryFilter('All');
             }}
+            className="btn-primary btn-primary-lg"
             className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition"
           >
             Reset All Filters

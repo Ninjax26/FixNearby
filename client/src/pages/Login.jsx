@@ -132,6 +132,16 @@ const Login = () => {
         </div>
         {/* TODO: Add authentication logic and API connection */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <input id="email-address" name="email" type="email" required className="input-base" placeholder="Email address" />
+            </div>
+            <div>
+              <input id="password" name="password" type="password" required className="input-base" placeholder="Password" />
+            </div>
+          </div>
+          <div>
+            <button type="submit" disabled={loading} className="btn-primary btn-primary-lg btn-full">
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <input id="email-address" name="email" type="email" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Email address" />

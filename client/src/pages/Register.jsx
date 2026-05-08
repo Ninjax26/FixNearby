@@ -5,6 +5,9 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
+const Register = () => {
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -15,6 +18,8 @@ const Register = () => {
     } catch (error) {
       console.error('Registration failed:', error);
       showToast('Registration failed. Please try again.', 'error');
+    } catch (error) {
+      console.error('Registration failed:', error);
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
@@ -197,6 +202,9 @@ const Register = () => {
         </div>
         {/* TODO: Add authentication logic and API connection */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <div>
+              <input id="name" name="name" type="text" required className="input-base" placeholder="Full Name" />
           <div className="rounded-md shadow-sm -space-y-px">
   
 
@@ -260,6 +268,53 @@ const Register = () => {
             </div>
           </div>
 
+            <div>
+              <input id="email-address" name="email" type="email" required className="input-base" placeholder="Email address" />
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Mobile Number (10 digits)"
+                className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                  phoneError ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
+              <p className="text-gray-400 text-xs mt-1">
+                Enter 10-digit mobile number starting with 6,7,8, or 9
+              </p>
+            </div>
+
+            <div>
+              <input id="password" name="password" type="password" required className="input-base" placeholder="Password" />
+            </div>
+          </div>
+          <div>
+            <button type="submit" disabled={loading} className="btn-primary btn-primary-lg btn-full">
+              <span className={`btn-text ${loading ? 'hidden' : ''}`}>Register</span>
+              <span className={`btn-loader ${loading ? '' : 'hidden'}`}>Loading...</span>
+            </button>
+          </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Password"
+                className={`appearance-none relative block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.password && interacted.password ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.password && interacted.password && (
+                <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          {/* Phone */}
           <div>
           {/* Phone */}
             <input

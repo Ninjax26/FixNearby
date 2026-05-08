@@ -267,6 +267,30 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
+      <h1 className="text-4xl font-bold text-gray-900 mb-6">My Bookings</h1>
+
+      {/* Search */}
+      <input
+        type="text"
+        placeholder="Search by worker or service..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="input-search mb-4 w-full md:w-1/2"
+      />
+
+      {/* Status Filters */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {statusOptions.map((status) => (
+          <button
+            key={status}
+            onClick={() => setStatusFilter(status)}
+            className={`btn-icon-toggle ${
+              statusFilter === status ? 'active' : 'inactive'
+            }`}
+          >
+            {status}
+          </button>
+        ))}
       {/* HEADER */}
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
@@ -425,6 +449,7 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
 
           <Link
             to="/services"
+            className="btn-primary btn-primary-sm mt-4"
             className="inline-block mt-6 bg-blue-600 text-white px-6 py-3 rounded-2xl font-medium hover:bg-blue-700 transition"
           >
             Browse Services
@@ -543,6 +568,7 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
                   <button
                     onClick={() => handleCancel(booking.id)}
                     disabled={actionLoading[booking.id]}
+                    className="btn-text-danger disabled:opacity-50 disabled:cursor-not-allowed"
                     className="text-red-600 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className={`btn-text ${actionLoading[booking.id] ? 'hidden' : ''}`}>Cancel</span>
@@ -586,6 +612,8 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
                   </button>
 
                   <button
+                    onClick={() => setActiveReview(booking.id)}
+                    className="btn-text"
                     onClick={() => handleCancel(b.id)}
                     className="px-5 py-2.5 bg-rose-50 text-rose-600 rounded-2xl font-medium hover:bg-rose-100 transition"
                   >
@@ -611,6 +639,25 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
 
             </div>
 
+                  {/* Comment */}
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Write your feedback..."
+                    className="textarea-base mb-3"
+                    rows="3"
+                  />
+
+                  {/* Buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleReviewSubmit(booking.id)}
+                      disabled={actionLoading[`review-${booking.id}`]}
+                      className="btn-primary btn-primary-sm"
+                    >
+                      <span className={`btn-text ${actionLoading[`review-${booking.id}`] ? 'hidden' : ''}`}>Submit</span>
+                      <span className={`btn-loader ${actionLoading[`review-${booking.id}`] ? '' : 'hidden'}`}>Loading...</span>
+                    </button>
             {/* REVIEW BOX */}
 
                   {/* Buttons */}
@@ -636,6 +683,8 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
 
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
+                      onClick={() => setActiveReview(null)}
+                      className="btn-text"
                       key={s}
                       onClick={() => setRating(s)}
                       className={`text-3xl transition ${
