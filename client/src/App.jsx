@@ -17,6 +17,7 @@ import HelpCenter from './pages/HelpCenter';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import NotFound from "./pages/NotFound";
+import FAQ from "./pages/FAQ";
 
 function AppContent() {
   const location = useLocation();
@@ -43,6 +44,8 @@ function AppContent() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/faq" element={<FAQ />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
