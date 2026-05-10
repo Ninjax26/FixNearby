@@ -1,4 +1,6 @@
 import { useLocation } from '../context/LocationContext';
+import { useState } from 'react';
+import useToast from '../hooks/useToast';
 
 /**
  * LocationBanner
@@ -10,6 +12,21 @@ import { useLocation } from '../context/LocationContext';
  */
 const LocationBanner = () => {
   const { coords, loading, error, permissionDenied, retry } = useLocation();
+  const [retryLoading, setRetryLoading] = useState(false);
+  const { showToast } = useToast();
+
+  const handleRetry = async () => {
+    setRetryLoading(true);
+    try {
+      await retry();
+      showToast('Location detected successfully!', 'success');
+    } catch (error) {
+      console.error('Retry failed:', error);
+      showToast('Failed to detect location. Please try again.', 'error');
+    } finally {
+      setRetryLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -25,10 +42,12 @@ const LocationBanner = () => {
       <div className="bg-amber-50 border-b border-amber-100 py-2 px-4 flex items-center justify-center gap-3 text-sm text-amber-800 font-medium flex-wrap">
         <span>⚠️ Location access denied. Enable it in browser settings to see nearby services.</span>
         <button
-          onClick={retry}
-          className="underline underline-offset-2 hover:text-amber-600 transition-colors font-semibold"
+          onClick={handleRetry}
+          disabled={retryLoading}
+          className="underline underline-offset-2 hover:text-amber-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Retry
+          <span className={`btn-text ${retryLoading ? 'hidden' : ''}`}>Retry</span>
+          <span className={`btn-loader ${retryLoading ? '' : 'hidden'}`}>Loading...</span>
         </button>
       </div>
     );
@@ -39,10 +58,12 @@ const LocationBanner = () => {
       <div className="bg-red-50 border-b border-red-100 py-2 px-4 flex items-center justify-center gap-3 text-sm text-red-700 font-medium flex-wrap">
         <span>📍 {error}</span>
         <button
-          onClick={retry}
-          className="underline underline-offset-2 hover:text-red-500 transition-colors font-semibold"
+          onClick={handleRetry}
+          disabled={retryLoading}
+          className="underline underline-offset-2 hover:text-red-500 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Retry
+          <span className={`btn-text ${retryLoading ? 'hidden' : ''}`}>Retry</span>
+          <span className={`btn-loader ${retryLoading ? '' : 'hidden'}`}>Loading...</span>
         </button>
       </div>
     );

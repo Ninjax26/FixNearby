@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { signupUser } from "../services/authService";
+import useToast from "../hooks/useToast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 
 const Register = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  const {showToast}=useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -14,9 +18,10 @@ const Register = () => {
   });
 
   const [interacted, setInteracted] = useState({});
-  const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState(null);
+  const [errors, setErrors]=useState({});
+  const [apiError,setApiError]=useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // ---------------- VALIDATION ----------------
 
@@ -38,6 +43,12 @@ const Register = () => {
       case "password":
         if (value.length < 6) {
           return "Password must be at least 6 characters";
+        }
+        break;
+        
+      case "phone":
+        if (value && !/^[0-9]{10}$/.test(value.trim())) {
+          return "Enter a valid phone number";
         }
         break;
 
@@ -67,6 +78,7 @@ const Register = () => {
         [name]: errorMsg,
       }));
     }
+    if(apiError) setApiError(null);
   };
 
   // ---------------- HANDLE BLUR ----------------
@@ -91,6 +103,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+    setApiError(null);
 
     const newErrors = {};
     const allInteracted = {};
@@ -116,44 +130,22 @@ const Register = () => {
     setErrors({});
     setApiError(null);
     setLoading(true);
-
+  
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+      const userData = await signupUser({
             name: formData.name,
             email: formData.email,
             phone: formData.phone,
-            password: formData.password,
-          }),
-        }
-      );
+            password: formData.password,});
 
-      const data = await res.json();
 
-      if (!res.ok) {
-        setApiError(
-          data.message ||
-            "Registration failed. Please try again."
-        );
-        return;
-      }
+      login(userData);
+      showToast("Registration successful! Welcome to FixNearby.");
 
-      // Auto login after registration
-      login(data);
-
-      alert("Registration successful! Welcome to FixNearby.");
-
+      setFormData({name:"", email:"",phone: "", password:""});
       navigate("/dashboard");
-    } catch {
-      setApiError(
-        "Network error. Please check your connection and try again."
-      );
+    } catch(error) {
+      setApiError(error.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -178,28 +170,25 @@ const Register = () => {
         {/* Heading */}
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900">
-            Create an Account
+            Create an account
           </h2>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-base sm:text-sm text-gray-600">
             Join FixNearby and get started
           </p>
         </div>
+  
 
-        {/* API Error */}
         {apiError && (
-          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
             {apiError}
           </div>
         )}
 
         {/* Form */}
-        <form
-          className="space-y-2"
-          onSubmit={handleSubmit}
-        >
-          {/* Name */}
+         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
+          {/* Name */}
             <input
               id="name"
               name="name"
@@ -221,9 +210,9 @@ const Register = () => {
               )}
             </div>
           </div>
-
-          {/* Email */}
+         
           <div>
+          {/* Email */}
             <input
               id="email-address"
               name="email"
@@ -245,7 +234,7 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Phone */}
+         {/* Phone */}
           <div>
             <input
               id="phone"
@@ -253,29 +242,44 @@ const Register = () => {
               type="tel"
               value={formData.phone}
               onChange={handleChange}
+              onBlur={handleBlur}
               placeholder="Phone Number"
               className={inputStyles("phone")}
             />
-
-            {/* Empty reserved space */}
-            <div className="min-h-[22px]" />
-          </div>
-
+              {/* Error Reserved space */}        
+              <div className="min-h-[22px] mt-1 text-sm">
+              {interacted.phone && errors.phone && (
+                <span className="text-red-600">
+                  {errors.phone}
+                </span>
+              )}
+            </div>
+          </div>  
           {/* Password */}
-          <div>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="Password"
-              className={inputStyles("password")}
-            />
+            <div>
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Password"
+                className={`${inputStyles("password")} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+              </div>
 
-            <div className="min-h-[22px] mt-1 text-sm">
+            {/* error reserved space */}
+          <div className="min-h-[22px] mt-1 text-sm">
               {interacted.password && errors.password && (
                 <span className="text-red-600">
                   {errors.password}
@@ -284,6 +288,7 @@ const Register = () => {
             </div>
           </div>
 
+         
           {/* Submit Button */}
           <button
             type="submit"
@@ -292,8 +297,9 @@ const Register = () => {
           >
             {loading
               ? "Creating your account..."
-              : "Create Account"}
+              : "Create account"}
           </button>
+          </div>
         </form>
 
         {/* Footer */}
@@ -301,12 +307,10 @@ const Register = () => {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-blue-600 hover:underline font-semibold"
           >
             Sign in
           </Link>
-
-          
         </p>
       </div>
     </div>
