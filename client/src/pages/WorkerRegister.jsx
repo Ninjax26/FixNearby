@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { workerSignup } from "../services/workerService";
+import useToast from "../hooks/useToast";
 
 const WorkerRegister = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +10,7 @@ const WorkerRegister = () => {
     location: "",
     contact: "",
   });
-
+  const {showToast}=useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -18,6 +20,7 @@ const WorkerRegister = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    if(error) setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -28,24 +31,9 @@ const WorkerRegister = () => {
       setError("");
       setSuccess("");
 
-      const response = await fetch(
-        "http://localhost:5000/api/workers/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const workerData = await workerSignup(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      setSuccess("Worker registered successfully!");
+      showToast("Worker registered successfully!");
 
       setFormData({
         name: "",
@@ -56,11 +44,14 @@ const WorkerRegister = () => {
       });
 
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Worker Registration failed, Try again");
     } finally {
       setLoading(false);
     }
   };
+     //                 INPUT STYLE
+   const inputStyles = (field) =>
+    `appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md`;
 
   return (
     <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -88,7 +79,7 @@ const WorkerRegister = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className={inputStyles["name"]}
             />
 
             {/* Category */}
@@ -97,7 +88,7 @@ const WorkerRegister = () => {
               value={formData.category}
               onChange={handleChange}
               required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md bg-white"
+              className={inputStyles["category"]}
             >
               <option value="">Select Service Category</option>
               <option value="Electrician">Electrician</option>
@@ -114,13 +105,14 @@ const WorkerRegister = () => {
 
             {/* Experience */}
             <input
-              type="text"
+              type="number"
+              min="0"
               name="experience"
               placeholder="Experience (e.g. 3 years)"
               value={formData.experience}
               onChange={handleChange}
               required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className={inputStyles["experience"]}
             />
 
             {/* Location */}
@@ -131,18 +123,18 @@ const WorkerRegister = () => {
               value={formData.location}
               onChange={handleChange}
               required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className={inputStyles["location"]}
             />
 
             {/* Contact */}
             <input
-              type="text"
+              type="tel"
               name="contact"
               placeholder="Contact Number"
               value={formData.contact}
               onChange={handleChange}
               required
-              className="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className={inputStyles["contact"]}
             />
           </div>
 

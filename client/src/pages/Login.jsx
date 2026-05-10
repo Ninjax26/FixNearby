@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { loginUser } from '../services/authService';
+import useToast from '../hooks/useToast';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  const {showToast} = useToast();
   const [formData, setFormData] = useState({ email: '', password: '' });
-
   const [interacted, setInteracted] = useState({});
   const [errors, setErrors] = useState({});
   const [apiError, setApiError]=useState(null);
@@ -40,6 +41,7 @@ const Login = () => {
 
       setErrors((prev) => ({ ...prev, [name]: errorMsgs }));
     }
+    if(apiError) setApiError(null);
   };
 
   const handleBlur = (e) => {
@@ -81,31 +83,31 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setApiError(data.message || "Login failed. Please try again.");
-        return;
-      }
+      const userData = await loginUser(formData);
 
       // Persist user + token via AuthContext
-      login(data);
+      login(userData);
+      showToast("Logged in successfully")
       navigate("/dashboard");
-    } catch {
-      setApiError("Network error. Please check your connection and try again.");
+      setFormData({ email : "", password :""})
+
+    } catch(error) {
+      setApiError(error.message || "Login Failed , Try again");
     } finally {
       setLoading(false);
     }
   };
+
+    // ---------------- INPUT STYLE ----------------
+
+  const inputStyles = (field) =>
+    `appearance-none relative block w-full px-4 py-3 border rounded-xl 
+    focus:outline-none transition duration-200 bg-gray-50
+    ${
+      interacted[field] && errors[field]
+        ? "border-red-500 focus:ring-2 focus:ring-red-200 focus:border-red-500"
+        : "border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+    }`;
 
   return (
     <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -120,8 +122,9 @@ const Login = () => {
           </div>
         )} 
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
+        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+          {/* Email */}
+          <div>
             <input
               name="email"
               type="email"
@@ -130,8 +133,19 @@ const Login = () => {
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="Email address"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition"
+              className={inputStyles("email")}
             />
+             {/* Reserved error space */}
+            <div className="min-h-[22px] mt-1 text-sm">
+              {interacted.email && errors.email && (<span className="text-red-600">
+                  {errors.email}
+                </span>
+              )}
+            </div>
+            </div>
+              
+              {/* Password */}
+            <div>
             <div className="relative">
               <input
                 name="password"
@@ -141,7 +155,7 @@ const Login = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="Password"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition"
+                className={`${inputStyles("password")} pr-12`}
               />
               <button
                 type="button"
@@ -150,19 +164,16 @@ const Login = () => {
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
+              </div>
+            {/* Reserved error space */}
+            <div className="min-h-[22px] mt-1 text-sm">
+              {interacted.password && errors.password && (<span className="text-red-600">
+                  {errors.password}
+                </span>
+              )}
             </div>
-            {interacted.email && errors.email && (
-              <div className="mt-1 text-red-700 text-sm">
-                {errors.email}
-              </div>
-            )}
-            
-            {interacted.password && errors.password && (
-              <div className="mt-1 text-red-700 text-sm">
-                {errors.password}
-              </div>
-            )}
-          </div>
+            </div>
+               {/* submit */}
           <button
             type="submit"
             disabled={loading}
@@ -170,13 +181,13 @@ const Login = () => {
           >
             {loading ? "Signing you in…" : "Sign In"}
           </button>
-        </form>
+      </form>
 
         <p className="text-center text-sm text-gray-600">
           Don&apos;t have an account?{"  "}
           <Link
             to="/register"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-blue-600 hover:underline font-semibold"
           >
             Register
           </Link>
