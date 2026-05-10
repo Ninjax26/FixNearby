@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { signupUser } from "../services/authService";
 import useToast from "../hooks/useToast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 
 const Register = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const Register = () => {
   const [errors, setErrors]=useState({});
   const [apiError,setApiError]=useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // ---------------- VALIDATION ----------------
 
@@ -231,8 +234,8 @@ const Register = () => {
             </div>
           </div>
 
+         {/* Phone */}
           <div>
-          {/* Phone */}
             <input
               id="phone"
               name="phone"
@@ -243,32 +246,40 @@ const Register = () => {
               placeholder="Phone Number"
               className={inputStyles("phone")}
             />
-
-            {/* Empty reserved space */}
-          <div className="min-h-[22px] mt-1 text-sm">
+              {/* Error Reserved space */}        
+              <div className="min-h-[22px] mt-1 text-sm">
               {interacted.phone && errors.phone && (
                 <span className="text-red-600">
                   {errors.phone}
                 </span>
               )}
             </div>
-          </div>
-
+          </div>  
           {/* Password */}
-          <div>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="Password"
-              className={inputStyles("password")}
-            />
+            <div>
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Password"
+                className={`${inputStyles("password")} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+              </div>
 
-            <div className="min-h-[22px] mt-1 text-sm">
+            {/* error reserved space */}
+          <div className="min-h-[22px] mt-1 text-sm">
               {interacted.password && errors.password && (
                 <span className="text-red-600">
                   {errors.password}
@@ -277,6 +288,7 @@ const Register = () => {
             </div>
           </div>
 
+         
           {/* Submit Button */}
           <button
             type="submit"
@@ -298,8 +310,6 @@ const Register = () => {
           >
             Sign in
           </Link>
-
-          
         </p>
       </div>
     </div>

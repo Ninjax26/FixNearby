@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../services/authService';
 import useToast from '../hooks/useToast';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError]=useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
     const validateFields=(name,value)=>{
     const emailRegex= /^[a-zA-Z0-9._%+-]+@[a-zA-Z]+\.[a-zA-Z]{2,}$/;
@@ -85,9 +87,9 @@ const Login = () => {
 
       // Persist user + token via AuthContext
       login(userData);
-      showToast("Logged in Successfully")
+      showToast("Logged in successfully")
       navigate("/dashboard");
-      setFormData({email :"", password:""})
+      setFormData({ email : "", password :""})
 
     } catch(error) {
       setApiError(error.message || "Login Failed , Try again");
@@ -121,6 +123,7 @@ const Login = () => {
         )} 
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+          {/* Email */}
           <div>
             <input
               name="email"
@@ -139,25 +142,38 @@ const Login = () => {
                 </span>
               )}
             </div>
-          </div>
-          <div>
-            <input
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              placeholder="Password"
-              className={inputStyles("password")}
-            />
-             <div className="min-h-[22px] mt-1 text-sm">
+            </div>
+              
+              {/* Password */}
+            <div>
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Password"
+                className={`${inputStyles("password")} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+              </div>
+            {/* Reserved error space */}
+            <div className="min-h-[22px] mt-1 text-sm">
               {interacted.password && errors.password && (<span className="text-red-600">
                   {errors.password}
                 </span>
               )}
             </div>
-          </div>
+            </div>
+               {/* submit */}
           <button
             type="submit"
             disabled={loading}
@@ -165,7 +181,7 @@ const Login = () => {
           >
             {loading ? "Signing you in…" : "Sign In"}
           </button>
-        </form>
+      </form>
 
         <p className="text-center text-sm text-gray-600">
           Don&apos;t have an account?{"  "}

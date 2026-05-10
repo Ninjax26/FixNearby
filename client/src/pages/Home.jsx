@@ -271,7 +271,7 @@ const Home = () => {
     <div className="bg-white">
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="relative pb-24 sm:pb-28">
+          <div className="relative pb-[260px] sm:pb-[220px] lg:pb-[180px]">
             <div className="relative overflow-hidden rounded-[36px] shadow-[0_18px_40px_rgba(15,23,42,0.18)]">
               <div className="relative h-[320px] sm:h-[380px] lg:h-[420px]">
                 <img
@@ -283,12 +283,12 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-[220px] w-full -translate-x-1/2 px-5 sm:top-[260px] sm:px-8 lg:top-[290px]">
-              <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-slate-200 bg-white/95 px-7 py-7 text-center shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur sm:px-10 sm:py-9">
+            <div className="absolute left-1/2 top-[180px] w-full -translate-x-1/2 px-5 sm:top-[220px] sm:px-8 lg:top-[250px]">
+              <div className="mx-auto w-full max-w-[560px] lg:max-w-[720px] rounded-2xl border border-slate-200 bg-white/95 px-7 py-7 text-center shadow-[0_14px_32px_rgba(15,23,42,0.18)] backdrop-blur sm:px-10 sm:py-9">
                 <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
                   Trusted by 10,000+ homeowners
                 </div>
-                <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                <h1 className="text-gray-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                   Reliable Home Services,
                   <span className="block text-[#0056D2]">
                     Right When You Need Them

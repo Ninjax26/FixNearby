@@ -19,6 +19,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
+import BackToTop from './components/BackToTop';
 
 function AppContent() {
   const location = useLocation();
@@ -51,6 +52,7 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <BackToTop /> 
       <Footer />
     </div>
   );
