@@ -310,157 +310,118 @@ const Services = () => {
 
             </div>
       {/* HEADER */}
+      {/* HERO + SEARCH SECTION */}
 
-      <div className="text-center mb-12">
+<section className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
 
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900">
-          Find Trusted Skilled Professionals
-        </h1>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
-        <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
-          Compare pricing, ratings, experience and availability
-          before booking trusted local professionals.
-        </p>
+    <div className="max-w-3xl">
 
+      {/* LABEL */}
+
+      <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-sm font-medium text-blue-100 mb-6">
+        🚀 Trusted Local Professionals
       </div>
 
-      {/* SEARCH + FILTER */}
+      {/* TITLE */}
 
-      <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm mb-10">
+      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
+        Find Skilled Professionals Near You
+      </h1>
+
+      {/* DESCRIPTION */}
+
+      <p className="text-slate-300 mt-6 text-lg leading-relaxed max-w-2xl">
+        Compare ratings, pricing and availability before booking trusted experts for your home services.
+      </p>
+
+      {/* SEARCH CONTAINER */}
+
+      <div className="bg-white rounded-3xl p-4 sm:p-5 mt-10 shadow-xl border border-white/10">
+
+        {/* SEARCH ROW */}
 
         <div className="flex flex-col lg:flex-row gap-4">
 
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search electricians, plumbers..."
-            className="flex-1 px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {/* SEARCH INPUT */}
+
+          <div className="relative flex-1">
+
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+              🔍
+            </span>
+
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search electricians, plumbers..."
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+            />
+
+          </div>
+
+          {/* SORT */}
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-5 py-3 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-5 py-4 rounded-2xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
           >
-            <option value="distance">Nearest</option>
-            <option value="rating">Top Rated</option>
-            <option value="price">Lowest Price</option>
+            <option value="distance">
+              📍 Nearest
+            </option>
+
+            <option value="rating">
+              ⭐ Top Rated
+            </option>
+
+            <option value="price">
+              💰 Lowest Price
+            </option>
+
           </select>
 
         </div>
 
-        {/* CATEGORY BUTTONS */}
+        {/* CATEGORY PILLS */}
 
-        <div className="flex flex-wrap gap-3 mt-6">
+        <div className="flex gap-3 mt-5 overflow-x-auto pb-1 scrollbar-hide">
 
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-4 py-2 rounded-full text-sm border transition-all duration-300 ${
-                categoryFilter === cat
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                  : "bg-white text-slate-700 border-slate-300 hover:border-blue-400 hover:text-blue-600"
-              }`}
+              className={`
+                shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                ${
+                  categoryFilter === cat
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }
+              `}
             >
-              {iconMap[cat] && (
-                <span className="mr-1">
+
+              {cat !== "All" && iconMap[cat] && (
+                <span className="mr-2">
                   {iconMap[cat]}
                 </span>
               )}
 
               {cat}
+
             </button>
           ))}
 
         </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
-
-              Find Skilled Professionals Near You
-
-            </h1>
-
-            <p className="text-slate-300 mt-6 text-lg leading-relaxed max-w-2xl">
-
-              Compare ratings, pricing, experience and response
-              time before booking verified professionals for
-              your home services.
-
-            </p>
-
-            {/* SEARCH */}
-
-            <div className="bg-white rounded-3xl p-4 mt-10 shadow-2xl">
-
-              <div className="flex flex-col lg:flex-row gap-4">
-
-                <input
-                  value={searchQuery}
-                  onChange={(e) =>
-                    setSearchQuery(e.target.value)
-                  }
-                  placeholder="Search electricians, plumbers..."
-                  className="flex-1 px-5 py-4 text-slate-900 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-
-                <select
-                  value={sortBy}
-                  onChange={(e) =>
-                    setSortBy(e.target.value)
-                  }
-                  className="px-5 py-4 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="distance">
-                    Nearest
-                  </option>
-
-                  <option value="rating">
-                    Top Rated
-                  </option>
-
-                  <option value="price">
-                    Lowest Price
-                  </option>
-                </select>
-
-              </div>
-
-              {/* CATEGORY */}
-
-              <div className="flex flex-wrap gap-3 mt-5">
-
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() =>
-                      setCategoryFilter(cat)
-                    }
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      categoryFilter === cat
-                        ? "bg-blue-600 text-white shadow-lg"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {iconMap[cat] && (
-                      <span className="mr-1">
-                        {iconMap[cat]}
-                      </span>
-                    )}
-
-                    {cat}
-                  </button>
-                ))}
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
       </div>
+
+    </div>
+
+  </div>
+
+</section>
 
       {/* RESULTS */}
 
