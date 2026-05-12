@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
 import { useMemo } from "react";
 import { useLocation } from "../context/LocationContext";
 import { formatDistance, getDistanceKm } from "../utils/distance";
@@ -218,101 +217,14 @@ const ALL_WORKERS = [
 const workerIconMap = {
   Electrician: IconBolt,
   Plumber: IconPipe,
+  Carpenter: IconSaw,
   Painter: IconBrush,
   "AC Technician": IconSnowflake,
-};
-
-const ALL_WORKERS = [
-  {
-    id: 1,
-    name: "John Doe",
-    profession: "Electrician",
-    rating: 4.8,
-    price: "$40/hr",
-    available: true,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    profession: "Plumber",
-    rating: 4.9,
-    price: "$50/hr",
-    available: false,
-  },
-  {
-    id: 3,
-    name: "Ravi Kumar",
-    profession: "Painter",
-    rating: 4.6,
-    price: "$30/hr",
-    available: true,
-  },
-  {
-    id: 4,
-    name: "Amit Sharma",
-    profession: "AC Technician",
-    rating: 4.7,
-    price: "$45/hr",
-    available: true,
-  },
-];
-
-const Home = () => {
-  const [workers, setWorkers] = useState([]);
-
-  useEffect(() => {
-    setWorkers(ALL_WORKERS);
-  }, []);
-
-  return (
-    <div className="bg-white">
-      {/* HERO */}
-      <section className="relative">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="relative rounded-[36px] overflow-hidden shadow-2xl">
-            <img
-              src="/hero-section.png"
-              alt="Hero"
-              className="w-full h-[500px] object-cover"
-            />
-
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <div className="text-center text-white max-w-3xl px-4">
-                <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
-                  Trusted Home Services Near You
-                </h1>
-
-                <p className="mt-6 text-lg text-slate-200">
-                  Book verified electricians, plumbers, cleaners,
-                  painters and more instantly.
-                </p>
-
-                <div className="mt-8 flex justify-center gap-4 flex-wrap">
-                  <Link
-                    to="/services"
-                    className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-semibold"
-                  >
-                    Find Workers
-                  </Link>
-
-                  <Link
-                    to="/worker-register"
-                    className="bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold"
-                  >
-                    Become a Worker
+  Cleaner: IconBroom,
   Mechanic: IconSaw,
   Gardener: IconBroom,
   "Appliance Repair": IconBolt,
   "Pest Control": IconBug,
-};
-
-const categoryDescriptions = {
-  Electrician: "Troubleshoot wiring, fixtures, and urgent power issues.",
-  Plumber: "Compare nearby plumbers for leaks, fittings, and drain fixes.",
-  Carpenter: "Find help for repairs, custom work, and installations.",
-  Cleaner: "Book trusted cleaners for one-time or recurring support.",
-  Painter: "Browse painters for quick touch-ups or full-room refreshes.",
-  "AC Technician": "See technicians for cooling issues, servicing, and installs.",
 };
 
 const Home = () => {
@@ -343,6 +255,7 @@ const Home = () => {
 
   return (
     <div className="bg-white">
+      {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <div className="relative pb-[260px] sm:pb-[220px] lg:pb-[180px]">
@@ -362,7 +275,7 @@ const Home = () => {
                 <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
                   Trusted by 10,000+ homeowners
                 </div>
-                <h1 className="text-gray-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                   Reliable Home Services,
                   <span className="block text-[#0056D2]">
                     Right When You Need Them
@@ -392,137 +305,29 @@ const Home = () => {
         </div>
       </section>
 
-      {/* STATS */}
+      {/* STATS SECTION */}
       <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="mx-auto max-w-7xl px-4 grid grid-cols-2 gap-6 md:grid-cols-4">
           {[
             { number: "10K+", label: "Happy Customers" },
-            { number: "500+", label: "Verified Workers" },
+            { number: "500+", label: "Verified Pros" },
             { number: "24/7", label: "Support" },
-            { number: "4.9★", label: "Average Rating" },
-          ].map((item, idx) => (
+            { number: "4.9/5", label: "Rating" },
+          ].map((item) => (
             <div
-              key={idx}
-              className="bg-white rounded-3xl p-8 text-center shadow-sm border"
+              key={item.label}
+              className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:shadow-xl"
             >
-              <h3 className="text-4xl font-extrabold text-slate-900">
+              <div className="text-4xl font-extrabold text-slate-900">
                 {item.number}
-              </h3>
-
-              <p className="mt-2 text-slate-600">
-                {item.label}
-              </p>
+              </div>
+              <p className="mt-2 font-medium text-slate-500">{item.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* FEATURED WORKERS */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-12">
-            <div>
-              <h2 className="text-4xl font-extrabold text-slate-900">
-                Featured Professionals
-              </h2>
-
-              <p className="text-slate-600 mt-3">
-                Trusted experts ready to help you.
-              </p>
-            </div>
-
-            <Link
-              to="/services"
-              className="text-blue-600 font-semibold hover:underline"
-            >
-              View All →
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {workers.map((worker) => {
-              const WorkerIcon =
-                workerIconMap[worker.profession] || IconBolt;
-
-              return (
-                <div
-                  key={worker.id}
-                  className="bg-white border rounded-3xl p-6 shadow-sm hover:shadow-xl transition"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-                      <WorkerIcon className="w-8 h-8 text-slate-900" />
-                    </div>
-
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        worker.available
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {worker.available ? "Available" : "Busy"}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-5 text-xl font-bold text-slate-900">
-                    {worker.name}
-                  </h3>
-
-                  <p className="text-blue-600 font-medium mt-1">
-                    {worker.profession}
-                  </p>
-
-                  <div className="flex items-center justify-between mt-5 text-sm">
-                    <span>⭐ {worker.rating}</span>
-                    <span className="font-semibold">
-                      {worker.price}
-                    </span>
-                  </div>
-
-                  <Link
-                    to={`/worker/${worker.id}`}
-                    className="mt-6 block text-center bg-slate-900 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              );
-            })}
-      <section className="border-t border-slate-100 bg-slate-50 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-14 max-w-3xl text-center">
-            <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
-              Why Choose <span className="text-[#0056D2]">FixNearby</span>
-            </h2>
-            <p className="mt-5 text-lg text-slate-600">
-              We focus on safety, reliability, and quality service.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {[
-              { number: "10K+", label: "Happy Customers", icon: "HC" },
-              { number: "500+", label: "Verified Pros", icon: "VP" },
-              { number: "24/7", label: "Support", icon: "SU" },
-              { number: "4.9/5", label: "Rating", icon: "RT" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:shadow-xl"
-              >
-                <div className="mb-4 text-2xl font-bold text-[#0056D2]">
-                  {item.icon}
-                </div>
-                <div className="text-4xl font-extrabold text-slate-900">
-                  {item.number}
-                </div>
-                <p className="mt-2 font-medium text-slate-500">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
+      {/* CLOSEST WORKERS SECTION */}
       {(geoLoading || coords || geoError) && (
         <section className="bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -624,6 +429,7 @@ const Home = () => {
         </section>
       )}
 
+      {/* HOW IT WORKS SECTION */}
       <section id="how-it-works" className="bg-slate-50 py-24">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <h2 className="mb-4 text-5xl font-extrabold text-slate-900">
@@ -632,7 +438,7 @@ const Home = () => {
           <p className="mb-16 text-lg text-slate-600">
             Three simple steps to get it done.
           </p>
-          <div className="relative grid gap-14 md:grid-cols-3">
+          <div className="grid gap-14 md:grid-cols-3">
             {[
               {
                 step: "1",
@@ -669,104 +475,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-extrabold text-slate-900">
-            How It Works
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-10 mt-16">
-            {[
-              {
-                step: "1",
-                title: "Search Services",
-                desc: "Find trusted professionals near you.",
-              },
-              {
-                step: "2",
-                title: "Book Instantly",
-                desc: "Choose your preferred date and time.",
-              },
-              {
-                step: "3",
-                title: "Get It Done",
-                desc: "Relax while experts complete the work.",
-              },
-            ].map((item) => (
-              <div
-                key={item.step}
-                className="bg-white rounded-3xl p-10 border shadow-sm"
-              >
-                <div className="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold mx-auto">
-                  {item.step}
-                </div>
-
-                <h3 className="mt-6 text-2xl font-bold text-slate-900">
-                  {item.title}
-                </h3>
-
-                <p className="mt-3 text-slate-600">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-7xl px-4 text-center">
-          <h2 className="mb-12 text-4xl font-extrabold text-slate-900">
-            Popular Categories
-          </h2>
-          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-3">
-            {[
-              "Electrician",
-              "Plumber",
-              "Carpenter",
-              "Cleaner",
-              "Painter",
-              "AC Technician",
-            ].map((category) => {
-              const CategoryIcon = workerIconMap[category] || IconBolt;
-
-              return (
-                <Link
-                  key={category}
-                  to={`/services?category=${category}`}
-                  className="group rounded-2xl border-2 border-slate-100 bg-white p-8 text-left shadow-sm transition hover:border-[#0056D2] hover:shadow-md"
-                >
-                  <CategoryIcon className="mx-auto mb-4 h-12 w-12 text-slate-900 transition group-hover:text-[#0056D2]" />
-                  <div className="text-center font-semibold text-slate-900">
-                    {category}
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {categoryDescriptions[category]}
-                  </p>
-                  <div className="mt-4 text-sm font-semibold text-[#0056D2]">
-                    See available pros
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 bg-blue-600 text-white text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-5xl font-extrabold">
-            Need Help Today?
-          </h2>
-
-          <p className="mt-5 text-lg text-blue-100">
-            Hire trusted professionals in minutes.
-          </p>
-
-          <Link
-            to="/services"
-            className="inline-block mt-8 bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold"
-          >
-            Explore Services
-          </Link>
+      {/* CTA SECTION */}
       <section className="bg-[#0056D2] py-20 text-center text-white">
         <div className="mx-auto max-w-3xl px-4">
           <h2 className="mb-4 text-4xl font-extrabold">Need help today?</h2>
@@ -794,5 +503,4 @@ const Home = () => {
   );
 };
 
-export default Home;
 export default Home;
