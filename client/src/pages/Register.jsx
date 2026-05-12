@@ -138,7 +138,10 @@ const Register = () => {
         password: formData.password,
       });
 
-      login(userData);
+      login({
+        ...userData,
+        phone: formData.phone,
+      });
       showToast("Registration successful! Welcome to FixNearby.");
 
       setFormData({ name: "", email: "", phone: "", password: "" });

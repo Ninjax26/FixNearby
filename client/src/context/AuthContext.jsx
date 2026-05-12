@@ -37,7 +37,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const value = {
-    user: authData ? { _id: authData._id, name: authData.name, email: authData.email } : null,
+    user: authData ? {
+      _id: authData._id,
+      name: authData.name,
+      email: authData.email,
+      phone: authData.phone,
+    } : null,
     token: authData?.token ?? null,
     isAuthenticated: !!authData?.token,
     login,
