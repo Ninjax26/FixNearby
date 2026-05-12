@@ -85,6 +85,8 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
   return radiusKm * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 };
 
+const formatDistance = (km) =>
+  km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
 const formatDistance = (distance) => {
   if (distance < 1) {
     return `${Math.round(distance * 1000)} m`;
@@ -106,13 +108,41 @@ const Services = () => {
 
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "distance");
 
-  const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [workers, setWorkers] = useState([]);
   const [recentWorkers, setRecentWorkers] = useState([]);
 
   const [coords, setCoords] = useState(null);
   const [locationStatus, setLocationStatus] = useState("idle");
 
+  // ---------------- CATEGORIES ----------------
+
+  const categories = [
+    "All",
+    "Electrician",
+    "Plumber",
+    "Carpenter",
+    "Painter",
+    "AC Technician",
+    "Cleaner",
+    "Mechanic",
+    "Gardener",
+    "Appliance Repair",
+    "Pest Control",
+  ];
+
+  const iconMap = {
+    Electrician: "⚡",
+    Plumber: "🚰",
+    Carpenter: "🪵",
+    Painter: "🎨",
+    "AC Technician": "❄️",
+    Cleaner: "🧹",
+    Mechanic: "🔧",
+    Gardener: "🌱",
+    "Appliance Repair": "🔌",
+    "Pest Control": "🐜",
+  };
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationStatus("unsupported");

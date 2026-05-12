@@ -20,10 +20,11 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import BackToTop from './components/BackToTop';
+import SOSButton from './components/SOSButton';
 
 function AppContent() {
   const location = useLocation();
-  // Only show LocationBanner if not on the Home page
+  // only show LocationBanner if not on the Home page
   const showLocationBanner = location.pathname !== '/';
 
   return (
@@ -48,11 +49,12 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/faq" element={<FAQ />} />
-          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <BackToTop /> 
+      <BackToTop />
+      {/* SOS button stays fixed on every page for emergency bookings */}
+      <SOSButton />
       <Footer />
     </div>
   );
@@ -67,4 +69,3 @@ function App() {
 }
 
 export default App;
-
