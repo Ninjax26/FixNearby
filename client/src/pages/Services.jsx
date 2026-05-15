@@ -1,12 +1,78 @@
-import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 
-// ---------------- HELPERS ----------------
+const categories = [
+  "All",
+  "Electrician",
+  "Plumber",
+  "Carpenter",
+  "Painter",
+  "AC Technician",
+  "Cleaner",
+  "Mechanic",
+  "Gardener",
+  "Appliance Repair",
+  "Pest Control",
+];
+
+const iconMap = {
+  Electrician: "⚡",
+  Plumber: "🚰",
+  Carpenter: "🪵",
+  Painter: "🎨",
+  "AC Technician": "❄️",
+  Cleaner: "🧹",
+  Mechanic: "🔧",
+  Gardener: "🌱",
+  "Appliance Repair": "🔌",
+  "Pest Control": "🐜",
+};
+
+const mockWorkers = [
+  {
+    id: 1,
+    name: "John Doe",
+    profession: "Electrician",
+    rating: 4.8,
+    price: 40,
+    availability: "Available today",
+    responseTime: "Replies in 20 min",
+    outcomeText:
+      "Open the full profile to compare pricing, reviews, and booking slots.",
+    mockOffset: { lat: 0.012, lon: 0.008 },
+    verified: true,
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    profession: "Plumber",
+    rating: 4.9,
+    price: 50,
+    availability: "Next slot this afternoon",
+    responseTime: "Replies in 15 min",
+    outcomeText:
+      "See availability first, then confirm a plumbing booking in one flow.",
+    mockOffset: { lat: -0.005, lon: 0.02 },
+    verified: true,
+  },
+  {
+    id: 3,
+    name: "Mike Johnson",
+    profession: "Carpenter",
+    rating: 4.5,
+    price: 35,
+    availability: "Available tomorrow morning",
+    responseTime: "Replies in 35 min",
+    outcomeText:
+      "Review past work and request a carpentry visit from the profile page.",
+    mockOffset: { lat: 0.03, lon: -0.015 },
+    verified: true,
+  },
+];
 
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
-  const R = 6371;
-
+  const radiusKm = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
@@ -16,34 +82,38 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) ** 2;
 
-  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  return radiusKm * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 };
 
-const formatDistance = (km) =>
-  km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+
+const formatDistance = (distance) => {
+  if (distance < 1) {
+    return `${Math.round(distance * 1000)} m`;
+  }
+
+  return `${distance.toFixed(1)} km`;
+};
 
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ---------------- STATES ----------------
-
   const [searchQuery, setSearchQuery] = useState(
-    searchParams.get("search") || ""
+    searchParams.get("search") || "",
   );
 
   const [categoryFilter, setCategoryFilter] = useState(
-    searchParams.get("category") || "All"
+    searchParams.get("category") || "All",
   );
 
-  const [sortBy, setSortBy] = useState(
-    searchParams.get("sort") || "distance"
-  );
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "distance");
 
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState([]);
-  const [coords, setCoords] = useState(null);
+  const [recentWorkers, setRecentWorkers] = useState([]);
 
-  // ---------------- CATEGORIES ----------------
+  const [coords, setCoords] = useState(null);
+  const [locationStatus, setLocationStatus] = useState("idle");
+
 
   const SERVICE_CATEGORIES = [
   {
@@ -101,152 +171,45 @@ const Services = () => {
     "Appliance Repair",
     "Pest Control",
   ];
-
-  const iconMap = {
-    Electrician: "⚡",
-    Plumber: "🚰",
-    Carpenter: "🪵",
-    Painter: "🎨",
-    "AC Technician": "❄️",
-    Cleaner: "🧹",
-    Mechanic: "🔧",
-    Gardener: "🌱",
-    "Appliance Repair": "🔌",
-    "Pest Control": "🐜",
-  };
-
-  // ---------------- LOCATION ----------------
-
   useEffect(() => {
-    navigator.geolocation?.getCurrentPosition((pos) => {
-      setCoords({
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-      });
-    });
-  }, []);
+    if (!navigator.geolocation) {
+      setLocationStatus("unsupported");
+      return;
+    }
 
-  // ---------------- MOCK DATA ----------------
+    setLocationStatus("loading");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+
+        setLocationStatus("success");
+      },
+      () => {
+        setLocationStatus("denied");
+      },
+    );
+  }, []);
 
   useEffect(() => {
     setLoading(true);
 
-    setTimeout(() => {
-      setWorkers([
-        {
-          id: 1,
-          name: "John Doe",
-          profession: "Electrician",
-          rating: 4.8,
-          price: 40,
-          experience: 6,
-          completedJobs: 124,
-          available: true,
-          responseTime: "10 mins",
-          verified: true,
-          instantBooking: true,
-          arrivalTime: "30 mins",
-          serviceWarranty: "7 Days",
-          successRate: 98,
-          recommended: true,
-        },
+    const timer = window.setTimeout(() => {
+      setWorkers(mockWorkers);
 
-        {
-          id: 2,
-          name: "Jane Smith",
-          profession: "Plumber",
-          rating: 4.9,
-          price: 50,
-          experience: 8,
-          completedJobs: 201,
-          available: false,
-          responseTime: "20 mins",
-          verified: true,
-          instantBooking: false,
-          arrivalTime: "1 hour",
-          serviceWarranty: "14 Days",
-          successRate: 96,
-          recommended: false,
-        },
+      const storedRecent =
+        JSON.parse(localStorage.getItem("recentWorkers")) || [];
 
-        {
-          id: 3,
-          name: "Mike Johnson",
-          profession: "Carpenter",
-          rating: 4.5,
-          price: 35,
-          experience: 5,
-          completedJobs: 98,
-          available: true,
-          responseTime: "15 mins",
-          verified: false,
-          instantBooking: true,
-          arrivalTime: "45 mins",
-          serviceWarranty: "5 Days",
-          successRate: 94,
-          recommended: false,
-        },
-
-        {
-          id: 4,
-          name: "Ravi Kumar",
-          profession: "Painter",
-          rating: 4.6,
-          price: 30,
-          experience: 4,
-          completedJobs: 76,
-          available: true,
-          responseTime: "12 mins",
-          verified: true,
-          instantBooking: true,
-          arrivalTime: "25 mins",
-          serviceWarranty: "10 Days",
-          successRate: 97,
-          recommended: true,
-        },
-
-        {
-          id: 5,
-          name: "Amit Sharma",
-          profession: "AC Technician",
-          rating: 4.7,
-          price: 45,
-          experience: 7,
-          completedJobs: 180,
-          available: false,
-          responseTime: "25 mins",
-          verified: true,
-          instantBooking: false,
-          arrivalTime: "2 hours",
-          serviceWarranty: "15 Days",
-          successRate: 95,
-          recommended: false,
-        },
-
-        {
-          id: 6,
-          name: "Rahul Das",
-          profession: "Cleaner",
-          rating: 4.4,
-          price: 25,
-          experience: 3,
-          completedJobs: 63,
-          available: true,
-          responseTime: "8 mins",
-          verified: false,
-          instantBooking: true,
-          arrivalTime: "20 mins",
-          serviceWarranty: "3 Days",
-          successRate: 91,
-          recommended: false,
-        },
-      ]);
+      setRecentWorkers(storedRecent);
 
       setLoading(false);
-    }, 700);
-  }, []);
+    }, 500);
 
-  // ---------------- URL SYNC ----------------
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const params = {};
@@ -264,32 +227,25 @@ const Services = () => {
     }
 
     setSearchParams(params);
-  }, [
-    searchQuery,
-    categoryFilter,
-    sortBy,
-    setSearchParams,
-  ]);
+  }, [categoryFilter, searchQuery, setSearchParams, sortBy]);
 
-  // ---------------- PROCESS ----------------
-  // ---------------- PROCESS WORKERS ----------------
-
-  const processedWorkers = useMemo(() => {
-    let result = workers.map((w) => {
-      let distance = null;
-
-      if (coords) {
-        distance = getDistanceKm(
-          coords.latitude,
-          coords.longitude,
-          coords.latitude + Math.random() * 0.05,
-          coords.longitude + Math.random() * 0.05
-        );
+  const filteredWorkers = useMemo(() => {
+    let result = workers.map((worker) => {
+      if (!coords) {
+        return { ...worker, distanceKm: null };
       }
 
+      const workerLat = coords.latitude + worker.mockOffset.lat;
+      const workerLon = coords.longitude + worker.mockOffset.lon;
+
       return {
-        ...w,
-        distanceKm: distance,
+        ...worker,
+        distanceKm: getDistanceKm(
+          coords.latitude,
+          coords.longitude,
+          workerLat,
+          workerLon,
+        ),
       };
     });
 
@@ -351,52 +307,41 @@ const Services = () => {
           w.profession.toLowerCase().includes(q)
       );
     }
+    result = result.filter((worker) => {
+      const search = searchQuery.trim().toLowerCase();
 
-    // CATEGORY
+      const matchesSearch =
+        !search ||
+        worker.name.toLowerCase().includes(search) ||
+        worker.profession.toLowerCase().includes(search);
 
-    if (categoryFilter !== "All") {
-      result = result.filter(
-        (w) => w.profession === categoryFilter
-      );
-    }
+      const matchesCategory =
+        categoryFilter === "All" || worker.profession === categoryFilter;
 
-    // SORT
+      return matchesSearch && matchesCategory;
+    });
 
     if (sortBy === "rating") {
       result.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "price") {
       result.sort((a, b) => a.price - b.price);
     } else {
-      result.sort(
-        (a, b) => (a.distanceKm || 999) - (b.distanceKm || 999)
-      );
+      result.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
     }
 
     return result;
-  }, [
-    workers,
-    searchQuery,
-    categoryFilter,
-    sortBy,
-    coords,
-  ]);
+  }, [categoryFilter, coords, searchQuery, sortBy, workers]);
 
-  // ---------------- UI ----------------
+  const handleRecentlyViewed = (worker) => {
+    let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
 
-  return (
-    <div className="min-h-screen bg-slate-50">
+    stored = stored.filter((item) => item.id !== worker.id);
 
-      {/* HERO */}
+    stored.unshift(worker);
 
-      <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
+    stored = stored.slice(0, 5);
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-
-          <div className="max-w-3xl">
-
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-sm mb-6">
-
-              🚀 Trusted Home Services
+    localStorage.setItem("recentWorkers", JSON.stringify(stored));
 
             </div>
       {/* HEADER */}
@@ -457,6 +402,39 @@ const Services = () => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="px-5 py-4 rounded-2xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+    setRecentWorkers(stored);
+  };
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl font-bold text-gray-900">
+          Find Reliable Services Near You
+        </h1>
+
+        <p className="mt-2 text-gray-500">
+          {locationStatus === "success"
+            ? "Showing nearby professionals"
+            : locationStatus === "loading"
+              ? "Detecting your location..."
+              : "Enable location for better distance results"}
+        </p>
+      </div>
+
+      <div className="mb-10 space-y-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search by worker or service..."
+            className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+          />
+
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value)}
+            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           >
             <option value="distance">
               📍 Nearest
@@ -471,7 +449,6 @@ const Services = () => {
             </option>
 
           </select>
-
         </div>
 
         {/* CATEGORY PILLS */}
@@ -512,121 +489,116 @@ const Services = () => {
   </div>
 
 </section>
+        <div className="flex flex-wrap justify-center gap-2">
+          {categories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => setCategoryFilter(category)}
+              className={`rounded-full border px-5 py-2 text-sm font-semibold transition ${
+                categoryFilter === category
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-600"
+              }`}
+            >
+              {category !== "All" && iconMap[category] && (
+                <span className="mr-2">{iconMap[category]}</span>
+              )}
 
-      {/* RESULTS */}
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {recentWorkers.length > 0 && (
+        <div className="mb-14">
+          <div className="mb-6 flex items-center gap-2">
+            <span className="text-2xl">⭐</span>
 
-        {!loading && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Recently Viewed Professionals
+            </h2>
+          </div>
 
-            <div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recentWorkers.map((worker) => (
+              <div
+                key={worker.id}
+                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
+              >
+                <div className="mb-4 text-4xl">
+                  {iconMap[worker.profession] || "👷"}
+                </div>
 
-              <h2 className="text-3xl font-bold text-slate-900">
-                Available Professionals
-              </h2>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {worker.name}
+                </h3>
 
-              <p className="text-slate-500 mt-1">
-
-                Showing{" "}
-                <span className="font-semibold text-slate-900">
-                  {processedWorkers.length}
-                </span>{" "}
-                professionals near you
-
-              </p>
-
-            </div>
-
-            <div className="flex items-center gap-3">
-
-              <div className="bg-white border border-slate-200 px-5 py-3 rounded-2xl shadow-sm">
-
-                <p className="text-xs text-slate-500">
-                  Avg Price
+                <p className="mb-3 font-medium text-blue-600">
+                  {worker.profession}
                 </p>
 
-                <h4 className="font-bold text-slate-900">
-                  $38/hr
-                </h4>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>⭐ {worker.rating}</span>
 
+                  <span>${worker.price}/hr</span>
+                </div>
               </div>
-
-              <div className="bg-white border border-slate-200 px-5 py-3 rounded-2xl shadow-sm">
-
-                <p className="text-xs text-slate-500">
-                  Verified
-                </p>
-
-                <h4 className="font-bold text-emerald-600">
-                  80%
-                </h4>
-
-      {/* RESULTS */}
-
-      {!loading && (
-        <div className="flex items-center justify-between mb-6">
-
-          <p className="text-slate-600">
-            Showing{" "}
-            <span className="font-semibold text-slate-900">
-              {processedWorkers.length}
-            </span>{" "}
-            professionals
-          </p>
-
+            ))}
+          </div>
         </div>
       )}
 
-      {/* CONTENT */}
-
       {loading ? (
         <LoadingSpinner />
-      ) : processedWorkers.length === 0 ? (
-        <div className="text-center py-20">
+      ) : filteredWorkers.length === 0 ? (
+        <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
+          <h3 className="text-2xl font-bold text-gray-900">No workers found</h3>
 
-          <div className="text-6xl mb-4">
-            🔍
-          </div>
-
-          <h3 className="text-2xl font-bold text-slate-900">
-            No workers found
-          </h3>
-
-          <p className="text-slate-500 mt-2">
-            Try another search or category
+          <p className="mx-auto mt-2 max-w-md text-gray-500">
+            Try a broader search or reset the selected category.
           </p>
 
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setCategoryFilter("All");
+              setSortBy("distance");
+            }}
+            className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
+          >
+            Reset Filters
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-7">
+        <>
+          <p className="mb-6 text-sm font-medium text-gray-500">
+            Showing {filteredWorkers.length} professionals
+          </p>
 
-          {processedWorkers.map((w) => (
-            <div
-              key={w.id}
-              className="group bg-white border border-slate-200 rounded-3xl p-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
-            >
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filteredWorkers.map((worker) => (
+              <div
+                key={worker.id}
+                className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl"
+              >
+                <div className="flex-1 p-8">
+                  <div className="mb-6 flex items-start justify-between">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600">
+                      {iconMap[worker.profession] || "👷"}
+                    </div>
 
-              {/* TOP */}
-
-              <div className="flex items-start justify-between">
-
-                <div>
-
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition">
-                    {iconMap[w.profession]}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 flex-wrap">
-
-                    {w.name}
-
-                    {w.verified && (
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    {worker.verified && (
+                      <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700">
                         Verified
                       </span>
                     )}
+                  </div>
 
+                  <h3 className="mb-1 text-2xl font-bold text-gray-900">
+                    {worker.name}
                   </h3>
 
                   <p className="text-blue-600 font-medium mt-1">
@@ -654,153 +626,39 @@ const Services = () => {
                 <div className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-xs text-slate-500 mb-1">
                     Rating
+                  <p className="mb-4 font-bold text-blue-600">
+                    {worker.profession}
                   </p>
 
-                  <p className="font-bold text-slate-900">
-                    ⭐ {w.rating}
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-xs text-slate-500 mb-1">
-                    Price
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    ${w.price}/hr
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-xs text-slate-500 mb-1">
-                    Experience
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    {w.experience} Years
-                  </p>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-xs text-slate-500 mb-1">
-                    Jobs Done
-                  </p>
-
-                  <p className="font-bold text-slate-900">
-                    {w.completedJobs}+
-                  </p>
-                </div>
-
-              </div>
-
-              {/* EXTRA INFO */}
-
-              <div className="mt-5 space-y-3 text-sm">
-
-                <div className="flex items-center justify-between text-slate-600">
-                  <span>
-                    ⚡ Response Time
-                  </span>
-
-                  <span className="font-medium text-slate-900">
-                    {w.responseTime}
-                  </span>
-                </div>
-
-                {w.distanceKm && (
-                  <div className="flex items-center justify-between text-slate-600">
-
-                    <span>
-                      📍 Distance
+                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                      {worker.availability}
                     </span>
 
-                    <span className="font-medium text-emerald-600">
-                      {formatDistance(w.distanceKm)}
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                      {worker.responseTime}
                     </span>
-
-                  </div>
-                )}
-
-              </div>
-
-              {/* ACTION OUTCOME SECTION */}
-
-              <div className="mt-6 border-t border-slate-200 pt-5">
-
-                {/* BOOKING INFO */}
-
-                <div className="space-y-3 mb-5">
-
-                  <div className="flex items-center justify-between text-sm">
-
-                    <span className="text-slate-500">
-                      🚀 Booking Type
-                    </span>
-
-                    <span
-                      className={`font-semibold ${
-                        w.instantBooking
-                          ? "text-emerald-600"
-                          : "text-orange-500"
-                      }`}
-                    >
-                      {w.instantBooking
-                        ? "Instant Confirmation"
-                        : "Approval Required"}
-                    </span>
-
                   </div>
 
-                  <div className="flex items-center justify-between text-sm">
-
-                    <span className="text-slate-500">
-                      ⏱ Arrival Time
+                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                    <span className="font-bold text-gray-900">
+                      Rating {worker.rating}
                     </span>
 
-                    <span className="font-semibold text-slate-900">
-                      {w.arrivalTime}
+                    <span className="font-bold text-gray-900">
+                      ${worker.price}/hr
                     </span>
 
+                    {worker.distanceKm !== null && (
+                      <span className="font-bold text-gray-900">
+                        {formatDistance(worker.distanceKm)}
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between text-sm">
-
-                    <span className="text-slate-500">
-                      🛡 Service Warranty
-                    </span>
-
-                    <span className="font-semibold text-slate-900">
-                      {w.serviceWarranty}
-                    </span>
-
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-
-                    <span className="text-slate-500">
-                      📈 Success Rate
-                    </span>
-
-                    <span className="font-semibold text-emerald-600">
-                      {w.successRate}%
-                    </span>
-
-                  </div>
-
-                </div>
-
-                {/* CONFIDENCE BOX */}
-
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-5">
-
-                  <p className="text-sm text-slate-700 leading-relaxed">
-
-                    {w.instantBooking
-                      ? `Book now and get instant confirmation with expected arrival within ${w.arrivalTime}.`
-                      : `Worker will review your request before confirming the booking.`}
-
+                  <p className="text-sm leading-6 text-slate-600">
+                    {worker.outcomeText}
                   </p>
-
                 </div>
 
                 {/* BUTTONS */}
@@ -1396,9 +1254,10 @@ const Services = () => {
                 <div className="p-8 pt-0">
                   <Link
                     to={`/worker/${worker.id}`}
-                    className="block w-full text-center bg-gray-900 hover:bg-blue-600 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-md hover:shadow-blue-200"
+                    onClick={() => handleRecentlyViewed(worker)}
+                    className="block w-full rounded-xl bg-gray-900 py-4 text-center font-bold text-white transition-all duration-300 hover:bg-blue-600"
                   >
-                    View Details & Book
+                    View Profile and Book
                   </Link>
                 </div>
               </div>

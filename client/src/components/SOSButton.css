@@ -1,0 +1,144 @@
+/* fixed to bottom right so it's always visible on every page */
+.sos-wrapper {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+.sos-btn {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sos-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(220, 38, 38, 0.65);
+}
+.sos-btn--active {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+}
+.sos-btn-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  z-index: 1;
+}
+.sos-btn-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1px;
+}
+/* pulsing ring animation to make the button stand out */
+.sos-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.4);
+  animation: sos-pulse 1.8s ease-out infinite;
+}
+@keyframes sos-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+.sos-panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid #fee2e2;
+  width: 220px;
+  animation: sos-slide-in 0.2s ease;
+}
+@keyframes sos-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sos-panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.sos-options {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sos-option-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #fee2e2;
+  background: #fff5f5;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sos-option-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+/* cancel button at the bottom of the panel */
+.sos-cancel-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sos-cancel-btn:hover {
+  background: #e2e8f0;
+}
+@media (max-width: 640px) {
+  .sos-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .sos-wrapper {
+    bottom: 20px;
+    right: 20px;
+  }
+}

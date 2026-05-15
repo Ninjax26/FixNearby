@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Toast from './components/Toast';
 import LocationBanner from './components/LocationBanner';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -19,16 +20,19 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
+import BackToTop from './components/BackToTop';
+import SOSButton from './components/SOSButton';
 
 function AppContent() {
   const location = useLocation();
-  // Only show LocationBanner if not on the Home page
+  // only show LocationBanner if not on the Home page
   const showLocationBanner = location.pathname !== '/';
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       {showLocationBanner && <LocationBanner />}
+      <Toast />
       <main className="flex-grow bg-gray-50">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -47,10 +51,12 @@ function AppContent() {
           <Route path="/community" element={<Community />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/faq" element={<FAQ />} />
-          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <BackToTop />
+      {/* SOS button stays fixed on every page for emergency bookings */}
+      <SOSButton />
       <Footer />
     </div>
   );
@@ -65,4 +71,3 @@ function App() {
 }
 
 export default App;
-
