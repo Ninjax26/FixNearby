@@ -10,7 +10,120 @@
   .btn-glow {
     box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
   }
+
+  /* ============ Button Styles ============ */
+  /* Primary Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg transition-all duration-200;
+    @apply hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600;
+  }
+
+  .btn-primary-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-primary-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2.5 bg-gray-100 text-gray-700 font-medium text-sm rounded-lg transition-all duration-200;
+    @apply hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-secondary-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* Danger Button */
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2.5 bg-red-600 text-white font-medium text-sm rounded-lg transition-all duration-200;
+    @apply hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Outline Button */
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-4 py-2.5 bg-white text-gray-600 font-medium text-sm rounded-lg border border-gray-200 transition-all duration-200;
+    @apply hover:border-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Text Button */
+  .btn-text {
+    @apply inline-flex items-center justify-center text-blue-600 font-medium text-sm transition-colors duration-200;
+    @apply hover:text-blue-700 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  }
+
+  .btn-text-danger {
+    @apply inline-flex items-center justify-center text-red-600 font-medium text-sm transition-colors duration-200;
+    @apply hover:text-red-700 hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500;
+  }
+
+  /* Icon Button (for filtering, etc.) */
+  .btn-icon-toggle {
+    @apply inline-flex items-center justify-center px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 border;
+  }
+
+  .btn-icon-toggle.active {
+    @apply bg-blue-600 text-white border-blue-600 shadow-lg;
+  }
+
+  .btn-icon-toggle.inactive {
+    @apply bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-600;
+  }
+
+  /* Full Width Button */
+  .btn-full {
+    @apply w-full;
+  }
+
+  /* ============ Input Styles ============ */
+  /* Standard Input */
+  .input-base {
+    @apply block w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg transition-all duration-200;
+    @apply placeholder-gray-500 text-gray-900;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0;
+  }
+
+  .input-base:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+  }
+
+  /* Textarea */
+  .textarea-base {
+    @apply block w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg transition-all duration-200;
+    @apply placeholder-gray-500 text-gray-900;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0;
+    resize: vertical;
+  }
+
+  .textarea-base:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+  }
+
+  /* Search Input */
+  .input-search {
+    @apply block w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg transition-all duration-200;
+    @apply placeholder-gray-500 text-gray-900;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0;
+  }
+
+  /* Form Group Input */
+  .input-form-group {
+    @apply appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg transition-all duration-200;
+    @apply placeholder-gray-500 text-gray-900;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0;
+  }
 }
+
 
 @layer utilities {
   .mobile-optimized {
@@ -29,6 +142,50 @@
 
 .spinner-slow {
   animation: spin 1.5s linear infinite;
+}
+
+/* Toast notifications */
+@keyframes slide-in {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+.toast {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast-success {
+  background-color: #10b981;
+  border-left: 4px solid #059669;
+}
+
+.toast-error {
+  background-color: #ef4444;
+  border-left: 4px solid #dc2626;
 }
 
 /* Mobile responsiveness */

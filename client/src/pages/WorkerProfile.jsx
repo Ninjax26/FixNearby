@@ -8,6 +8,7 @@ import {
   Briefcase,
   Phone,
   MessageCircle,
+  CalendarCheck,
 } from "lucide-react";
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
@@ -24,6 +25,32 @@ const WORKERS = {
     location: "New York, USA",
     completedJobs: 240,
     bio: "Experienced electrician with 10+ years of expertise in residential and commercial projects.",
+    portfolio: [
+      {
+        id: 1,
+        image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=250&fit=crop",
+        description: "Full apartment rewiring with safety inspection",
+        completionDate: "March 2025",
+        customerRating: 4.9,
+        review: "Excellent work, very professional and clean.",
+      },
+      {
+        id: 2,
+        image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=250&fit=crop",
+        description: "Installed new electrical panel and circuit breakers",
+        completionDate: "January 2025",
+        customerRating: 4.8,
+        review: "Quick and efficient, highly recommend.",
+      },
+      {
+        id: 3,
+        image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&h=250&fit=crop",
+        description: "Outdoor lighting setup for residential garden",
+        completionDate: "November 2024",
+        customerRating: 5.0,
+        review: "Transformed our garden, amazing attention to detail.",
+      },
+    ],
   },
   2: {
     id: 2,
@@ -35,6 +62,32 @@ const WORKERS = {
     location: "California, USA",
     completedJobs: 310,
     bio: "Licensed plumber with extensive expertise in leak fixing and pipeline installation.",
+    portfolio: [
+      {
+        id: 1,
+        image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=250&fit=crop",
+        description: "Full bathroom pipeline replacement and waterproofing",
+        completionDate: "April 2025",
+        customerRating: 5.0,
+        review: "No leaks at all, superb finish and very tidy work.",
+      },
+      {
+        id: 2,
+        image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=250&fit=crop",
+        description: "Kitchen sink installation and drain unclogging",
+        completionDate: "February 2025",
+        customerRating: 4.9,
+        review: "Fast response and clean job, would hire again.",
+      },
+      {
+        id: 3,
+        image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&h=250&fit=crop",
+        description: "Water heater installation for a 3-bedroom home",
+        completionDate: "December 2024",
+        customerRating: 4.8,
+        review: "Professional and straightforward, great value.",
+      },
+    ],
   },
   3: {
     id: 3,
@@ -46,6 +99,32 @@ const WORKERS = {
     location: "Texas, USA",
     completedJobs: 180,
     bio: "Expert carpenter specializing in custom furniture and interior woodwork.",
+    portfolio: [
+      {
+        id: 1,
+        image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=400&h=250&fit=crop",
+        description: "Custom built-in bookshelf for a home library",
+        completionDate: "April 2025",
+        customerRating: 4.7,
+        review: "Beautiful craftsmanship, exactly what I envisioned.",
+      },
+      {
+        id: 2,
+        image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=250&fit=crop",
+        description: "Living room wooden furniture set — sofa frame and table",
+        completionDate: "January 2025",
+        customerRating: 4.5,
+        review: "Solid build quality, very happy with the result.",
+      },
+      {
+        id: 3,
+        image: "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=400&h=250&fit=crop",
+        description: "Bedroom wardrobe with sliding doors and interior shelving",
+        completionDate: "October 2024",
+        customerRating: 4.6,
+        review: "Fits perfectly and looks amazing, great attention to detail.",
+      },
+    ],
   },
 };
 
@@ -161,26 +240,16 @@ const WorkerProfile = () => {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sticky top-6">
 
-            {/* Avatar */}
+           {/* Avatar */}
             <div className="flex flex-col items-center text-center">
               <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center text-4xl font-bold text-blue-700">
                 {worker.name.charAt(0)}
               </div>
-
-              <h1 className="text-2xl font-bold mt-4">
-                {worker.name}
-              </h1>
-
-              <p className="text-blue-600 font-medium">
-                {worker.profession}
-              </p>
-
-              {/* Rating */}
+              <h1 className="text-2xl font-bold mt-4">{worker.name}</h1>
+              <p className="text-blue-600 font-medium">{worker.profession}</p>
               <div className="flex items-center gap-1 mt-3 bg-yellow-50 px-3 py-1 rounded-full">
                 <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold">
-                  {worker.rating}
-                </span>
+                <span className="font-semibold">{worker.rating}</span>
               </div>
             </div>
 
@@ -320,6 +389,60 @@ const WorkerProfile = () => {
               ))}
             </div>
           </div>
+
+            {/* PORTFOLIO / PREVIOUS WORKS SECTION */}
+          {worker.portfolio && worker.portfolio.length > 0 && (
+            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-2xl font-bold mb-2">Previous Works</h2>
+              <p className="text-gray-500 mb-6">
+                A snapshot of completed projects by this professional.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {worker.portfolio.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
+                  >
+                    {/* Image */}
+                    <div className="relative h-44 overflow-hidden bg-gray-100">
+                      <img
+                        src={item.image}
+                        alt={item.description}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    </div>
+ 
+                    {/* Details */}
+                    <div className="p-5">
+                      <p className="font-semibold text-gray-900 text-sm leading-snug mb-2">
+                        {item.description}
+                      </p>
+ 
+                      {/* Date */}
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
+                        <CalendarCheck size={13} />
+                        <span>{item.completionDate}</span>
+                      </div>
+ 
+                      {/* Rating */}
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-bold text-gray-800">
+                          {item.customerRating}
+                        </span>
+                      </div>
+ 
+                      {/* Review */}
+                      <p className="text-xs text-gray-500 italic leading-relaxed">
+                        "{item.review}"
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
 
           {/* Availability */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 text-white">
