@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { useLocation } from "../context/LocationContext";
@@ -215,6 +217,9 @@ const ALL_WORKERS = [
   },
 ];
 
+const Home = () => {
+  const [workers, setWorkers] = useState([]);
+  const { t } = useTranslation();
 const workerIconMap = {
   Electrician: IconBolt,
   Plumber: IconPipe,
@@ -257,6 +262,21 @@ const Home = () => {
 
   return (
     <div className="bg-white">
+      {/* HERO */}
+      <section className="relative">
+        <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+          <div className="relative rounded-[36px] overflow-hidden shadow-2xl min-h-[500px]">
+            <img
+              src="/hero-section.png"
+              alt="Hero"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-center">
+              <div className="text-white max-w-3xl px-6">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
+                  {t("heroTitle")}
+                </h1>
       {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
