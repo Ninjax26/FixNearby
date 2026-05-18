@@ -309,7 +309,7 @@ const Services = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by worker or service..."
+            placeholder="Search services..."
             className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
           <select
@@ -383,7 +383,7 @@ const Services = () => {
         <LoadingSpinner />
       ) : filteredWorkers.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
-          <h3 className="text-2xl font-bold text-gray-900">No workers found</h3>
+          <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
           <p className="mx-auto mt-2 max-w-md text-gray-500">
             Try a broader search or reset the selected category.
           </p>
@@ -402,7 +402,7 @@ const Services = () => {
       ) : (
         <>
           <p className="mb-6 text-sm font-medium text-gray-500">
-            Showing {filteredWorkers.length} professionals
+            Showing {filteredWorkers.length} services
           </p>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkers.map((worker) => (

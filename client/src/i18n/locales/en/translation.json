@@ -53,25 +53,28 @@
 
   "login": "Login",
   "signup": "Sign Up",
-  "logout": "Logout"
-}
+  "logout": "Logout",
+
   "nav": {
     "home": "Home",
     "services": "Services",
     "about": "About"
   },
+
   "hero": {
     "headline": "Reliable Home Services, Right When You Need Them",
     "subtext": "Find verified professionals near you with fast booking and transparent pricing.",
     "findPro": "Find a Pro",
     "becomePro": "Become a Pro"
   },
+
   "stats": {
     "customers": "Happy Customers",
     "pros": "Verified Pros",
     "support": "Support",
     "rating": "Rating"
   },
+
   "cta": {
     "title": "Need help today?",
     "subtext": "Book trusted professionals in minutes.",
