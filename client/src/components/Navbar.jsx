@@ -145,29 +145,8 @@ const Navbar = () => {
                   className="text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:shadow-blue-300/40 transition-all duration-200">
                   Get Started
                 </Link>
-                 <LanguageToggle />
-
-              </>
+                <LanguageToggle />
               </div>
-
-              </div>
-
-  <Link
-    to="/worker-register"
-    className="text-sm font-semibold text-[#0056D2] border border-[#0056D2]/25 bg-blue-50/70 hover:bg-blue-100 hover:border-[#0056D2]/50 px-4 py-2.5 rounded-xl transition-all duration-200"
-  >
-    Join as Pro
-  </Link>
-
-  <Link
-    to="/register"
-    className="text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:shadow-blue-300/40 transition-all duration-200"
-  >
-    Get Started
-  </Link>
-
-  <LanguageToggle />
-</div>
             )}
           </div>
 
