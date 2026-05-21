@@ -4,20 +4,18 @@ const LanguageToggle = () => {
   const { i18n } = useTranslation();
 
   const toggle = () => {
-    i18n.changeLanguage(
-      i18n.language.startsWith("hi") ? "en" : "hi"
-    );
-  };
+  const newLang = i18n.language === "hi" ? "en" : "hi";
 
+  i18n.changeLanguage(newLang);
+  localStorage.setItem("language", newLang);  
+};
   return (
     <button
       onClick={toggle}
       aria-label="Switch language"
       className="px-3 py-1 text-sm font-semibold rounded-lg border border-slate-300 hover:bg-slate-100 transition"
     >
-      {i18n.language.startsWith("hi")
-        ? "English"
-        : "हिंदी"}
+      {i18n.language === "hi" ? "English" : "हिंदी"}
     </button>
   );
 };
