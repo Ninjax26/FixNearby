@@ -132,7 +132,7 @@ const Footer = () => {
             </li>
 
             <li>
-              <Link to="/register" className={linkClass("/register")}>
+              <Link to="/worker-register" className={linkClass("/worker-register")}>
                 <FaArrowRight className="text-xs" />
                 Join as a Pro
               </Link>
