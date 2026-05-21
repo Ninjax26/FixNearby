@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
 import BackToTop from './components/BackToTop';
 import SOSButton from './components/SOSButton';
+import SavedWorkers from './pages/SavedWorkers'; 
 
 function AppContent() {
   const location = useLocation();
@@ -51,6 +52,7 @@ function AppContent() {
           <Route path="/community" element={<Community />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/saved-workers" element={<SavedWorkers />} /> 
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
