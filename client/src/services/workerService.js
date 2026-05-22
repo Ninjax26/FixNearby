@@ -13,6 +13,28 @@ export const workerSignup = async (data) => {
   }
 };
 
+export const workerLogin = async (data) => {
+  try {
+    const res = await api.post("/workers/login", data);
+
+    return res.data;
+
+  } catch (error) {
+
+    console.error(
+      error.response?.data?.message || error
+    );
+
+    throw {
+      message:
+        error.response?.data?.message ||
+        "Login failed",
+
+      status: error.response?.status,
+    };
+  }
+};
+
 export const fetchWorkers = async () => {
   try {
     const res = await api.get("/workers");

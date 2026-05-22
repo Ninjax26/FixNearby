@@ -292,7 +292,7 @@ const Home = () => {
                   <Link to="/services" className="inline-flex items-center justify-center rounded-lg bg-[#0056D2] px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0047AF]">
                     {t("hero.findPro") || "Find a Pro"}
                   </Link>
-                  <Link to="/worker-register" className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
+                  <Link to="/worker/register" className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
                     {t("hero.becomePro") || "Become a Pro"}
                   </Link>
                 </div>
@@ -529,7 +529,7 @@ const Home = () => {
             <Link to="/services" className="rounded-xl bg-white px-8 py-3 font-semibold text-[#0056D2] shadow-sm transition hover:bg-slate-100">
               Find a Pro
             </Link>
-            <Link to="/worker-register" className="rounded-xl border border-white/40 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
+            <Link to="/worker/register" className="rounded-xl border border-white/40 px-8 py-3 font-semibold text-white transition hover:bg-white/10">
               Become a Pro
             </Link>
           </div>

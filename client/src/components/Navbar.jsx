@@ -137,7 +137,7 @@ const Navbar = () => {
               </>
             ) : (
               <div className="flex items-center gap-2.5 ml-1">
-                <Link to="/worker-register"
+                <Link to="/worker/register"
                   className="text-sm font-semibold text-[#0056D2] border border-[#0056D2]/25 bg-blue-50/70 hover:bg-blue-100 hover:border-[#0056D2]/50 px-4 py-2.5 rounded-xl transition-all duration-200">
                   Join as Pro
                 </Link>
@@ -201,7 +201,7 @@ const Navbar = () => {
                 className="flex justify-center px-4 py-3 rounded-xl bg-[#0056D2] text-sm font-semibold text-white hover:bg-[#0047AF] transition-colors duration-150">
                 Get Started
               </Link>
-              <Link to="/worker-register"
+              <Link to="/worker/register"
                 className="flex justify-center px-4 py-3 rounded-xl border border-[#0056D2]/25 bg-blue-50/70 text-sm font-semibold text-[#0056D2] hover:bg-blue-100 transition-colors duration-150">
                 Join as Pro
               </Link>

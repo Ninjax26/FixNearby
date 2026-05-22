@@ -19,6 +19,7 @@ const WorkerProfile    = lazy(() => import('./pages/WorkerProfile'));
 const Profile          = lazy(() => import('./pages/Profile'));
 const Bookings         = lazy(() => import('./pages/Bookings'));
 const WorkerRegister   = lazy(() => import('./pages/WorkerRegister'));
+const WorkerLogin      = lazy(() => import('./pages/WorkerLogin'));
 const HelpCenter       = lazy(() => import('./pages/HelpCenter'));
 const TermsOfService   = lazy(() => import('./pages/TermsOfService'));
 const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
@@ -41,8 +42,9 @@ const ROUTES = [
 
   // Workers & Services
   { path: '/services',          element: <Services /> },
+  { path: '/worker/register',   element: <WorkerRegister /> },
+  { path: '/worker/login',      element: <WorkerLogin /> },
   { path: '/worker/:id',        element: <WorkerProfile /> },
-  { path: '/worker-register',   element: <WorkerRegister /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
 
