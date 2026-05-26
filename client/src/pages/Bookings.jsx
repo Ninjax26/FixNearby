@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StarRating from "../components/StarRating";
+const [notifications, setNotifications] = useState([]);
+const [showNotifications, setShowNotifications] = useState(false);
 
 const demoBookings = [
   {
@@ -36,6 +38,18 @@ const demoBookings = [
   },
 ];
 
+
+const addNotification = (message, type = "info") => {
+  const newNotif = {
+    id: Date.now(),
+    message,
+    type,
+    read: false,
+    time: new Date().toLocaleTimeString(),
+  };
+
+  setNotifications((prev) => [newNotif, ...prev]);
+};
 const statusOptions = ["All", "Pending", "Completed", "Cancelled"];
 
 const statusStyle = (status) => {
@@ -54,6 +68,87 @@ const statusStyle = (status) => {
   }
 };
 
+
+<div className="relative ml-4">
+  <button
+    onClick={() => setShowNotifications((p) => !p)}
+    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+  >
+    🔔
+  </button>
+
+  {notifications.filter(n => !n.read).length > 0 && (
+    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-xs text-white flex items-center justify-center animate-bounce">
+      {notifications.filter(n => !n.read).length}
+    </span>
+  )}
+
+  {/* DROPDOWN */}
+  {showNotifications && (
+    <div className="absolute left-0 mt-3 w-80 rounded-2xl border bg-white shadow-xl z-50">
+      <div className="p-4 border-b font-bold">
+        Notifications
+      </div>
+
+      <div className="max-h-72 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500">
+            No notifications yet
+          </p>
+        ) : (
+          notifications.map((n) => (
+            <div
+              key={n.id}
+              className={`p-4 border-b text-sm ${
+                n.read ? "text-gray-400" : "text-gray-800"
+              }`}
+            >
+              <div>{n.message}</div>
+              <div className="text-xs text-gray-400 mt-1">
+                {n.time}
+              </div>
+
+              <button
+                onClick={() =>
+                  setNotifications((prev) =>
+                    prev.map((item) =>
+                      item.id === n.id
+                        ? { ...item, read: true }
+                        : item
+                    )
+                  )
+                }
+                className="text-xs text-blue-600 mt-2"
+              >
+                Mark as read
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="p-3 border-t flex justify-between text-xs">
+        <button
+          onClick={() =>
+            setNotifications((prev) =>
+              prev.map((n) => ({ ...n, read: true }))
+            )
+          }
+          className="text-blue-600"
+        >
+          Mark all read
+        </button>
+
+        <button
+          onClick={() => setNotifications([])}
+          className="text-rose-500"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  )}
+</div>
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -140,6 +235,7 @@ const Bookings = () => {
           : booking
       )
     );
+    addNotification(`Booking ${id} was cancelled`, "error");
   };
 
   // SUBMIT REVIEW
@@ -163,6 +259,7 @@ const Bookings = () => {
       )
     );
 
+    addNotification(`Review submitted for ${id}`, "success");
     setActiveReview(null);
     setRating(0);
     setComment("");
