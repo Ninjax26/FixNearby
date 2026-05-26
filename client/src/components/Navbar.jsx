@@ -36,16 +36,16 @@ const Navbar = () => {
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   const desktopLinkCls = (path) =>
-    `relative pb-0.5 text-sm font-medium transition-colors duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[#0056D2] after:transition-transform after:duration-200 ${
+    `text-sm font-medium transition-colors duration-200 ${
       location.pathname === path
-        ? 'text-[#0056D2] after:scale-x-100'
-        : 'text-slate-600 hover:text-[#0056D2] after:scale-x-0 hover:after:scale-x-100'
+        ? 'text-primary'
+        : 'text-slate-600 hover:text-primary'
     }`;
 
   const mobileLinkCls = (path) =>
     `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
       location.pathname === path
-        ? 'bg-blue-50 text-[#0056D2]'
+        ? 'bg-blue-50 text-primary'
         : 'text-slate-700 hover:bg-slate-50'
     }`;
 
@@ -59,12 +59,12 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0056D2]">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <WrenchIcon />
             </div>
             <span className="text-lg font-extrabold tracking-tight text-slate-900">
-              Fix<span className="text-[#0056D2]">Nearby</span>
+              Fix<span className="text-primary">Nearby</span>
             </span>
           </Link>
 
@@ -117,11 +117,11 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center gap-2.5 ml-1">
                 <Link to="/worker/register"
-                  className="text-sm font-semibold text-[#0056D2] border border-[#0056D2]/25 bg-blue-50/70 hover:bg-blue-100 hover:border-[#0056D2]/50 px-4 py-2.5 rounded-xl transition-all duration-200">
+                  className="btn-outline text-sm font-semibold px-4 py-2.5">
                   {t("nav.joinAsPro")}
                 </Link>
                 <Link to="/register"
-                  className="text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl shadow-sm hover:shadow-md hover:shadow-blue-300/40 transition-all duration-200">
+                  className="btn-primary text-sm font-semibold px-5 py-2.5">
                   {t("nav.getStarted")}
                 </Link>
               </div>
