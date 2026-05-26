@@ -1,57 +1,82 @@
 {
   "heroTitle": "Trusted Home Services Near You",
   "heroDesc": "Book verified electricians, plumbers, cleaners, painters and more instantly.",
-
   "findWorkers": "Find Workers",
   "becomeWorker": "Become a Worker",
-
   "featuredTitle": "Featured Professionals",
   "featuredDesc": "Trusted experts ready to help you.",
   "viewAll": "View All →",
-
   "available": "Available",
   "busy": "Busy",
   "bookNow": "Book Now",
-
-  "howItWorks": "How It Works",
-
   "step1Title": "Search Services",
   "step1Desc": "Find trusted professionals near you.",
-
   "step2Title": "Book Instantly",
   "step2Desc": "Choose your preferred date and time.",
-
   "step3Title": "Get It Done",
   "step3Desc": "Relax while experts complete the work.",
-
   "ctaTitle": "Need Help Today?",
   "ctaDesc": "Hire trusted professionals in minutes.",
   "exploreServices": "Explore Services",
-
   "statsCustomers": "Happy Customers",
   "statsWorkers": "Verified Workers",
   "statsSupport": "Support",
   "statsRating": "Average Rating",
-
   "electrician": "Electrician",
   "plumber": "Plumber",
   "painter": "Painter",
   "acTechnician": "AC Technician",
-
   "navbarHome": "Home",
   "navbarServices": "Services",
   "navbarWorkers": "Workers",
   "navbarContact": "Contact",
-
   "footerAbout": "About Us",
   "footerPrivacy": "Privacy Policy",
   "footerTerms": "Terms & Conditions",
-
   "searchPlaceholder": "Search services...",
   "loading": "Loading...",
   "noWorkers": "No workers found",
-
   "login": "Login",
   "signup": "Sign Up",
-  "logout": "Logout"
+  "logout": "Logout",
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "about": "About",
+    "howItWorks": "How it works",
+    "bookings": "Bookings",
+    "profile": "Profile",
+    "myBookings": "My Bookings",
+    "logout": "Logout",
+    "joinAsPro": "Join as Pro",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "headline": "Reliable Home Services, Right When You Need Them",
+    "subtext": "Find verified professionals near you with fast booking, transparent pricing, and clearer next steps.",
+    "findPro": "Find a Pro",
+    "becomePro": "Become a Pro"
+  },
+  "stats": {
+    "customers": "Happy Customers",
+    "pros": "Verified Pros",
+    "support": "Support",
+    "rating": "Rating"
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "subtext": "Three simple steps to get it done.",
+    "step1": "Search and Select",
+    "step1desc": "Browse profiles and read reviews.",
+    "step2": "Book Directly",
+    "step2desc": "Schedule appointments instantly.",
+    "step3": "Relax and Enjoy",
+    "step3desc": "Let the expert handle the job."
+  },
+  "cta": {
+    "title": "Need help today?",
+    "subtext": "Book trusted professionals in minutes.",
+    "findPro": "Find a Pro",
+    "becomePro": "Become a Pro"
+  }
 }

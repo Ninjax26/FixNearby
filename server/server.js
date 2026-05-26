@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
+import issueRoutes from './routes/issueRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 
 dotenv.config();
@@ -30,6 +31,13 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
+// Serve uploaded images
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Connect to Database
 // TODO: Uncomment when ready to connect to MongoDB
 connectDB();
@@ -37,6 +45,7 @@ connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
+app.use('/api/issues', issueRoutes);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {

@@ -1,166 +1,754 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  FaUser,
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaBriefcase,
+  FaStar,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaFileAlt,
+  FaCamera,
+} from "react-icons/fa";
+
 import { workerSignup } from "../services/workerService";
 import useToast from "../hooks/useToast";
 
 const WorkerRegister = () => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  const submitLock = useRef(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
+    password: "",
     category: "",
     experience: "",
     location: "",
     contact: "",
+    bio: "",
+    profilePicture: null,
+    termsAccepted: false,
   });
-  const {showToast}=useToast();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    if(error) setError("");
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  // VALIDATION MESSAGES
+  const fieldMessages = {
+    name: "Please enter your full name",
+    email: "Please enter your email address",
+    password: "Please enter your password",
+    category: "Please select a service category",
+    experience: "Please enter your years of experience",
+    location: "Please enter your location",
+    contact: "Please enter a valid 10-digit phone number",
+    bio: "Please enter your bio",
+    profilePicture: "Please upload your profile picture",
   };
 
+  // PHONE VALIDATION
+  const validatePhone = (phone) => /^[0-9]{10}$/.test(phone);
+
+  // PASSWORD STRENGTH
+  const getPasswordStrength = (password) => {
+
+    if (password.length < 6) {
+      return "weak";
+    }
+
+    const strongRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/;
+
+    const mediumRegex =
+      /^(?=.*[a-z])(?=.*[0-9])/;
+
+    if (
+      strongRegex.test(password) &&
+      password.length >= 8
+    ) {
+      return "strong";
+    }
+
+    if (
+      mediumRegex.test(password) &&
+      password.length >= 6
+    ) {
+      return "medium";
+    }
+
+    return "weak";
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  // HANDLE CHANGE
+  const handleChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+
+    // FILE
+    if (type === "file") {
+      const file = files[0];
+
+      setFormData({
+        ...formData,
+        profilePicture: file,
+      });
+
+      if (file) {
+        setImagePreview(URL.createObjectURL(file));
+
+        setFieldErrors((prev) => ({
+          ...prev,
+          profilePicture: "",
+        }));
+      }
+
+      return;
+    }
+
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
+    });
+
+    if (fieldErrors[name]) {
+      setFieldErrors({
+        ...fieldErrors,
+        [name]: "",
+      });
+    }
+  };
+
+  // HANDLE BLUR
+  const handleBlur = (e) => {
+    const { name, value, type, files } = e.target;
+
+    // FILE VALIDATION
+    if (type === "file") {
+      if (!files[0]) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          profilePicture: fieldMessages.profilePicture,
+        }));
+      }
+
+      return;
+    }
+
+    // EMPTY VALIDATION
+    if (!value.trim()) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [name]: fieldMessages[name],
+      }));
+
+      return;
+    }
+
+    // EMAIL VALIDATION
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          email: "Please enter a valid email address",
+        }));
+      }
+    }
+
+    // PASSWORD VALIDATION
+    if (name === "password" && value.length < 8) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        password: "Password must be at least 8 characters",
+      }));
+    }
+
+    // PHONE VALIDATION
+    if (name === "contact" && !validatePhone(value)) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        contact: "Phone number must contain exactly 10 digits",
+      }));
+    }
+
+    // BIO VALIDATION
+    if (name === "bio" && value.length < 20) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        bio: "Bio should contain at least 20 characters",
+      }));
+    }
+  };
+
+  // HANDLE SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      setLoading(true);
-      setError("");
-      setSuccess("");
+    if (submitLock.current) return;
 
-      const workerData = await workerSignup(formData);
+    // FINAL VALIDATION
+    const errors = {};
+
+    if (!formData.name.trim()) {
+      errors.name = fieldMessages.name;
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = fieldMessages.email;
+    }
+
+    if (!formData.password.trim()) {
+      errors.password = fieldMessages.password;
+    }
+
+    if (!formData.category.trim()) {
+      errors.category = fieldMessages.category;
+    }
+
+    if (!formData.experience.trim()) {
+      errors.experience = fieldMessages.experience;
+    }
+
+    if (!formData.location.trim()) {
+      errors.location = fieldMessages.location;
+    }
+
+    if (!validatePhone(formData.contact)) {
+      errors.contact =
+        "Phone number must contain exactly 10 digits";
+    }
+
+    if (!formData.bio.trim()) {
+      errors.bio = fieldMessages.bio;
+    }
+
+    if (!formData.profilePicture) {
+      errors.profilePicture =
+        fieldMessages.profilePicture;
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
+    try {
+      submitLock.current = true;
+
+      setLoading(true);
+
+      setError("");
+
+      const payload = new FormData();
+
+      Object.keys(formData).forEach((key) => {
+        payload.append(key, formData[key]);
+      });
+
+      await workerSignup(payload);
 
       showToast("Worker registered successfully!");
 
-      setFormData({
-        name: "",
-        category: "",
-        experience: "",
-        location: "",
-        contact: "",
-      });
+      navigate("/dashboard");
 
     } catch (err) {
-      setError(err.message || "Worker Registration failed, Try again");
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
+      submitLock.current = false;
     }
   };
-     //                 INPUT STYLE
-   const inputStyles = (field) =>
-    `appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md`;
+
+  // INPUT STYLE
+  const inputClass = `
+    w-full
+    bg-gray-50
+    border
+    border-gray-200
+    rounded-xl
+    py-3
+    pl-12
+    pr-4
+    text-sm
+    text-gray-700
+    focus:outline-none
+    focus:ring-2
+    focus:ring-blue-500
+    transition-all
+    duration-200
+  `;
 
   return (
-    <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow">
-        
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Become a Worker
-          </h2>
+    <div className="min-h-screen bg-[#f4f7fc] flex items-center justify-center px-4 py-12">
 
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Register your service profile
-          </p>
-        </div>
+      <div className="w-full max-w-md bg-white rounded-[32px] shadow-xl border border-gray-100 overflow-hidden">
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {/* TOP BAR */}
+        <div className="h-2 bg-blue-500 w-full" />
 
-          <div className="rounded-md shadow-sm space-y-4">
+        <div className="p-7">
 
-            {/* Name */}
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className={inputStyles["name"]}
-            />
+          {/* HEADER */}
+          <div className="text-center mb-7">
+            <h2 className="text-4xl font-extrabold text-[#111827]">
+              Become a Worker
+            </h2>
 
-            {/* Category */}
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className={inputStyles["category"]}
-            >
-              <option value="">Select Service Category</option>
-              <option value="Electrician">Electrician</option>
-              <option value="Plumber">Plumber</option>
-              <option value="Carpenter">Carpenter</option>
-              <option value="Painter">Painter</option>
-              <option value="AC Technician">AC Technician</option>
-              <option value="Cleaner">Cleaner</option>
-              <option value="Mechanic">Mechanic</option>
-              <option value="Gardener">Gardener</option>
-              <option value="Appliance Repair">Appliance Repair</option>
-              <option value="Pest Control">Pest Control</option>
-            </select>
-
-            {/* Experience */}
-            <input
-              type="number"
-              min="0"
-              name="experience"
-              placeholder="Experience (e.g. 3 years)"
-              value={formData.experience}
-              onChange={handleChange}
-              required
-              className={inputStyles["experience"]}
-            />
-
-            {/* Location */}
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleChange}
-              required
-              className={inputStyles["location"]}
-            />
-
-            {/* Contact */}
-            <input
-              type="tel"
-              name="contact"
-              placeholder="Contact Number"
-              value={formData.contact}
-              onChange={handleChange}
-              required
-              className={inputStyles["contact"]}
-            />
+            <p className="text-gray-500 mt-2 text-sm">
+              Register your service profile on FixNearby
+            </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
+          {/* IMAGE UPLOAD */}
+          <div className="bg-gray-50 rounded-2xl p-5 mb-6 border border-gray-100">
+
+            <div className="flex items-center gap-4">
+
+              {/* IMAGE PREVIEW */}
+              <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-white">
+
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <FaUser className="text-gray-300 text-2xl" />
+                )}
+
+              </div>
+
+              {/* BUTTON */}
+              <div>
+                <label className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl cursor-pointer flex items-center gap-2 text-sm font-semibold hover:bg-blue-100 transition-all">
+
+                  <FaCamera />
+
+                  Upload Photo
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    name="profilePicture"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    hidden
+                  />
+                </label>
+
+                <p className="text-xs text-gray-400 mt-2">
+                  JPG, PNG — up to 5 MB
+                </p>
+
+                {fieldErrors.profilePicture && (
+                  <p className="text-red-500 text-xs mt-2">
+                    {fieldErrors.profilePicture}
+                  </p>
+                )}
+
+              </div>
+
             </div>
-          )}
+          </div>
 
-          {/* Success Message */}
-          {success && (
-            <div className="text-green-600 text-sm text-center">
-              {success}
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* ACCOUNT SECTION */}
+            <div>
+
+              <p className="text-xs font-bold tracking-[2px] text-gray-400 uppercase mb-4">
+                Account Credentials
+              </p>
+
+              <div className="space-y-4">
+
+                {/* NAME */}
+                <div>
+                  <div className="relative">
+                    <FaUser className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Full Name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {fieldErrors.name && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* EMAIL */}
+                <div>
+                  <div className="relative">
+                    <FaEnvelope className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email Address"
+                      value={formData.email}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {fieldErrors.email && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* PASSWORD */}
+                <div>
+
+                  <div className="relative">
+                    <FaLock className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Password (min. 8 chars)"
+                      value={formData.password}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword(!showPassword)
+                      }
+                      className="absolute right-4 top-4 text-gray-400"
+                    >
+                      {showPassword
+                        ? <FaEyeSlash />
+                        : <FaEye />}
+                    </button>
+                  </div>
+
+                  {fieldErrors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.password}
+                    </p>
+                  )}
+
+                  {/* PASSWORD STRENGTH */}
+                  {formData.password.length > 0 && (
+                    <div className="mt-2">
+
+                      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            passwordStrength === "weak"
+                              ? "bg-red-500 w-1/3"
+                              : passwordStrength === "medium"
+                              ? "bg-orange-400 w-2/3"
+                              : "bg-green-500 w-full"
+                          }`}
+                        />
+
+                      </div>
+
+                      <p
+                        className={`text-sm mt-2 font-medium ${
+                          passwordStrength === "weak"
+                            ? "text-red-500"
+                            : passwordStrength === "medium"
+                            ? "text-orange-500"
+                            : "text-green-600"
+                        }`}
+                      >
+
+                        {passwordStrength === "weak" &&
+                          "Weak Strength Password"}
+
+                        {passwordStrength === "medium" &&
+                          "Medium Strength Password"}
+
+                        {passwordStrength === "strong" &&
+                          "Strong Password"}
+
+                      </p>
+
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 px-4 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400"
-          >
-            {loading ? "Registering..." : "Register as Worker"}
-          </button>
+            {/* PROFESSIONAL DETAILS */}
+            <div>
 
-        </form>
+              <p className="text-xs font-bold tracking-[2px] text-gray-400 uppercase mb-4">
+                Professional Details
+              </p>
+
+              <div className="space-y-4">
+
+                {/* CATEGORY */}
+                <div>
+                  <div className="relative">
+                    <FaBriefcase className="absolute left-4 top-4 text-gray-400" />
+
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={`${inputClass} appearance-none`}
+                    >
+                      <option value="">
+                        Select Service Category
+                      </option>
+
+                      <option value="Electrician">
+                        Electrician
+                      </option>
+
+                      <option value="Plumber">
+                        Plumber
+                      </option>
+
+                      <option value="Carpenter">
+                        Carpenter
+                      </option>
+
+                      <option value="Painter">
+                        Painter
+                      </option>
+
+                      <option value="Cleaner">
+                        Cleaner
+                      </option>
+
+                    </select>
+                  </div>
+
+                  {fieldErrors.category && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.category}
+                    </p>
+                  )}
+                </div>
+
+                {/* EXPERIENCE */}
+                <div>
+                  <div className="relative">
+                    <FaStar className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type="number"
+                      name="experience"
+                      placeholder="Years of Experience"
+                      value={formData.experience}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {fieldErrors.experience && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.experience}
+                    </p>
+                  )}
+                </div>
+
+                {/* LOCATION */}
+                <div>
+                  <div className="relative">
+                    <FaMapMarkerAlt className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type="text"
+                      name="location"
+                      placeholder="Location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {fieldErrors.location && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.location}
+                    </p>
+                  )}
+                </div>
+
+                {/* CONTACT */}
+                <div>
+                  <div className="relative">
+                    <FaPhone className="absolute left-4 top-4 text-gray-400" />
+
+                    <input
+                      type="tel"
+                      name="contact"
+                      placeholder="Contact Number (10 digits)"
+                      value={formData.contact}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {fieldErrors.contact && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.contact}
+                    </p>
+                  )}
+                </div>
+
+                {/* BIO */}
+                <div>
+
+                  <div className="relative">
+                    <FaFileAlt className="absolute left-4 top-4 text-gray-400" />
+
+                    <textarea
+                      name="bio"
+                      rows="4"
+                      maxLength="250"
+                      placeholder="Bio / About Me"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={`${inputClass} resize-none pt-3`}
+                    />
+                  </div>
+
+                  <div className="text-right text-xs text-gray-400 mt-1">
+                    {formData.bio.length} / 250
+                  </div>
+
+                  {fieldErrors.bio && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors.bio}
+                    </p>
+                  )}
+
+                </div>
+
+              </div>
+            </div>
+
+            {/* TERMS */}
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-start gap-3">
+
+              <input
+                type="checkbox"
+                name="termsAccepted"
+                checked={formData.termsAccepted}
+                onChange={handleChange}
+                className="mt-1"
+              />
+
+              <p className="text-sm text-gray-600 leading-relaxed">
+                I agree to the{" "}
+
+                <span className="text-blue-600 font-medium cursor-pointer">
+                  Terms & Conditions
+                </span>
+
+                {" "}and{" "}
+
+                <span className="text-blue-600 font-medium cursor-pointer">
+                  Privacy Policy
+                </span>
+
+              </p>
+
+            </div>
+
+            {/* GLOBAL ERROR */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-500 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+
+            {/* BUTTON */}
+            <button
+              type="submit"
+              disabled={loading || !formData.termsAccepted}
+              className="
+                w-full
+                bg-blue-600
+                hover:bg-blue-700
+                text-white
+                font-semibold
+                py-4
+                rounded-2xl
+                transition-all
+                duration-300
+                shadow-lg
+                hover:shadow-xl
+                disabled:opacity-50
+                disabled:cursor-not-allowed
+              "
+            >
+
+              {loading
+                ? "Registering..."
+                : "Register as Worker"}
+
+            </button>
+
+            {/* LOGIN */}
+            <p className="text-center text-sm text-gray-400 pt-2">
+
+              Already have an account?{" "}
+
+              <button
+                    type="button"
+                    onClick={() => navigate("/worker/login")}
+                    className="
+                      text-blue-600
+                      font-semibold
+                      hover:text-blue-700
+                      transition-all
+                      duration-200
+                      cursor-pointer
+                    "
+                  >
+                    Sign in
+                </button>
+
+            </p>
+
+          </form>
+        </div>
       </div>
     </div>
   );

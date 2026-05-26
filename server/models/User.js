@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  phone: {
+    type: String,
+    required: false
+  },
   // TODO: Add roles (e.g., 'customer', 'worker')
   // role: { type: String, enum: ['customer', 'worker'], default: 'customer' }
 }, {
@@ -24,7 +28,7 @@ const userSchema = new mongoose.Schema({
 // Password hashing middleware
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
-    next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

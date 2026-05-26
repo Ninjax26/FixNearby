@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { fetchWorkers } from "../services/workerService";
 
 const mockWorkers = [
   {
@@ -13,7 +14,7 @@ const mockWorkers = [
     responseTime: "Replies in 20 min",
     outcomeText:
       "Open the full profile to compare pricing, reviews, and booking slots.",
-    mockOffset: { lat: 0.012, lon: 0.008 },
+    mockOffset: { lat: 17.3850, lon: 78.4867 },
     verified: true,
   },
   {
@@ -26,7 +27,7 @@ const mockWorkers = [
     responseTime: "Replies in 15 min",
     outcomeText:
       "See availability first, then confirm a plumbing booking in one flow.",
-    mockOffset: { lat: -0.005, lon: 0.02 },
+    mockOffset: { lat: 17.4435, lon: 78.3772 },
     verified: true,
   },
   {
@@ -39,7 +40,7 @@ const mockWorkers = [
     responseTime: "Replies in 35 min",
     outcomeText:
       "Review past work and request a carpentry visit from the profile page.",
-    mockOffset: { lat: 0.03, lon: -0.015 },
+    mockOffset: { lat: 17.4399, lon: 78.4983 },
     verified: true,
   },
   {
@@ -51,7 +52,7 @@ const mockWorkers = [
     availability: "Next slot tomorrow",
     responseTime: "Replies in 25 min",
     outcomeText: "Check service details and move straight into booking when ready.",
-    mockOffset: { lat: -0.022, lon: -0.01 },
+    mockOffset: { lat: 17.4483, lon: 78.3915 },
     verified: true,
   },
   {
@@ -63,7 +64,7 @@ const mockWorkers = [
     availability: "Emergency slots open",
     responseTime: "Replies in 10 min",
     outcomeText: "View service scope, urgency fit, and book an AC repair visit quickly.",
-    mockOffset: { lat: 0.008, lon: -0.025 },
+    mockOffset: { lat: 17.4126, lon: 78.4052 },
     verified: true,
   },
   {
@@ -76,7 +77,7 @@ const mockWorkers = [
     responseTime: "Replies in 30 min",
     outcomeText:
       "Open the profile to compare rates and schedule a cleaning appointment.",
-    mockOffset: { lat: 0.05, lon: 0.03 },
+    mockOffset: { lat: 17.3616, lon: 78.4747 },
     verified: true,
   },
   {
@@ -89,7 +90,7 @@ const mockWorkers = [
     responseTime: "Replies in 20 min",
     outcomeText:
       "See diagnostic pricing and book a mechanic visit with clearer expectations.",
-    mockOffset: { lat: -0.04, lon: 0.015 },
+    mockOffset: { lat: 17.4948, lon: 78.3996 },
     verified: true,
   },
   {
@@ -102,7 +103,7 @@ const mockWorkers = [
     responseTime: "Replies in 40 min",
     outcomeText:
       "Review service options and book a gardener for regular or one-time visits.",
-    mockOffset: { lat: 0.003, lon: 0.004 },
+    mockOffset: { lat: 17.4239, lon: 78.4738 },
     verified: true,
   },
   {
@@ -115,7 +116,7 @@ const mockWorkers = [
     responseTime: "Replies in 25 min",
     outcomeText:
       "Open the profile to check appliance support and request a repair appointment.",
-    mockOffset: { lat: -0.018, lon: -0.03 },
+    mockOffset: { lat: 17.3724, lon: 78.4378 },
     verified: true,
   },
   {
@@ -128,7 +129,7 @@ const mockWorkers = [
     responseTime: "Replies in 15 min",
     outcomeText:
       "View treatment details and book an inspection without leaving the flow.",
-    mockOffset: { lat: 0.025, lon: -0.005 },
+    mockOffset: { lat: 17.4065, lon: 78.4772 },
     verified: true,
   },
 ];
@@ -218,15 +219,30 @@ const Services = () => {
 
   // LOAD WORKERS
   useEffect(() => {
-    setLoading(true);
-    const timer = window.setTimeout(() => {
-      setWorkers(mockWorkers);
-      const storedRecent =
-        JSON.parse(localStorage.getItem("recentWorkers")) || [];
-      setRecentWorkers(storedRecent);
-      setLoading(false);
-    }, 500);
-    return () => window.clearTimeout(timer);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const backendWorkers = await fetchWorkers();
+        // Merge backend workers and mock workers, preventing duplicate IDs
+        if (backendWorkers && backendWorkers.length > 0) {
+          const merged = new Map();
+          mockWorkers.forEach(w => merged.set(w.id, w));
+          backendWorkers.forEach(w => merged.set(w.id, w));
+          setWorkers(Array.from(merged.values()));
+        } else {
+          setWorkers(mockWorkers);
+        }
+      } catch (err) {
+        console.error("Failed to fetch workers, falling back to mock data", err);
+        setWorkers(mockWorkers);
+      } finally {
+        const storedRecent =
+          JSON.parse(localStorage.getItem("recentWorkers")) || [];
+        setRecentWorkers(storedRecent);
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   // SYNC URL PARAMS
@@ -242,8 +258,8 @@ const Services = () => {
   const filteredWorkers = useMemo(() => {
     let result = workers.map((worker) => {
       if (!coords) return { ...worker, distanceKm: null };
-      const workerLat = coords.latitude + worker.mockOffset.lat;
-      const workerLon = coords.longitude + worker.mockOffset.lon;
+      const workerLat = worker.mockOffset.lat;
+      const workerLon = worker.mockOffset.lon;
       return {
         ...worker,
         distanceKm: getDistanceKm(
@@ -309,7 +325,7 @@ const Services = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by worker or service..."
+            placeholder="Search services..."
             className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
           <select
@@ -383,7 +399,7 @@ const Services = () => {
         <LoadingSpinner />
       ) : filteredWorkers.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
-          <h3 className="text-2xl font-bold text-gray-900">No workers found</h3>
+          <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
           <p className="mx-auto mt-2 max-w-md text-gray-500">
             Try a broader search or reset the selected category.
           </p>
@@ -402,7 +418,7 @@ const Services = () => {
       ) : (
         <>
           <p className="mb-6 text-sm font-medium text-gray-500">
-            Showing {filteredWorkers.length} professionals
+            Showing {filteredWorkers.length} services
           </p>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredWorkers.map((worker) => (
@@ -457,15 +473,25 @@ const Services = () => {
                   </p>
                 </div>
 
-                <div className="p-8 pt-0">
-                  <Link
-                    to={`/worker/${worker.id}`}
-                    onClick={() => handleRecentlyViewed(worker)}
-                    className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
-                  >
-                    View Profile and Book
-                  </Link>
-                </div>
+                <div className="p-8 pt-0 space-y-3">
+                    <a
+                      title="Get Directions"
+                    href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
+                    >
+                      📍 Open in Google Maps
+                    </a>
+
+                    <Link
+                      to={`/worker/${worker.id}`}
+                      onClick={() => handleRecentlyViewed(worker)}
+                      className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
+                    >
+                      View Profile and Book
+                    </Link>
+                  </div>
               </div>
             ))}
           </div>

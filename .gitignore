@@ -88,3 +88,6 @@ typings/
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Ignore uploaded images/ files
+uploads/

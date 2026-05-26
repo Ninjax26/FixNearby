@@ -1,31 +1,85 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Toast from './components/Toast';
-import LocationBanner from './components/LocationBanner';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Services from './pages/Services';
-import WorkerProfile from './pages/WorkerProfile';
-import Profile from './pages/Profile';
-import Contact from "./components/Contact";
-import Bookings from './pages/Bookings';
-import Feedback from "./pages/Feedback";
-import WorkerRegister from './pages/WorkerRegister';
-import HelpCenter from './pages/HelpCenter';
-import TermsOfService from './pages/TermsOfService';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Community from "./pages/Community";
-import NotFound from "./pages/NotFound";
-import FAQ from "./pages/FAQ";
-import BackToTop from './components/BackToTop';
-import SOSButton from './components/SOSButton';
 
+// ─── Layout Components (always loaded — tiny, needed immediately) ─────────────
+import Navbar          from './components/Navbar';
+import Footer          from './components/Footer';
+import Toast           from './components/Toast';
+import LocationBanner  from './components/LocationBanner';
+import BackToTop       from './components/BackToTop';
+import SOSButton       from './components/SOSButton';
+
+// ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
+const Home             = lazy(() => import('./pages/Home'));
+const Login            = lazy(() => import('./pages/Login'));
+const Register         = lazy(() => import('./pages/Register'));
+const Dashboard        = lazy(() => import('./pages/Dashboard'));
+const Services         = lazy(() => import('./pages/Services'));
+const WorkerProfile    = lazy(() => import('./pages/WorkerProfile'));
+const Profile          = lazy(() => import('./pages/Profile'));
+const Bookings         = lazy(() => import('./pages/Bookings'));
+const WorkerRegister   = lazy(() => import('./pages/WorkerRegister'));
+const WorkerLogin      = lazy(() => import('./pages/WorkerLogin'));
+const HelpCenter       = lazy(() => import('./pages/HelpCenter'));
+const TermsOfService   = lazy(() => import('./pages/TermsOfService'));
+const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
+const Contact          = lazy(() => import('./components/Contact'));
+const Community        = lazy(() => import('./pages/Community'));
+const Feedback         = lazy(() => import('./pages/Feedback'));
+const FAQ              = lazy(() => import('./pages/FAQ'));
+const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
+const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
+const NotFound         = lazy(() => import('./pages/NotFound'));
+
+// ─── Route Definitions ────────────────────────────────────────────────────────
+// Grouped for clarity and easy future additions
+const ROUTES = [
+  // Core
+  { path: '/',                  element: <Home /> },
+  { path: '/login',             element: <Login /> },
+  { path: '/register',          element: <Register /> },
+  { path: '/dashboard',         element: <Dashboard /> },
+
+  // Workers & Services
+  { path: '/services',          element: <Services /> },
+  { path: '/worker/register',   element: <WorkerRegister /> },
+  { path: '/worker/login',      element: <WorkerLogin /> },
+  { path: '/worker/:id',        element: <WorkerProfile /> },
+  { path: '/saved-workers',     element: <SavedWorkers /> },
+  { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
+
+  // User
+  { path: '/profile',           element: <Profile /> },
+  { path: '/bookings',          element: <Bookings /> },
+
+  // Info & Support
+  { path: '/help',              element: <HelpCenter /> },
+  { path: '/faq',               element: <FAQ /> },
+  { path: '/terms',             element: <TermsOfService /> },
+  { path: '/privacy',           element: <PrivacyPolicy /> },
+  { path: '/contact',           element: <Contact /> },
+  { path: '/community',         element: <Community /> },
+  { path: '/feedback',          element: <Feedback /> },
+
+  // Fallback
+  { path: '*',                  element: <NotFound /> },
+];
+
+// ─── Page Loader (shown while lazy chunks load) ───────────────────────────────
+const PageLoader = () => (
+  <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0056D2]" />
+      <p className="text-sm font-medium text-slate-400">Loading...</p>
+    </div>
+  </div>
+);
+
+// ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const location = useLocation();
-  // only show LocationBanner if not on the Home page
+
+  // Hide LocationBanner on Home — it has its own live-location section
   const showLocationBanner = location.pathname !== '/';
 
   return (
@@ -33,35 +87,27 @@ function AppContent() {
       <Navbar />
       {showLocationBanner && <LocationBanner />}
       <Toast />
+
       <main className="flex-grow bg-gray-50">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/worker/:id" element={<WorkerProfile />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/bookings" element={<Bookings />} />
-          <Route path="/worker-register" element={<WorkerRegister />} />
-          <Route path="/help" element={<HelpCenter />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {/* Suspense wraps all lazy routes — shows PageLoader during chunk fetch */}
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {ROUTES.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))}
+          </Routes>
+        </Suspense>
       </main>
+
       <BackToTop />
-      {/* SOS button stays fixed on every page for emergency bookings */}
+      {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
       <Footer />
     </div>
   );
 }
 
+// ─── Root ─────────────────────────────────────────────────────────────────────
 function App() {
   return (
     <Router>

@@ -38,3 +38,16 @@ export const getProfile = async () => {
     };
   }
 };
+
+export const updateProfile = async (data) => {
+  try {
+    const response = await api.put("/auth/profile", data);
+    return response.data;
+  } catch (error) {
+    console.error(error.response?.data?.message || error);
+    throw {
+      message: error.response?.data?.message || "Failed to update profile",
+      status: error.response?.status,
+    };
+  }
+};
