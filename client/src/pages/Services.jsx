@@ -176,28 +176,42 @@ const Services = () => {
         </select>
       </div>
 
-      {/* CATEGORY CHIPS (FULL FIX) */}
-      <div className="mb-10">
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-1 py-2 scrollbar-hide">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95
-                ${
-                  categoryFilter === cat
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white border text-gray-600 hover:border-blue-400 hover:text-blue-600"
-                }`}
-            >
-              {cat !== "All" && iconMap[cat] && (
-                <span className="mr-2">{iconMap[cat]}</span>
-              )}
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+  
+     {/* CATEGORY CHIPS */}
+<div className="mb-10">
+  <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+    {categories.map((cat) => {
+      const active = categoryFilter === cat;
+
+      return (
+        <button
+          key={cat}
+          onClick={() => setCategoryFilter(cat)}
+          className={`group relative shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-300
+            ${
+              active
+                ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200"
+                : "border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+        >
+          <span className="flex items-center gap-2">
+            {cat !== "All" && (
+              <span className="text-base">
+                {iconMap[cat] || "🛠️"}
+              </span>
+            )}
+
+            {cat}
+          </span>
+
+          {active && (
+            <span className="absolute inset-0 rounded-full ring-2 ring-blue-200"></span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+</div>
 
       {/* LOADING */}
       {loading ? (
