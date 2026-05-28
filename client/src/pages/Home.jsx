@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import { motion } from 'framer-motion';
 import { useTranslation } from "react-i18next";
 import { useLocation } from "../context/LocationContext";
 import { formatDistance, getDistanceKm } from "../utils/distance";
@@ -525,7 +526,15 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {recommendedWorkers.map((worker, idx) => (
-                <RecommendedWorkerCard key={worker.id} worker={worker} rank={idx + 1} />
+                <motion.div
+                  key={worker.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06, duration: 0.36 }}
+                  className="reveal"
+                >
+                  <RecommendedWorkerCard worker={worker} rank={idx + 1} />
+                </motion.div>
               ))}
             </div>
           )}

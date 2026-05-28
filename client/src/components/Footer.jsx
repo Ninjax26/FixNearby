@@ -31,26 +31,26 @@ const Footer = () => {
   };
 
   const linkClass = (path) =>
-    `transition duration-300 flex items-center gap-2 ${
+    `transition-all duration-300 flex items-center gap-2 group ${
       location.pathname === path
         ? "text-blue-400 font-medium"
-        : "text-gray-300 hover:text-blue-400"
+        : "text-gray-400 hover:text-blue-400"
     }`;
 
   return (
-    <footer className="bg-gradient-to-b from-gray-950 to-black text-gray-300 mt-auto border-t border-gray-800 relative overflow-hidden">
+    <footer className="bg-gradient-to-b from-gray-950 via-black to-black text-gray-300 mt-auto border-t border-gray-800 relative overflow-hidden">
       
       {/* Glow Effects */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/10 blur-3xl rounded-full"></div>
       <div className="absolute bottom-0 right-0 w-72 h-72 bg-cyan-500/10 blur-3xl rounded-full"></div>
 
       {/* Main Grid */}
-      <div className="relative max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-12">
+      <div className="relative max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-10 items-start">
         
         {/* Brand */}
         <div className="lg:col-span-2">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-500/20 p-3 rounded-xl">
+            <div className="bg-blue-500/15 border border-blue-500/20 p-3 rounded-2xl">
               <FaTools className="text-blue-400 text-2xl" />
             </div>
 
@@ -59,14 +59,14 @@ const Footer = () => {
             </h2>
           </div>
 
-          <p className="mt-5 text-sm leading-relaxed text-gray-400 max-w-sm">
+          <p className="mt-4 text-sm leading-relaxed text-gray-400 max-w-sm">
             Book trusted local professionals for repairs, maintenance,
             cleaning, and home services with confidence — verified experts,
             fast response times, and seamless booking.
           </p>
 
           {/* Info */}
-          <div className="mt-6 space-y-3 text-sm">
+          <div className="mt-5 space-y-2.5 text-sm">
             <div className="flex items-center gap-3 text-gray-400">
               <FaMapMarkerAlt className="text-blue-400" />
               <span>Available in your local area</span>
@@ -84,7 +84,7 @@ const Footer = () => {
           </div>
 
           {/* Socials */}
-          <div className="flex gap-4 mt-8">
+          <div className="flex gap-3 mt-6">
             {[
               { icon: <FaTwitter />, link: "#" },
               { icon: <FaLinkedin />, link: "#" },
@@ -95,7 +95,7 @@ const Footer = () => {
               <a
                 key={idx}
                 href={item.link}
-                className="w-11 h-11 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-300 hover:scale-110"
+                className="w-10 h-10 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-400 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all duration-300 hover:scale-105"
               >
                 {item.icon}
               </a>
@@ -105,35 +105,35 @@ const Footer = () => {
 
         {/* Navigation */}
         <div>
-          <h3 className="text-white font-semibold mb-5 text-lg">
+          <h3 className="text-white font-semibold mb-4 text-lg">
             Navigation
           </h3>
 
           <ul className="space-y-3 text-sm">
             <li>
               <Link to="/" className={linkClass("/")}>
-                <FaArrowRight className="text-xs" />
+                <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
                 Home
               </Link>
             </li>
 
             <li>
               <Link to="/services" className={linkClass("/services")}>
-                <FaArrowRight className="text-xs" />
+                <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
                 Services
               </Link>
             </li>
 
             <li>
               <Link to="/bookings" className={linkClass("/bookings")}>
-                <FaArrowRight className="text-xs" />
+                <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
                 Bookings
               </Link>
             </li>
 
             <li>
-              <Link to="/worker/register" className={linkClass("/worker/register")}>
-                <FaArrowRight className="text-xs" />
+              <Link to="/register" className={linkClass("/register")}>
+                <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
                 Join as a Pro
               </Link>
             </li>
@@ -142,7 +142,7 @@ const Footer = () => {
 
         {/* Support */}
         <div>
-          <h3 className="text-white font-semibold mb-5 text-lg">
+          <h3 className="text-white font-semibold mb-4 text-lg">
             Support
           </h3>
 
@@ -170,7 +170,7 @@ const Footer = () => {
           </ul>
 
           {/* Quick Contact */}
-          <div className="mt-8 space-y-3 text-sm">
+          <div className="mt-5 space-y-2.5 text-sm">
             <div className="flex items-center gap-3 text-gray-400">
               <FaEnvelope className="text-blue-400" />
               support@fixnearby.com
@@ -185,17 +185,17 @@ const Footer = () => {
 
         {/* Newsletter + Search */}
         <div className="lg:col-span-2">
-          <h3 className="text-white font-semibold mb-5 text-lg">
+          <h3 className="text-white font-semibold mb-4 text-lg">
             Stay Updated
           </h3>
 
-          <p className="text-sm text-gray-400 mb-5 max-w-sm leading-relaxed">
+          <p className="text-sm text-gray-400 mb-4 max-w-sm leading-relaxed">
             Get updates on new services, discounts, and platform features
             delivered directly to your inbox.
           </p>
 
           {/* Footer Search */}
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex gap-2">
               <div className="relative w-full">
                 <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm" />
@@ -208,7 +208,7 @@ const Footer = () => {
                   onKeyDown={(e) =>
                     e.key === "Enter" && handleSearch()
                   }
-                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-900 border border-gray-700 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-900/90 border border-gray-700 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition"
                 />
               </div>
 
@@ -229,13 +229,13 @@ const Footer = () => {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-900 border border-gray-700 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition"
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-900/90 border border-gray-700 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition"
               />
             </div>
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 text-white text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg shadow-blue-500/20"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:opacity-90 text-white text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg shadow-blue-500/20 whitespace-nowrap"
             >
               Subscribe
             </button>
@@ -245,13 +245,13 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-800 bg-black/40 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-400">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-gray-400">
           
           <p className="text-center sm:text-left">
             © {new Date().getFullYear()} FixNearby. All rights reserved.
           </p>
 
-          <div className="flex items-center flex-wrap justify-center gap-6 mt-3 sm:mt-0">
+          <div className="flex items-center flex-wrap justify-center gap-5">
             <Link
               to="/privacy"
               className="hover:text-blue-400 transition"

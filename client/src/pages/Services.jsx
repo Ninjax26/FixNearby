@@ -188,6 +188,9 @@ const Services = () => {
     searchParams.get("category") || "All",
   );
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "distance");
+  const [urgentFilter, setUrgentFilter] = useState(
+    searchParams.get("urgent") === "true",
+  );
 
   const [loading, setLoading] = useState(true);
   const [workers, setWorkers] = useState([]);
@@ -245,14 +248,28 @@ const Services = () => {
     loadData();
   }, []);
 
-  // SYNC URL PARAMS
+  // SYNC URL PARAMS TO STATE
+  useEffect(() => {
+    const urlCategory = searchParams.get("category") || "All";
+    const urlUrgent = searchParams.get("urgent") === "true";
+    const urlSearch = searchParams.get("search") || "";
+    const urlSort = searchParams.get("sort") || "distance";
+
+    if (urlCategory !== categoryFilter) setCategoryFilter(urlCategory);
+    if (urlUrgent !== urgentFilter) setUrgentFilter(urlUrgent);
+    if (urlSearch !== searchQuery) setSearchQuery(urlSearch);
+    if (urlSort !== sortBy) setSortBy(urlSort);
+  }, [searchParams]);
+
+  // SYNC STATE TO URL PARAMS
   useEffect(() => {
     const params = {};
     if (searchQuery) params.search = searchQuery;
     if (categoryFilter !== "All") params.category = categoryFilter;
     if (sortBy !== "distance") params.sort = sortBy;
+    if (urgentFilter) params.urgent = "true";
     setSearchParams(params);
-  }, [categoryFilter, searchQuery, setSearchParams, sortBy]);
+  }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
@@ -279,7 +296,19 @@ const Services = () => {
         worker.profession.toLowerCase().includes(search);
       const matchesCategory =
         categoryFilter === "All" || worker.profession === categoryFilter;
-      return matchesSearch && matchesCategory;
+      
+      let matchesUrgent = true;
+      if (urgentFilter) {
+        const avail = (worker.availability || "").toLowerCase();
+        matchesUrgent =
+          avail.includes("available today") ||
+          avail.includes("emergency slots open") ||
+          avail.includes("available this evening") ||
+          avail.includes("next slot this afternoon") ||
+          avail === "available";
+      }
+
+      return matchesSearch && matchesCategory && matchesUrgent;
     });
 
     if (sortBy === "rating") {
@@ -291,7 +320,7 @@ const Services = () => {
     }
 
     return result;
-  }, [categoryFilter, coords, searchQuery, sortBy, workers]);
+  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
@@ -337,6 +366,18 @@ const Services = () => {
             <option value="rating">⭐ Top Rated</option>
             <option value="price">💰 Lowest Price</option>
           </select>
+          <button
+            type="button"
+            onClick={() => setUrgentFilter((prev) => !prev)}
+            className={`rounded-xl border px-5 py-3 font-bold shadow-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+              urgentFilter
+                ? "border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+            }`}
+          >
+            <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
+            <span>Urgent Only</span>
+          </button>
         </div>
 
         {/* CATEGORY PILLS */}
@@ -359,6 +400,29 @@ const Services = () => {
           ))}
         </div>
       </div>
+
+      {/* URGENT ACTIVE BANNER */}
+      {urgentFilter && (
+        <div className="mx-auto max-w-3xl mb-10 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm animate-pulse">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 text-left">
+              <span className="text-3xl">🚨</span>
+              <div>
+                <h3 className="font-bold text-red-800">SOS Emergency Mode Active</h3>
+                <p className="text-sm text-red-600">
+                  Filtering for service providers with immediate availability today or emergency slots open.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setUrgentFilter(false)}
+              className="w-full sm:w-auto rounded-xl bg-red-100 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-200 transition-all duration-200"
+            >
+              Show All
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* RECENTLY VIEWED */}
       {recentWorkers.length > 0 && (
@@ -409,6 +473,7 @@ const Services = () => {
               setSearchQuery("");
               setCategoryFilter("All");
               setSortBy("distance");
+              setUrgentFilter(false);
             }}
             className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
           >
