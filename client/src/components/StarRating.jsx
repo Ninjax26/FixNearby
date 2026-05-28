@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Star } from "lucide-react";
 
 const StarRating = ({ rating, onRatingChange, size = "md" }) => {
   const [hoverRating, setHoverRating] = useState(0);
@@ -8,6 +9,7 @@ const StarRating = ({ rating, onRatingChange, size = "md" }) => {
     md: "w-6 h-6",
     lg: "w-8 h-8",
   };
+
 
   const starSize = sizeMap[size] || sizeMap.md;
 

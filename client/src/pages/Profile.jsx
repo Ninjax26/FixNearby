@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { updateProfile } from "../services/authService";
+import useToast from "../hooks/useToast";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
 
@@ -13,13 +16,24 @@ const Profile = () => {
   });
 
   const handleSave = async () => {
+    if (!formData.name.trim()) {
+      showToast("Name cannot be empty", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // TODO: Handle API update logic
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const updatedUser = await updateProfile({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+      });
+      
+      login(updatedUser);
+      showToast("Profile updated successfully!", "success");
     } catch (error) {
       console.error("Save failed:", error);
+      showToast(error.message || "Failed to update profile", "error");
     } finally {
       setLoading(false);
     }

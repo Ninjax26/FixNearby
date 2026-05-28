@@ -23,7 +23,7 @@ const SOSButton = () => {
           <p className="sos-panel-title">🚨 Select Emergency Type</p>
           <ul className="sos-options">
             {EMERGENCY_TYPES.map((type) => (
-              <li key={type.category}>
+              <li key={type.label}>
                 <button
                   className="sos-option-btn"
                   onClick={() => handleEmergencySelect(type.category)}
