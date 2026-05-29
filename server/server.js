@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
+import searchRoutes from './routes/searchRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 
 dotenv.config();
@@ -46,6 +47,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/issues', issueRoutes);
+app.use('/api/search', searchRoutes);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
