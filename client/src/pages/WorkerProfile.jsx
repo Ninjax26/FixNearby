@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import {
   Star,
@@ -253,6 +253,9 @@ const WorkerProfile = () => {
   const [showModal, setShowModal]           = useState(false);
   const [bookingDetails, setBookingDetails] = useState({});
   const [showQuickBookPrompt, setShowQuickBookPrompt] = useState(false);
+
+  const [worker, setWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadWorker = async () => {
