@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { SlidersHorizontal } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
+import SearchBar from "../components/SearchBar";
+import FilterSidebar from "../components/FilterSidebar";
+import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
+import { getSearchSuggestions } from "../services/searchService";
 
 const mockWorkers = [
   {
@@ -199,6 +204,37 @@ const Services = () => {
   const [coords, setCoords] = useState(null);
   const [locationStatus, setLocationStatus] = useState("idle");
 
+  // Advanced search features
+  const {
+    searchHistory,
+    addToHistory,
+    clearHistory,
+    removeHistoryItem,
+    favoriteSearches,
+    saveFavoriteSearch,
+    removeFavoriteSearch,
+    loadFavoriteSearch,
+    getShareableUrl,
+  } = useSearch({
+    category: categoryFilter,
+    minPrice: 0,
+    maxPrice: 100,
+    minRating: 0,
+    maxDistance: 50,
+    availability: 'all',
+    sortBy: sortBy,
+  });
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState({
+    minPrice: 0,
+    maxPrice: 100,
+    minRating: 0,
+    maxDistance: 50,
+    availability: 'all',
+  });
+
   // GEOLOCATION
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -271,6 +307,25 @@ const Services = () => {
     setSearchParams(params);
   }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
+  // Fetch autocomplete suggestions
+  useEffect(() => {
+    const fetchSuggestionsData = async () => {
+      if (searchQuery.length >= 2) {
+        try {
+          const results = await getSearchSuggestions(searchQuery);
+          setSuggestions(results.map(r => r.value));
+        } catch (error) {
+          console.error('Error fetching suggestions:', error);
+          setSuggestions([]);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    };
+    
+    fetchSuggestionsData();
+  }, [searchQuery]);
+
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
     let result = workers.map((worker) => {
@@ -308,7 +363,18 @@ const Services = () => {
           avail === "available";
       }
 
-      return matchesSearch && matchesCategory && matchesUrgent;
+      // Advanced filters
+      const matchesPrice = worker.price >= advancedFilters.minPrice && worker.price <= advancedFilters.maxPrice;
+      const matchesRating = advancedFilters.minRating === 0 || worker.rating >= advancedFilters.minRating;
+      const matchesDistance = !advancedFilters.maxDistance || !worker.distanceKm || worker.distanceKm <= advancedFilters.maxDistance;
+      
+      let matchesAvailability = true;
+      if (advancedFilters.availability !== 'all') {
+        const avail = (worker.availability || "").toLowerCase();
+        matchesAvailability = avail.includes('available');
+      }
+
+      return matchesSearch && matchesCategory && matchesUrgent && matchesPrice && matchesRating && matchesDistance && matchesAvailability;
     });
 
     if (sortBy === "rating") {
@@ -320,7 +386,7 @@ const Services = () => {
     }
 
     return result;
-  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers]);
+  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers, advancedFilters]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
@@ -330,6 +396,54 @@ const Services = () => {
     localStorage.setItem("recentWorkers", JSON.stringify(stored));
     setRecentWorkers(stored);
   };
+
+  const handleSearch = (query) => {
+    addToHistory(query, { category: categoryFilter, ...advancedFilters });
+  };
+
+  const handleSaveFavorite = (name) => {
+    const success = saveFavoriteSearch(name, searchQuery, { category: categoryFilter, ...advancedFilters });
+    if (success) {
+      alert('Search saved to favorites!');
+    }
+  };
+
+  const handleShareSearch = () => {
+    const url = getShareableUrl();
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Search URL copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy URL:', err);
+    });
+  };
+
+  const handleFilterChange = (key, value) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("All");
+    setSortBy("distance");
+    setUrgentFilter(false);
+    setAdvancedFilters({
+      minPrice: 0,
+      maxPrice: 100,
+      minRating: 0,
+      maxDistance: 50,
+      availability: 'all',
+    });
+  };
+
+  const hasActiveFilters = 
+    advancedFilters.minPrice > 0 ||
+    advancedFilters.maxPrice < 100 ||
+    advancedFilters.minRating > 0 ||
+    (advancedFilters.maxDistance && advancedFilters.maxDistance < 50) ||
+    advancedFilters.availability !== 'all';
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12">
@@ -349,14 +463,25 @@ const Services = () => {
 
       {/* FILTERS */}
       <div className="mb-10 space-y-6">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
-          <input
-            type="text"
+        {/* SearchBar with Autocomplete */}
+        <div className="mx-auto max-w-3xl">
+          <SearchBar
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search services..."
-            className="w-full flex-1 rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            onChange={setSearchQuery}
+            onSearch={handleSearch}
+            searchHistory={searchHistory}
+            favoriteSearches={favoriteSearches}
+            onRemoveHistory={removeHistoryItem}
+            onClearHistory={clearHistory}
+            onLoadFavorite={loadFavoriteSearch}
+            onSaveFavorite={handleSaveFavorite}
+            onShare={handleShareSearch}
+            suggestions={suggestions}
+            placeholder="Search for services, workers, or categories..."
           />
+        </div>
+
+        <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -377,6 +502,19 @@ const Services = () => {
           >
             <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
             <span>Urgent Only</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden"
+          >
+            <SlidersHorizontal className="h-5 w-5" />
+            <span>Advanced Filters</span>
+            {hasActiveFilters && (
+              <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white">
+                Active
+              </span>
+            )}
           </button>
         </div>
 
@@ -458,110 +596,126 @@ const Services = () => {
         </div>
       )}
 
-      {/* WORKER CARDS */}
-      {loading ? (
-        <LoadingSpinner />
-      ) : filteredWorkers.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
-          <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
-          <p className="mx-auto mt-2 max-w-md text-gray-500">
-            Try a broader search or reset the selected category.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setCategoryFilter("All");
-              setSortBy("distance");
-              setUrgentFilter(false);
-            }}
-            className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
-          >
-            Reset Filters
-          </button>
-        </div>
-      ) : (
-        <>
-          <p className="mb-6 text-sm font-medium text-gray-500">
-            Showing {filteredWorkers.length} services
-          </p>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {filteredWorkers.map((worker) => (
-              <div
-                key={worker.id}
-                className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl"
+      {/* MAIN CONTENT WITH SIDEBAR */}
+      <div className="flex gap-8">
+        {/* FILTER SIDEBAR */}
+        <FilterSidebar
+          filters={{
+            category: categoryFilter,
+            ...advancedFilters,
+            sortBy: sortBy,
+          }}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+          categories={categories}
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+          className="hidden lg:block"
+        />
+
+        {/* MAIN CONTENT */}
+        <div className="flex-1">
+          {/* WORKER CARDS */}
+          {loading ? (
+            <LoadingSpinner />
+          ) : filteredWorkers.length === 0 ? (
+            <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
+              <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
+              <p className="mx-auto mt-2 max-w-md text-gray-500">
+                Try a broader search or reset the selected category.
+              </p>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
               >
-                <div className="flex-1 p-8">
-                  <div className="mb-6 flex items-start justify-between">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600">
-                      {iconMap[worker.profession] || "👷"}
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="mb-6 text-sm font-medium text-gray-500">
+                Showing {filteredWorkers.length} services
+              </p>
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+                {filteredWorkers.map((worker) => (
+                  <div
+                    key={worker.id}
+                    className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl"
+                  >
+                    <div className="flex-1 p-8">
+                      <div className="mb-6 flex items-start justify-between">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600">
+                          {iconMap[worker.profession] || "👷"}
+                        </div>
+                        {worker.verified && (
+                          <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700">
+                            Verified
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="mb-1 text-2xl font-bold text-gray-900">
+                        {worker.name}
+                      </h3>
+                      <p className="mb-4 font-bold text-blue-600">
+                        {worker.profession}
+                      </p>
+
+                      <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                          {worker.availability}
+                        </span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                          {worker.responseTime}
+                        </span>
+                      </div>
+
+                      <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                        <span className="font-bold text-gray-900">
+                          Rating {worker.rating}
+                        </span>
+                        <span className="font-bold text-gray-900">
+                          ${worker.price}/hr
+                        </span>
+                        {worker.distanceKm !== null && (
+                          <span className="font-bold text-gray-900">
+                            {formatDistance(worker.distanceKm)}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-sm leading-6 text-slate-600">
+                        {worker.outcomeText}
+                      </p>
                     </div>
-                    {worker.verified && (
-                      <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700">
-                        Verified
-                      </span>
-                    )}
+
+                    <div className="p-8 pt-0 space-y-3">
+                        <a
+                          title="Get Directions"
+                        href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
+                        >
+                          📍 Open in Google Maps
+                        </a>
+
+                        <Link
+                          to={`/worker/${worker.id}`}
+                          onClick={() => handleRecentlyViewed(worker)}
+                          className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
+                        >
+                          View Profile and Book
+                        </Link>
+                      </div>
                   </div>
-
-                  <h3 className="mb-1 text-2xl font-bold text-gray-900">
-                    {worker.name}
-                  </h3>
-                  <p className="mb-4 font-bold text-blue-600">
-                    {worker.profession}
-                  </p>
-
-                  <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                      {worker.availability}
-                    </span>
-                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                      {worker.responseTime}
-                    </span>
-                  </div>
-
-                  <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                    <span className="font-bold text-gray-900">
-                      Rating {worker.rating}
-                    </span>
-                    <span className="font-bold text-gray-900">
-                      ${worker.price}/hr
-                    </span>
-                    {worker.distanceKm !== null && (
-                      <span className="font-bold text-gray-900">
-                        {formatDistance(worker.distanceKm)}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-sm leading-6 text-slate-600">
-                    {worker.outcomeText}
-                  </p>
-                </div>
-
-                <div className="p-8 pt-0 space-y-3">
-                    <a
-                      title="Get Directions"
-                    href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
-                    >
-                      📍 Open in Google Maps
-                    </a>
-
-                    <Link
-                      to={`/worker/${worker.id}`}
-                      onClick={() => handleRecentlyViewed(worker)}
-                      className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
-                    >
-                      View Profile and Book
-                    </Link>
-                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </>
-      )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
