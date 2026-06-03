@@ -9,6 +9,7 @@ import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
+import errorHandler from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -78,10 +79,7 @@ app.use((req, res, next) => {
 });
 
 // Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
-});
+app.use(errorHandler);
 
 
 // Start server
