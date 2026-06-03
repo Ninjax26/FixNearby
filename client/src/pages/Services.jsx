@@ -312,6 +312,7 @@ const Services = () => {
     setSearchParams(params);
   }, [categoryFilter, searchQuery, setSearchParams, sortBy, urgentFilter]);
 
+  /* FILTER + SORT */
   // Fetch autocomplete suggestions
   useEffect(() => {
     const fetchSuggestionsData = async () => {
@@ -482,6 +483,17 @@ const Services = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+
+        <select
+          className="rounded-xl border px-4 py-3"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="distance">Nearest</option>
+          <option value="rating">Top Rated</option>
+          <option value="price">Lowest Price</option>
+        </select>
+      </div>
       {/* FILTERS */}
       <div className="mb-10 space-y-6">
         {/* SearchBar with Autocomplete */}
@@ -596,6 +608,19 @@ const Services = () => {
             <div
               key={w.id}
               className="rounded-2xl border bg-white p-6 shadow-sm"
+      {/* CATEGORY CHIPS (FULL FIX) */}
+      <div className="mb-10">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-1 py-2 scrollbar-hide">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95
+                ${
+                  categoryFilter === cat
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-white border text-gray-600 hover:border-blue-400 hover:text-blue-600"
+                }`}
             >
               <div className="text-3xl mb-2">
                 {iconMap[w.profession] || "👷"}
@@ -625,6 +650,27 @@ const Services = () => {
           ))}
         </div>
       )}
+      </div>
+
+      {/* LOADING */}
+      {loading ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredWorkers.map((w) => (
+            <div
+              key={w.id}
+              className="rounded-2xl border bg-white p-6 shadow-sm"
+            >
+              <div className="text-3xl mb-2">
+                {iconMap[w.profession] || "👷"}
+              </div>
+
+              <h3 className="text-xl font-bold">{w.name}</h3>
+              <p className="text-blue-600">{w.profession}</p>
+
+              <div className="mt-2 text-sm text-gray-600">
+                ⭐ {w.rating} • ${w.price}/hr
       {/* URGENT ACTIVE BANNER */}
       {urgentFilter && (
         <div className="mx-auto max-w-3xl mb-10 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm animate-pulse">
@@ -798,6 +844,24 @@ const Services = () => {
                   </div>
                 ))}
               </div>
+
+              {w.distanceKm !== null && (
+                <div className="text-sm text-gray-500">
+                  {formatDistance(w.distanceKm)}
+                </div>
+              )}
+
+              <Link
+                to={`/worker/${w.id}`}
+                onClick={() => handleRecentlyViewed(w)}
+                className="mt-4 block rounded-lg bg-black py-2 text-center text-white"
+              >
+                View Profile
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
             </>
           )}
         </div>
