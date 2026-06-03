@@ -11,6 +11,15 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 dotenv.config();
 
+// Fail fast if JWT_SECRET is missing. Without it, jwt.sign() in authController
+// throws at runtime on every login and register attempt, and older versions of
+// jsonwebtoken silently sign with an empty secret, making all accounts
+// impersonatable.
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set. Server cannot start.');
+  process.exit(1);
+}
+
 const app = express();
 
 // Security Middleware
