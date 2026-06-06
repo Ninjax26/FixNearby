@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
+import { validateEnv } from './config/envValidate.js';
 import authRoutes from './routes/authRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
@@ -12,14 +13,8 @@ import authMiddleware from './middleware/authMiddleware.js';
 
 dotenv.config();
 
-// Fail fast if JWT_SECRET is missing. Without it, jwt.sign() in authController
-// throws at runtime on every login and register attempt, and older versions of
-// jsonwebtoken silently sign with an empty secret, making all accounts
-// impersonatable.
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET environment variable is not set. Server cannot start.');
-  process.exit(1);
-}
+// Validate critical configuration environment variables
+validateEnv();
 
 const app = express();
 
