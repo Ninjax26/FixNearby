@@ -36,14 +36,14 @@ const Navbar = () => {
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   const desktopLinkCls = (path) =>
-    `text-sm font-medium transition-colors duration-200 ${
+    `text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-md ${
       location.pathname === path
         ? 'text-primary'
         : 'text-slate-600 hover:text-primary'
     }`;
 
   const mobileLinkCls = (path) =>
-    `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
+    `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
       location.pathname === path
         ? 'bg-blue-50 text-primary'
         : 'text-slate-700 hover:bg-slate-50'
