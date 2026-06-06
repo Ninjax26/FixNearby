@@ -36,14 +36,14 @@ const Navbar = () => {
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   const desktopLinkCls = (path) =>
-    `text-sm font-medium transition-colors duration-200 ${
+    `text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-md ${
       location.pathname === path
         ? 'text-primary'
         : 'text-slate-600 hover:text-primary'
     }`;
 
   const mobileLinkCls = (path) =>
-    `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
+    `block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
       location.pathname === path
         ? 'bg-blue-50 text-primary'
         : 'text-slate-700 hover:bg-slate-50'
@@ -143,38 +143,38 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pb-4 pt-2">
-          <nav className="flex flex-col gap-1">
-            <a href="/#how-it-works" className={mobileLinkCls('/#how-it-works')}>{t("nav.howItWorks")}</a>
-            <Link to="/services" className={mobileLinkCls('/services')}>{t("nav.services")}</Link>
-            {isAuthenticated ? (
-              <>
-                <Link to="/bookings" className={mobileLinkCls('/bookings')}>{t("nav.bookings")}</Link>
-                <Link to="/profile" className={mobileLinkCls('/profile')}>{t("nav.profile")}</Link>
-                <div className="my-1 border-t border-slate-100" />
-                <button onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left">
-                  {t("nav.logout")}
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="my-1 border-t border-slate-100" />
-                <Link to="/register"
-                  className="block text-center text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl transition-all duration-200">
-                  {t("nav.getStarted")}
-                </Link>
-                <Link to="/worker/register"
-                  className="block text-center text-sm font-semibold text-[#0056D2] border border-[#0056D2]/25 bg-blue-50/70 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-all duration-200">
-                  {t("nav.joinAsPro")}
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      )}
+      {/* Mobile menu with slide/fade transition wrapper */}
+      <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+        menuOpen ? 'max-h-96 opacity-100 border-t border-slate-200' : 'max-h-0 opacity-0'
+      } bg-white px-4 pb-4 pt-2`}>
+        <nav className="flex flex-col gap-1">
+          <a href="/#how-it-works" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/#how-it-works')}>{t("nav.howItWorks")}</a>
+          <Link to="/services" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/services')}>{t("nav.services")}</Link>
+          {isAuthenticated ? (
+            <>
+              <Link to="/bookings" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/bookings')}>{t("nav.bookings")}</Link>
+              <Link to="/profile" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/profile')}>{t("nav.profile")}</Link>
+              <div className="my-1 border-t border-slate-100" />
+              <button onClick={() => { setMenuOpen(false); handleLogout(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left">
+                {t("nav.logout")}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="my-1 border-t border-slate-100" />
+              <Link to="/register" onClick={() => setMenuOpen(false)}
+                className="block text-center text-sm font-semibold text-white bg-[#0056D2] hover:bg-[#0047AF] px-5 py-2.5 rounded-xl transition-all duration-200">
+                {t("nav.getStarted")}
+              </Link>
+              <Link to="/worker/register" onClick={() => setMenuOpen(false)}
+                className="block text-center text-sm font-semibold text-[#0056D2] border border-[#0056D2]/25 bg-blue-50/70 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-all duration-200">
+                {t("nav.joinAsPro")}
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
     </nav>
   );
 };
