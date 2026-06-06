@@ -16,6 +16,7 @@ const Register         = lazy(() => import('./pages/Register'));
 const Dashboard        = lazy(() => import('./pages/Dashboard'));
 const Services         = lazy(() => import('./pages/Services'));
 const WorkerProfile    = lazy(() => import('./pages/WorkerProfile'));
+const WorkerDashboard  = lazy(() => import('./pages/WorkerDashboard'));
 const Profile          = lazy(() => import('./pages/Profile'));
 const Bookings         = lazy(() => import('./pages/Bookings'));
 const WorkerRegister   = lazy(() => import('./pages/WorkerRegister'));
@@ -57,6 +58,7 @@ const ROUTES = [
   { path: '/services',          element: <Services /> },
   { path: '/worker/register',   element: <WorkerRegister /> },
   { path: '/worker/login',      element: <WorkerLogin /> },
+  { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
