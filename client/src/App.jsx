@@ -8,6 +8,7 @@ import Toast           from './components/Toast';
 import LocationBanner  from './components/LocationBanner';
 import BackToTop       from './components/BackToTop';
 import SOSButton       from './components/SOSButton';
+import useOfflineSync  from './hooks/useOfflineSync';
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
@@ -91,6 +92,7 @@ const PageLoader = () => (
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const location = useLocation();
+  useOfflineSync();
 
   // Hide LocationBanner on Home — it has its own live-location section
   const showLocationBanner = location.pathname !== '/';
