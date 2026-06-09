@@ -151,7 +151,7 @@ export const loginWorker = async (req, res) => {
 
 export const getWorkers = async (req, res) => {
   try {
-    const workers = await Worker.find().select("-password");
+    const workers = await Worker.find().select("name email category experience location contact availabilityStatus profilePicture lastActive");
 
     res.status(200).json({
       success: true,

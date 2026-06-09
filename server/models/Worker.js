@@ -112,6 +112,8 @@ workerSchema.methods.matchPassword =
     );
   };
 
+workerSchema.index({ category: 1, availabilityStatus: 1 });
+
 const Worker = mongoose.model(
   "Worker",
   workerSchema

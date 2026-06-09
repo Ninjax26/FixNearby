@@ -51,7 +51,6 @@ export const getNearbyIssues = async (req, res) => {
         return res.status(200).json({ type: 'cluster', data: clusters });
       }
 
-      // Standard granular fetch for high zoom levels
       const issues = await Issue.find({
         category,
         status: { $nin: ['resolved', 'closed'] },
@@ -61,7 +60,7 @@ export const getNearbyIssues = async (req, res) => {
             $maxDistance: maxDistanceMeters
           }
         }
-      }).limit(100);
+      }).select("title description category location latitude longitude status upvotes reportedAt").limit(100);
 
       return res.status(200).json({ type: 'list', data: issues });
     }
