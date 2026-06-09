@@ -98,6 +98,13 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'FixNearby API is running' });
 });
 
+// Client-side UI error reporting endpoint
+app.post('/api/logs/error', (req, res) => {
+  const { message, stack, componentStack, url } = req.body;
+  console.error(`[CLIENT CRASH] at ${url}: ${message}\nStack: ${stack}\nComponent Stack: ${componentStack}`);
+  res.status(200).json({ success: true, message: 'Client error logged successfully' });
+});
+
 
 // 404 handler for unknown API routes
 app.use((req, res, next) => {
