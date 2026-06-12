@@ -1,54 +1,52 @@
 import React, { useState } from 'react';
 
-export default function BookingCalendar({ onSelectSlot }) {
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
+const BookingCalendar = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const timeSlots = ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'];
+  const daysInMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 1,
+    0
+  ).getDate();
+
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg border border-slate-100 max-w-md mx-auto">
-      <h3 className="text-lg font-bold text-slate-800 mb-4">Select Schedule</h3>
-      <div className="grid grid-cols-7 gap-2 mb-4">
-        {[...Array(7)].map((_, i) => {
-          const date = new Date();
-          date.setDate(date.getDate() + i);
-          const isSelected = selectedDate === date.toDateString();
-          return (
-            <button
-              key={i}
-              onClick={() => setSelectedDate(date.toDateString())}
-              className={`flex flex-col items-center p-2 rounded-lg transition ${
-                isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <span className="text-xs">{date.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-              <span className="text-sm font-semibold">{date.getDate()}</span>
-            </button>
-          );
-        })}
-      </div>
-      {selectedDate && (
-        <div>
-          <h4 className="text-sm font-semibold text-slate-600 mb-2">Available Slots</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {timeSlots.map((slot) => (
-              <button
-                key={slot}
-                onClick={() => {
-                  setSelectedTime(slot);
-                  onSelectSlot({ date: selectedDate, time: slot });
-                }}
-                className={`p-2 text-sm rounded-lg border transition ${
-                  selectedTime === slot ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
+    <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="font-bold text-lg text-gray-800">
+          {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+        </h3>
+        <div className="space-x-2">
+          <button
+            onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
+            className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition"
+          >
+            &lt;
+          </button>
+          <button
+            onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
+            className="p-2 hover:bg-gray-50 rounded-lg text-gray-600 transition"
+          >
+            &gt;
+          </button>
         </div>
-      )}
+      </div>
+      <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-gray-400 mb-3">
+        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+      </div>
+      <div className="grid grid-cols-7 gap-2">
+        {days.map(day => (
+          <div
+            key={day}
+            className="aspect-square flex items-center justify-center rounded-xl text-sm font-medium hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition text-gray-700"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
     </div>
   );
-}
+};
+
+export default BookingCalendar;
