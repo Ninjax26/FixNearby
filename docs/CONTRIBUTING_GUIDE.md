@@ -4,10 +4,15 @@ Welcome to the project! To maintain code stability and ease verification, please
 
 ## Branch Naming Policy
 - Always create a dedicated branch. Never commit directly to `master`.
-- Use descriptive, hyphen-separated, lowercase names:
-  - `fix/description` for bugs
-  - `feat/description` for features
-  - `docs/description` for documentation
+- Use descriptive, hyphen-separated, lowercase names prefixed with one of the following:
+  - `fix/` for bug fixes
+  - `feat/` for new features and visual enhancements
+  - `docs/` for any documentation modifications
+  - `security/` for vulnerability mitigations and sanitizers
+  - `ci/` for pipeline automation and runner configurations
+  - `accessibility/` for screen reader or aria updates
+  - `refactor/` for code structure improvements
+  - `perf/` for performance caching or lazy loading updates
 
 ## Pull Request Checklist
 1. Pull latest master and rebase before pushing:
