@@ -21,3 +21,34 @@ paths:
       responses:
         '200':
           description: Successful Authentication
+  /api/workers/profile:
+    get:
+      summary: Get Worker Profile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful profile retrieval
+  /api/issues/nearby:
+    get:
+      summary: Get Nearby Issues
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: List of nearby issues returned successfully
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
