@@ -6,10 +6,11 @@ export const workerSignup = async (data) => {
     return res.data;
   } catch (error) {
     console.error(error.response?.data?.message || error);
-    throw {
-      message: error.response?.data?.message || "Registration failed",
-      status: error.response?.status,
-    };
+    const err = new Error(
+  error.response?.data?.message || "Registration failed"
+);
+err.status = error.response?.status;
+throw err;
   }
 };
 
@@ -25,13 +26,11 @@ export const workerLogin = async (data) => {
       error.response?.data?.message || error
     );
 
-    throw {
-      message:
-        error.response?.data?.message ||
-        "Login failed",
-
-      status: error.response?.status,
-    };
+    const err = new Error(
+  error.response?.data?.message || "Login failed"
+);
+err.status = error.response?.status;
+throw err;
   }
 };
 
@@ -58,9 +57,10 @@ export const fetchWorkers = async () => {
     }));
   } catch (error) {
     console.error(error.response?.data?.message || error);
-    throw {
-      message: error.response?.data?.message || "Failed to fetch workers",
-      status: error.response?.status,
-    };
+    const err = new Error(
+  error.response?.data?.message || "Failed to fetch workers"
+);
+err.status = error.response?.status;
+throw err;
   }
 };
