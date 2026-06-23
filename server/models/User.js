@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire: {
     type: Date,
   },
+  status: {
+    type: String,
+    enum: ['online', 'offline', 'busy'],
+    default: 'offline'
+  },
   // TODO: Add roles (e.g., 'customer', 'worker')
   // role: { type: String, enum: ['customer', 'worker'], default: 'customer' }
 }, {

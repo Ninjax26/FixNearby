@@ -3,16 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 import connectDB from './config/db.js';
 import { validateEnv } from './config/envValidate.js';
 import authRoutes from './routes/authRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 import errorHandler from './middleware/errorHandler.js';
 import csrfProtection from './middleware/csrfMiddleware.js';
 import { compressionMiddleware } from './middleware/compression.js';
+import { initSocket } from './socket.js';
 
 dotenv.config();
 
@@ -88,6 +91,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
@@ -114,6 +118,9 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
