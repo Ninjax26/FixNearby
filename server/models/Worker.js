@@ -91,6 +91,11 @@ const workerSchema = new mongoose.Schema(
       type: Number,
       default: 100,
     },
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: true },
+      push: { type: Boolean, default: true }
+    },
   },
   {
     timestamps: true,
