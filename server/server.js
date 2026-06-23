@@ -13,6 +13,8 @@ import authMiddleware from './middleware/authMiddleware.js';
 import errorHandler from './middleware/errorHandler.js';
 import csrfProtection from './middleware/csrfMiddleware.js';
 import { compressionMiddleware } from './middleware/compression.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import { startBookingExpiryScheduler } from './workers/bookingExpiryWorker.js';
 
 dotenv.config();
 
@@ -88,6 +90,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+// Start Booking Expiry Check Scheduler
+startBookingExpiryScheduler();
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
