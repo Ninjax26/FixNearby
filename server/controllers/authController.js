@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
+import { queueNotification } from "../utils/queue.js";
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign(
@@ -79,6 +80,9 @@ export const registerUser = async (req, res) => {
       password,
       phone: phone ? phone.trim() : undefined,
     });
+
+    // Queue welcome notification job
+    await queueNotification('welcome', { userId: user._id, userType: 'User' });
 
     // 7. Response 
     res.status(201).json({
@@ -218,6 +222,9 @@ export const registerWorker = async (req, res) => {
       bio,
       profilePicture: req.file?.path || "",
     });
+
+    // Queue welcome notification job
+    await queueNotification('welcome', { userId: worker._id, userType: 'Worker' });
 
     res.status(201).json({
       success: true,

@@ -13,6 +13,8 @@ import authMiddleware from './middleware/authMiddleware.js';
 import errorHandler from './middleware/errorHandler.js';
 import csrfProtection from './middleware/csrfMiddleware.js';
 import { compressionMiddleware } from './middleware/compression.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import { startWorker } from './workers/notificationWorker.js';
 
 dotenv.config();
 
@@ -88,6 +90,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+// Start Background Notification Worker
+startWorker();
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
