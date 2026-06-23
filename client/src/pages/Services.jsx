@@ -249,16 +249,6 @@ const Services = () => {
 
   /* LOAD DATA */
   useEffect(() => {
-    setTimeout(() => {
-      setWorkers(mockWorkers);
-      setRecentWorkers(
-        JSON.parse(localStorage.getItem("recentWorkers")) || []
-      );
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  /* SYNC URL */
     const loadData = async () => {
       setLoading(true);
       try {
@@ -335,7 +325,7 @@ const Services = () => {
     fetchSuggestionsData();
   }, [searchQuery]);
 
-  /* FILTER + SORT */
+  // FILTER + SORT
   const filteredWorkers = useMemo(() => {
     let result = workers.map((worker) => ({
       ...worker,
@@ -364,8 +354,6 @@ const Services = () => {
     }
 
     return result;
-  }, [workers, searchQuery, categoryFilter, sortBy, coords]);
-  }, [categoryFilter, coords, searchQuery, sortBy, urgentFilter, workers, advancedFilters]);
   }, [workers, searchQuery, categoryFilter, sortBy]);
 
   const handleRecentlyViewed = (worker) => {
@@ -479,63 +467,6 @@ const Services = () => {
           />
         </div>
 
-  
-     {/* CATEGORY CHIPS */}
-<div className="mb-10">
-  <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-    {categories.map((cat) => {
-      const active = categoryFilter === cat;
-
-      return (
-        <button
-          key={cat}
-          onClick={() => setCategoryFilter(cat)}
-          className={`group relative shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-300
-            ${
-              active
-                ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200"
-                : "border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-            }`}
-        >
-          <span className="flex items-center gap-2">
-            {cat !== "All" && (
-              <span className="text-base">
-                {iconMap[cat] || "🛠️"}
-              </span>
-            )}
-
-            {cat}
-          </span>
-
-          {active && (
-            <span className="absolute inset-0 rounded-full ring-2 ring-blue-200"></span>
-          )}
-        </button>
-      );
-    })}
-  </div>
-</div>
-
-      {/* LOADING */}
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredWorkers.map((w) => (
-            <div
-              key={w.id}
-              className="rounded-2xl border bg-white p-6 shadow-sm"
-            >
-              <div className="text-3xl mb-2">
-                {iconMap[w.profession] || "👷"}
-              </div>
-
-              <h3 className="text-xl font-bold">{w.name}</h3>
-              <p className="text-blue-600">{w.profession}</p>
-
-              <div className="mt-2 text-sm text-gray-600">
-                ⭐ {w.rating} • ${w.price}/hr
-              </div>
         <div className="mx-auto flex max-w-3xl flex-col gap-4 sm:flex-row">
           <select
             value={sortBy}
@@ -572,163 +503,6 @@ const Services = () => {
           </button>
         </div>
 
-        <select
-          className="rounded-xl border px-4 py-3"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="distance">Nearest</option>
-          <option value="rating">Top Rated</option>
-          <option value="price">Lowest Price</option>
-        </select>
-      </div>
-
-  
-     {/* CATEGORY CHIPS */}
-<div className="mb-10">
-  <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-    {categories.map((cat) => {
-      const active = categoryFilter === cat;
-
-      return (
-        <button
-          key={cat}
-          onClick={() => setCategoryFilter(cat)}
-          className={`group relative shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-300
-            ${
-              active
-                ? "border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200"
-                : "border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-            }`}
-        >
-          <span className="flex items-center gap-2">
-            {cat !== "All" && (
-              <span className="text-base">
-                {iconMap[cat] || "🛠️"}
-              </span>
-            )}
-
-            {cat}
-          </span>
-
-          {active && (
-            <span className="absolute inset-0 rounded-full ring-2 ring-blue-200"></span>
-          )}
-        </button>
-      );
-    })}
-  </div>
-</div>
-
-      {/* LOADING */}
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredWorkers.map((w) => (
-            <div
-              key={w.id}
-              className="rounded-2xl border bg-white p-6 shadow-sm"
-      {/* CATEGORY CHIPS (FULL FIX) */}
-      <div className="mb-10">
-        <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-1 py-2 scrollbar-hide">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoryFilter(cat)}
-              className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 active:scale-95
-                ${
-                  categoryFilter === cat
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-white border text-gray-600 hover:border-blue-400 hover:text-blue-600"
-                }`}
-            >
-              <div className="text-3xl mb-2">
-                {iconMap[w.profession] || "👷"}
-              </div>
-
-              <h3 className="text-xl font-bold">{w.name}</h3>
-              <p className="text-blue-600">{w.profession}</p>
-
-              <div className="mt-2 text-sm text-gray-600">
-                ⭐ {w.rating} • ${w.price}/hr
-              </div>
-
-              {w.distanceKm !== null && (
-                <div className="text-sm text-gray-500">
-                  {formatDistance(w.distanceKm)}
-                </div>
-              )}
-
-              <Link
-                to={`/worker/${w.id}`}
-                onClick={() => handleRecentlyViewed(w)}
-                className="mt-4 block rounded-lg bg-black py-2 text-center text-white"
-              >
-                View Profile
-              </Link>
-            </div>
-          ))}
-        </div>
-      )}
-      </div>
-
-      {/* LOADING */}
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredWorkers.map((w) => (
-            <div
-              key={w.id}
-              className="rounded-2xl border bg-white p-6 shadow-sm"
-            >
-              <div className="text-3xl mb-2">
-                {iconMap[w.profession] || "👷"}
-              </div>
-
-              <h3 className="text-xl font-bold">{w.name}</h3>
-              <p className="text-blue-600">{w.profession}</p>
-
-              <div className="mt-2 text-sm text-gray-600">
-                ⭐ {w.rating} • ${w.price}/hr
-      {/* URGENT ACTIVE BANNER */}
-      {urgentFilter && (
-        <div className="mx-auto max-w-3xl mb-10 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm animate-pulse">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 text-left">
-              <span className="text-3xl">🚨</span>
-              <div>
-                <h3 className="font-bold text-red-800">SOS Emergency Mode Active</h3>
-                <p className="text-sm text-red-600">
-                  Filtering for service providers with immediate availability today or emergency slots open.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setUrgentFilter(false)}
-              className="w-full sm:w-auto rounded-xl bg-red-100 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-200 transition-all duration-200"
-            >
-              Show All
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* RECENTLY VIEWED */}
-      {recentWorkers.length > 0 && (
-        <div className="mb-14">
-          <div className="mb-6 flex items-center gap-2">
-            <span className="text-2xl">⭐</span>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Recently Viewed Professionals
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {recentWorkers.map((worker) => (
-              <div
-                key={worker.id}
-                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
         {/* CATEGORY CHIPS (FULL FIX) */}
         <div className="mb-10">
           <div className="flex gap-2 overflow-x-auto whitespace-nowrap px-1 py-2 scrollbar-hide">
