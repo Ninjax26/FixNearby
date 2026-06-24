@@ -36,9 +36,19 @@ const workerSchema = new mongoose.Schema(
     },
 
     location: {
-      type: String,
-      required: true,
-      trim: true,
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true
+      }
+    },
+    averageRating: {
+      type: Number,
+      default: 0
     },
 
     contact: {
@@ -133,6 +143,7 @@ workerSchema.methods.matchPassword =
     );
   };
 
+workerSchema.index({ location: "2dsphere" });
 workerSchema.index({ category: 1, availabilityStatus: 1 });
 
 const Worker = mongoose.model(
