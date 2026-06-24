@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Worker from "../models/Worker.js";
 import mongoose from "mongoose";
+import { calculateKarmaScores } from "../utils/karmaScheduler.js";
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -211,4 +212,20 @@ export const getWorkerProfile = async (req, res) => {
     success: true,
     worker: req.worker,
   });
+};
+
+export const recalculateKarmaScoresController = async (req, res) => {
+  try {
+    await calculateKarmaScores();
+    res.status(200).json({
+      success: true,
+      message: "Karma/Reliability scores recalculated successfully for all workers"
+    });
+  } catch (error) {
+    console.error("Error recalculating karma scores:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
+    });
+  }
 };

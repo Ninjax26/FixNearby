@@ -75,6 +75,27 @@ const workerSchema = new mongoose.Schema(
     resetPasswordExpire: {
       type: Date,
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    responsiveness: {
+      type: Number,
+      default: 100,
+    },
+    karmaScore: {
+      type: Number,
+      default: 100,
+    },
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: true },
+      push: { type: Boolean, default: true }
+    },
   },
   {
     timestamps: true,
