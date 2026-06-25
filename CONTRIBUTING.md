@@ -6,7 +6,12 @@ This document provides guidelines and steps for contributing to this project.
 
 ## 1. Where do I start?
 
-If you're looking for a way to contribute, you can start by checking our **Issues** tab. Look for issues labeled `good first issue` or `help wanted`.
+Before writing code, please review our detailed [**Open Source Contributor Roadmap**](./docs/CONTRIBUTOR_ROADMAP.md) to understand:
+* **System Subsystems:** Backend APIs, React Frontend, and Background Schedulers.
+* **Architectural Integration Gaps:** Backend vs. Frontend flow mismatches (e.g., booking and searching bypasses) and orphaned components that need integration.
+* **Wishlist Tasks:** Specific backend and frontend features categorized by skill level (Beginner, Intermediate, Advanced).
+
+If you are looking for a way to contribute, you can start by checking our **Issues** tab. Look for issues labeled `good first issue` or `help wanted`.
 
 Alternatively, if you find a bug or have a feature request:
 - **Check existing issues** to see if it has already been reported.
