@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
+import { estimateArrivalTime } from "../utils/etaCalculator";
+import { useLocation } from "../context/LocationContext";
 import {
   Star,
   MapPin,
@@ -248,6 +250,7 @@ const saveBookings = (bookings) => {
 const WorkerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { coords: userCoords } = useLocation();
 
   const [activeTab, setActiveTab]          = useState("overview");
   const [showModal, setShowModal]           = useState(false);
@@ -342,6 +345,7 @@ const WorkerProfile = () => {
       date: new Date().toLocaleDateString(),
       time: "10:00 AM",
       price: worker.price,
+      eta: estimateArrivalTime(userCoords, worker.location),
     });
 
     setShowModal(true);
@@ -379,6 +383,7 @@ const WorkerProfile = () => {
       time: "10:00 AM",
       price: `$${estimate.totalCost.toFixed(2)}`,
       estimateSpecs: newBooking.estimateSpecs,
+      eta: estimateArrivalTime(userCoords, worker.location),
     });
 
     setShowModal(true);

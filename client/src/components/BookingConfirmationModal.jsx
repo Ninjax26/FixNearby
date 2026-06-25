@@ -8,6 +8,7 @@ import {
   ChevronUp,
   CheckCircle2,
   X,
+  Navigation,
 } from "lucide-react";
 import FocusTrap from "./FocusTrap";
 
@@ -196,6 +197,18 @@ const BookingConfirmationModal = ({ isOpen, onClose, bookingDetails }) => {
                   {bookingDetails?.time || "10:00 AM"}
                 </span>
               </div>
+              {/* ETA row */}
+              {bookingDetails?.eta && (
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    <Navigation size={14} className="text-blue-500" />
+                    Est. Arrival:
+                  </span>
+                  <span className="font-semibold text-blue-600 bg-blue-50 px-3 py-0.5 rounded-full text-sm">
+                    {bookingDetails.eta.label}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-gray-500">Total Price:</span>
                 <span className="font-bold text-emerald-600 text-lg">
