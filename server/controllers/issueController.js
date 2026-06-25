@@ -17,12 +17,33 @@ export const createIssue = async (req, res) => {
   try {
     const { title, description, category, latitude, longitude } = req.body;
     
+    if (!title || !description || !category || latitude === undefined || longitude === undefined) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields: title, description, category, latitude, and longitude.'
+      });
+    }
+
+    const parsedLat = parseFloat(latitude);
+    const parsedLng = parseFloat(longitude);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng) || parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid coordinate parameters. Latitude must be between -90 and 90, and Longitude must be between -180 and 180.'
+      });
+    }
+
     // Concurrency Check: Verify no existing open issue is registered within close coordinates
     const duplicate = await Issue.findOne({
       category,
       status: 'open',
-      latitude: { $gte: latitude - 0.0001, $lte: latitude + 0.0001 },
-      longitude: { $gte: longitude - 0.0001, $lte: longitude + 0.0001 }
+      latitude: { $gte: parsedLat - 0.0001, $lte: parsedLat + 0.0001 },
+      longitude: { $gte: parsedLng - 0.0001, $lte: parsedLng + 0.0001 }
     }).session(session);
 
     if (duplicate) {
@@ -38,8 +59,8 @@ export const createIssue = async (req, res) => {
       title,
       description,
       category,
-      latitude,
-      longitude,
+      latitude: parsedLat,
+      longitude: parsedLng,
       reportedBy: req.user ? req.user._id : undefined
     });
 
