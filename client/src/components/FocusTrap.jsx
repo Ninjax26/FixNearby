@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-const FocusTrap = ({ children, active }) => {
+const FocusTrap = ({ children, active, isOpen }) => {
   const containerRef = useRef(null);
+  const isActive = active ?? isOpen;
 
   useEffect(() => {
-    if (!active) return;
+    if (!isActive) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -43,7 +44,7 @@ const FocusTrap = ({ children, active }) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [active]);
+  }, [isActive]);
 
   return <div ref={containerRef}>{children}</div>;
 };
