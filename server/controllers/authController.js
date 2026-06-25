@@ -248,9 +248,8 @@ export const registerWorker = async (req, res) => {
 export const loginWorker = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    const worker = await Worker.findOne({ email });
-
+const normalizedEmail = email?.trim().toLowerCase();
+const worker = await Worker.findOne({ email: normalizedEmail });
     if (
       worker &&
       (await worker.matchPassword(password))
@@ -597,4 +596,4 @@ export const logoutUser = async (req, res) => {
       message: "Server error during logout"
     });
   }
-};
+};
