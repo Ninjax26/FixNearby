@@ -16,9 +16,10 @@ import errorHandler from './middleware/errorHandler.js';
 import csrfProtection from './middleware/csrfMiddleware.js';
 import { compressionMiddleware } from './middleware/compression.js';
 import { initSocket } from './socket.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import { startBookingExpiryScheduler } from './workers/bookingExpiryWorker.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import { initKarmaScheduler } from './utils/karmaScheduler.js';
-import bookingRoutes from './routes/bookingRoutes.js';
 import { startWorker } from './workers/notificationWorker.js';
 
 dotenv.config();
@@ -55,8 +56,12 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration with whitelist support
+const parsedEnvOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
+  : [];
+
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  ...parsedEnvOrigins,
   'http://localhost:5173',
   'http://localhost:3000'
 ].filter(Boolean);
@@ -66,7 +71,9 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
+      // Strip trailing slash from request origin just in case
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (allowedOrigins.indexOf(normalizedOrigin) === -1) {
         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
         return callback(new Error(msg), false);
       }
@@ -99,6 +106,8 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
 
+// Start Booking Expiry Check Scheduler
+startBookingExpiryScheduler();
 // Initialize Weekly Karma Scheduler
 initKarmaScheduler();
 // Start Background Notification Worker

@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  worker: {
+  workerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Worker',
     required: true
@@ -15,14 +15,22 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  date: {
+  scheduledTime: {
     type: Date,
-    default: Date.now
+    required: true
+  },
+  durationHours: {
+    type: Number,
+    required: true
   },
   status: {
     type: String,
-    enum: ['Pending', 'Completed', 'Cancelled'],
+    enum: ['Pending', 'Accepted', 'In-Progress', 'Completed', 'Cancelled', 'Expired'],
     default: 'Pending'
+  },
+  address: {
+    type: String,
+    required: true
   },
   price: {
     type: Number,

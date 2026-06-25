@@ -12,7 +12,11 @@ const mockWorkers = [
     password: "Password123",
     category: "Electrical",
     experience: "5 Years",
-    location: "Downtown",
+    location: {
+      type: "Point",
+      coordinates: [-122.4194, 37.7749] // San Francisco (Downtown)
+    },
+    averageRating: 4.8,
     contact: "555-0199",
     bio: "Certified residential electrician specialising in safety diagnostics."
   },
@@ -22,7 +26,11 @@ const mockWorkers = [
     password: "Password123",
     category: "Plumbing",
     experience: "8 Years",
-    location: "Uptown",
+    location: {
+      type: "Point",
+      coordinates: [-122.4224, 37.7799] // Near San Francisco (Uptown)
+    },
+    averageRating: 4.9,
     contact: "555-0244",
     bio: "Emergency leak repair and pipe installations."
   }
