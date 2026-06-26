@@ -44,7 +44,7 @@ const runTests = async () => {
       password: 'Password123',
       category: 'Electrical',
       experience: '3 years',
-      location: 'New York',
+      location: { type: 'Point', coordinates: [-73.935242, 40.73061] },
       contact: '+15005550006',
       bio: 'Electrician bio.',
       notificationPreferences: { email: true, sms: true, push: true }
@@ -76,9 +76,12 @@ const runTests = async () => {
     // Test 2: Simulating Booking Confirmation
     console.log('\nTest 2: Simulating Booking Confirmation');
     const booking = await Booking.create({
-      user: user._id,
-      worker: worker._id,
+      userId: user._id,
+      workerId: worker._id,
       service: 'Electrical Repair',
+      scheduledTime: new Date(),
+      durationHours: 2,
+      address: '123 Test St',
       price: 120,
       status: 'Pending'
     });
