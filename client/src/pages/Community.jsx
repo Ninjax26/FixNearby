@@ -365,12 +365,7 @@ const Community = () => {
               </p>
 
               <div className="mt-10 flex gap-4 flex-wrap">
-                <Link
-                  to="/community"
-                  className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-2xl font-bold transition"
-                >
-                  Explore Community
-                </Link>
+               
 
                 <Link
                   to="/services"

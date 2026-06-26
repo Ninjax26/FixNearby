@@ -26,7 +26,12 @@ const AvailabilityBadge = ({ status = 'offline', lastActive, size = 'md' }) => {
   };
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px' }}>
+    <div 
+      role="status" 
+      aria-live="polite" 
+      aria-label={`Worker status is currently ${config.label}`} 
+      style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px' }}
+    >
       <span style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -58,7 +63,7 @@ const AvailabilityBadge = ({ status = 'offline', lastActive, size = 'md' }) => {
             borderRadius: '50%',
             background: config.dot,
             display: 'inline-block',
-          }} />
+          }} aria-hidden="true" />
         </span>
         {config.label}
       </span>

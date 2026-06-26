@@ -30,6 +30,19 @@ export function clearIssuesCache() {
 export function getNearbyFromCache({ latitude, longitude, category, radiusMeters = 50 }) {
   if (!issuesCache || issuesCache.length === 0) return [];
 
+  if (
+    typeof latitude !== 'number' ||
+    Number.isNaN(latitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    typeof longitude !== 'number' ||
+    Number.isNaN(longitude) ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return [];
+  }
+
   const resolvedStatuses = new Set(['resolved', 'closed']);
 
   const result = [];

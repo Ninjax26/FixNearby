@@ -1,15 +1,17 @@
 import jwt from 'jsonwebtoken';
 
-export const verifyRefreshToken = (token) => {
-  try {
-    return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret');
-  } catch (error) {
-    return null;
-  }
-};
+export const verifyRefreshToken = (req, res, next) => {
+  const { refreshToken } = req.body;
 
-export const generateTokens = (userId) => {
-  const accessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET || 'fallback-refresh-secret', { expiresIn: '7d' });
-  return { accessToken, refreshToken };
+  if (!refreshToken) {
+    return res.status(401).json({ success: false, message: 'Refresh token is required' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    req.userId = decoded.id;
+    next();
+  } catch (error) {
+    return res.status(403).json({ success: false, message: 'Invalid or expired refresh token' });
+  }
 };

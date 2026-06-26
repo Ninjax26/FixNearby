@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { MapPin, Upload, AlertCircle, Loader2 } from 'lucide-react';
 import useGeolocation from '../hooks/useGeolocation';
 import useToast from '../hooks/useToast';
-import { checkForDuplicates } from '../services/duplicateDetectionService';
+import { checkForDuplicates, getNearbyCandidates } from '../services/duplicateDetectionService';
 import { createIssue, upvoteIssue } from '../services/issueService';
+import { setIssuesCache } from '../services/issuesCache';
 import DuplicateWarningModal from './DuplicateWarningModal';
 
 const ISSUE_CATEGORIES = [
@@ -38,8 +39,6 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
 
   // UI state
   const [imagePreview, setImagePreview] = useState(null);
-import { checkForDuplicates, getNearbyCandidates } from '../services/duplicateDetectionService';
-import { setIssuesCache } from '../services/issuesCache';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [candidateList, setCandidateList] = useState(null);
@@ -97,104 +96,6 @@ import { setIssuesCache } from '../services/issuesCache';
     return () => { mounted = false; };
   }, [formData.latitude, formData.longitude]);
 
-  // Handle input changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-      const duplicateCheck = await checkForDuplicates(
-        {
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-          category: formData.category
-        },
-        radiusMeters // configurable radius
-      );
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        showToast({
-          type: 'error',
-          message: 'Image size must be less than 5MB'
-        });
-        return;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        showToast({
-          type: 'error',
-          message: 'Please upload a valid image file'
-        });
-        return;
-      }
-
-      setFormData((prev) => ({ ...prev, imageFile: file }));
-
-      // Create preview
-    // Upvote the currently selected duplicate issue
-    const issueId = duplicateIssue?.id;
-    if (!issueId) return;
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      const response = await upvoteIssue(issueId);
-    }
-  };
-
-  // Validate form
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.category) {
-      newErrors.category = 'Please select a category';
-    }
-
-    if (!formData.title || formData.title.length < 5) {
-      newErrors.title = 'Title must be at least 5 characters';
-    } else if (formData.title.length > 200) {
-      newErrors.title = 'Title must be less than 200 characters';
-    }
-
-    if (!formData.description || formData.description.length < 10) {
-      newErrors.description = 'Description must be at least 10 characters';
-    } else if (formData.description.length > 2000) {
-      newErrors.description = 'Description must be less than 2000 characters';
-  // Upvote a specific issue id (used by candidate list)
-  const handleUpvoteById = async (issueId) => {
-    if (!issueId) return;
-    try {
-      setIsSubmitting(true);
-      const response = await upvoteIssue(issueId);
-      showToast({
-        type: 'success',
-        message: `Upvoted!`,
-      });
-      setShowDuplicateModal(false);
-      setDuplicateIssue(null);
-      setCandidateList(null);
-      resetForm();
-    } catch (error) {
-      showToast({ type: 'error', message: error.message || 'Failed to upvote issue.' });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-    }
-
-    if (!formData.latitude || !formData.longitude) {
-      newErrors.location = 'Location is required. Please enable location services.';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Submit new issue (bypassing duplicate check)
-  const submitNewIssue = async () => {
-    try {
-      setIsSubmitting(true);
-
   // Debounced live duplicate check when location or category changes
   useEffect(() => {
     let mounted = true;
@@ -229,6 +130,94 @@ import { setIssuesCache } from '../services/issuesCache';
     };
   }, [formData.latitude, formData.longitude, formData.category, radiusMeters]);
 
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle image change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        showToast({
+          type: 'error',
+          message: 'Image size must be less than 5MB'
+        });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        showToast({
+          type: 'error',
+          message: 'Please upload a valid image file'
+        });
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, imageFile: file }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.category) {
+      newErrors.category = 'Please select a category';
+    }
+
+    if (!formData.title || formData.title.length < 5) {
+      newErrors.title = 'Title must be at least 5 characters';
+    } else if (formData.title.length > 200) {
+      newErrors.title = 'Title must be less than 200 characters';
+    }
+
+    if (!formData.description || formData.description.length < 10) {
+      newErrors.description = 'Description must be at least 10 characters';
+    } else if (formData.description.length > 2000) {
+      newErrors.description = 'Description must be less than 2000 characters';
+    }
+
+    if (!formData.latitude || !formData.longitude) {
+      newErrors.location = 'Location is required. Please enable location services.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Upvote a specific issue id (used by candidate list)
+  const handleUpvoteById = async (issueId) => {
+    if (!issueId) return;
+    try {
+      setIsSubmitting(true);
+      const response = await upvoteIssue(issueId);
+      showToast({
+        type: 'success',
+        message: `Upvoted!`,
+      });
+      setShowDuplicateModal(false);
+      setDuplicateIssue(null);
+      setCandidateList(null);
+      resetForm();
+    } catch (error) {
+      showToast({ type: 'error', message: error.message || 'Failed to upvote issue.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Advanced: fetch candidate list on demand
   const showNearbyCandidates = async () => {
     if (!formData.latitude || !formData.longitude || !formData.category) return;
@@ -251,6 +240,11 @@ import { setIssuesCache } from '../services/issuesCache';
       setIsSubmitting(false);
     }
   };
+
+  // Submit new issue (bypassing duplicate check)
+  const submitNewIssue = async () => {
+    try {
+      setIsSubmitting(true);
       const newIssue = await createIssue(formData);
 
       showToast({
@@ -398,9 +392,9 @@ import { setIssuesCache } from '../services/issuesCache';
                 <div>
                   <p className="text-sm text-red-600 mb-2">{geoError}</p>
                   <button
-                    type="button"
-                    onClick={retryGeo}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                     type="button"
+                     onClick={retryGeo}
+                     className="text-sm text-blue-600 hover:text-blue-700 font-semibold"
                   >
                     Retry
                   </button>
@@ -610,7 +604,6 @@ import { setIssuesCache } from '../services/issuesCache';
         duplicateIssue={duplicateIssue}
         candidateList={candidateList}
         onUpvote={(id) => {
-          // if id provided, upvote that id; otherwise upvote selected duplicate
           if (id) handleUpvoteById(id);
           else handleUpvote();
         }}

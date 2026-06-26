@@ -36,9 +36,19 @@ const workerSchema = new mongoose.Schema(
     },
 
     location: {
-      type: String,
-      required: true,
-      trim: true,
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true
+      }
+    },
+    averageRating: {
+      type: Number,
+      default: 0
     },
 
     contact: {
@@ -74,6 +84,27 @@ const workerSchema = new mongoose.Schema(
 
     resetPasswordExpire: {
       type: Date,
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+    },
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    responsiveness: {
+      type: Number,
+      default: 100,
+    },
+    karmaScore: {
+      type: Number,
+      default: 100,
+    },
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: true },
+      push: { type: Boolean, default: true }
     },
   },
   {
@@ -111,6 +142,9 @@ workerSchema.methods.matchPassword =
       this.password
     );
   };
+
+workerSchema.index({ location: "2dsphere" });
+workerSchema.index({ category: 1, availabilityStatus: 1 });
 
 const Worker = mongoose.model(
   "Worker",

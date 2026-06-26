@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
+import { queueNotification } from "../utils/queue.js";
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign(
@@ -79,6 +80,9 @@ export const registerUser = async (req, res) => {
       password,
       phone: phone ? phone.trim() : undefined,
     });
+
+    // Queue welcome notification job
+    await queueNotification('welcome', { userId: user._id, userType: 'User' });
 
     // 7. Response 
     res.status(201).json({
@@ -219,6 +223,9 @@ export const registerWorker = async (req, res) => {
       profilePicture: req.file?.path || "",
     });
 
+    // Queue welcome notification job
+    await queueNotification('welcome', { userId: worker._id, userType: 'Worker' });
+
     res.status(201).json({
       success: true,
       token: generateToken(worker._id),
@@ -241,9 +248,8 @@ export const registerWorker = async (req, res) => {
 export const loginWorker = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    const worker = await Worker.findOne({ email });
-
+const normalizedEmail = email?.trim().toLowerCase();
+const worker = await Worker.findOne({ email: normalizedEmail });
     if (
       worker &&
       (await worker.matchPassword(password))
@@ -559,6 +565,35 @@ export const resetWorkerPassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Server error",
+    });
+  }
+};
+
+import Blacklist from "../models/Blacklist.js";
+
+export const logoutUser = async (req, res) => {
+  try {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (!token) {
+      return res.status(400).json({ success: false, message: "No token provided" });
+    }
+    
+    const decoded = jwt.decode(token);
+    const expiresAt = decoded && decoded.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    await Blacklist.create({ token, expiresAt });
+    
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error during logout"
     });
   }
 };
