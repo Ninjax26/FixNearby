@@ -1,65 +1,59 @@
-import express from "express";
-
+import express from 'express';
 import {
   registerUser,
   loginUser,
   getUserProfile,
   updateUserProfile,
-
   registerWorker,
   loginWorker,
   getWorkerProfile,
-
   forgotUserPassword,
   resetUserPassword,
   forgotWorkerPassword,
-  resetWorkerPassword
-} from "../controllers/authController.js";
+  resetWorkerPassword,
+  logoutUser
+} from '../controllers/authController.js';
 
 import {
   protect,
   protectWorker,
-} from "../middleware/authMiddleware.js";
+} from '../middleware/authMiddleware.js';
 
-import upload from "../middleware/uploadMiddleware.js";
+import upload from '../middleware/uploadMiddleware.js';
 
-import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter, passwordResetLimiter } from "../middleware/authRateLimiter.js";
-import { validateRegistration, validateLogin } from "../middleware/validationMiddleware.js";
+import {
+  userLoginLimiter,
+  userRegisterLimiter,
+  workerLoginLimiter,
+  workerRegisterLimiter,
+  passwordResetLimiter
+} from '../middleware/authRateLimiter.js';
+import { validateRegistration, validateLogin } from '../middleware/validationMiddleware.js';
 
 const router = express.Router();
 
-{/* USER AUTH ROUTES*/}
+{/* USER AUTH ROUTES */}
 
-router.post("/register", userRegisterLimiter, validateRegistration, registerUser);
-
-router.post("/login", userLoginLimiter, validateLogin, loginUser);
-
-router.get(
-  "/profile",
-  protect,
-  getUserProfile
-);
-
-router.put(
-  "/profile",
-  protect,
-  updateUserProfile
-);
+router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
+router.post('/login', userLoginLimiter, validateLogin, loginUser);
+router.get('/profile', protect, getUserProfile);
+router.put('/profile', protect, updateUserProfile);
+router.post('/logout', protect, logoutUser);
 
 {/* WORKER AUTH ROUTES */}
 
 // WORKER REGISTER
 router.post(
-  "/worker/register",
+  '/worker/register',
   workerRegisterLimiter,
-  upload.single("profilePicture"),
+  upload.single('profilePicture'),
   validateRegistration,
   registerWorker
 );
 
 // WORKER LOGIN
 router.post(
-  "/worker/login",
+  '/worker/login',
   workerLoginLimiter,
   validateLogin,
   loginWorker
@@ -67,30 +61,30 @@ router.post(
 
 // WORKER PROFILE
 router.get(
-  "/worker/profile",
+  '/worker/profile',
   protectWorker,
   getWorkerProfile
 );
 
 router.post(
-  "/forgot-password",
+  '/forgot-password',
   passwordResetLimiter,
   forgotUserPassword
 );
 
 router.put(
-  "/reset-password/:token",
+  '/reset-password/:token',
   resetUserPassword
 );
 
 router.post(
-  "/worker/forgot-password",
+  '/worker/forgot-password',
   passwordResetLimiter,
   forgotWorkerPassword
 );
 
 router.put(
-  "/worker/reset-password/:token",
+  '/worker/reset-password/:token',
   resetWorkerPassword
 );
 

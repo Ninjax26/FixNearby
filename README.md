@@ -47,6 +47,9 @@ This repository is currently a **scaffolded starter template**. We have built ab
 
 ## 🎯 What We Need (The Roadmap)
 
+> 📖 **Open Source Contributor Drive:** We have created a comprehensive, deep-dive [**Open Source Contributor Roadmap**](docs/CONTRIBUTOR_ROADMAP.md) detailing system subsystems, current architectural gaps (like the bookings/search API bypasses), code hygiene standards, and a categorized feature wishlist!
+* Refer to the roadmap to see how you can help fix code integrations, route orphan components, or build advanced real-time systems.
+
 We rely on the open-source community to bring this platform to life! If you are looking to contribute, here are the core features we need help building right now:
 
 ### 🚀 Frontend Tasks (React)

@@ -1,5 +1,3 @@
-// middleware/authRateLimiter.js
-
 import rateLimit from "express-rate-limit";
 
 const createRateLimitHandler = (message) => {

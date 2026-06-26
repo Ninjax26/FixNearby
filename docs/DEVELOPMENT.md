@@ -71,6 +71,24 @@ graph TD
      npm run dev
      ```
 
+### Running with Docker Compose
+
+If you have Docker and Docker Compose installed, you can spin up the MongoDB database and both development servers with a single command from the root directory:
+
+```bash
+docker-compose up --build
+```
+
+This starts:
+- MongoDB on port `27017`
+- Express API server on port `5000`
+- React frontend client on port `5173`
+
+To tear down the environment:
+```bash
+docker-compose down
+```
+
 ---
 
 ## 🛡️ Coding Standards

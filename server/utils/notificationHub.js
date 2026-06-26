@@ -1,19 +1,24 @@
-const clients = new Set();
+import { EventEmitter } from 'events';
 
-export const registerNotificationClient = (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  
-  clients.add(res);
-  
-  req.on('close', () => {
-    clients.delete(res);
-  });
-};
-
-export const broadcastNotification = (data) => {
-  for (const client of clients) {
-    client.write(`data: ${JSON.stringify(data)}\n\n`);
+class NotificationHub extends EventEmitter {
+  constructor() {
+    super();
+    // Keep track of active connections
+    this.activeWorkers = new Set();
   }
-};
+
+  sendToUser(userId, eventName, payload) {
+    this.emit(`user:${userId}`, { eventName, payload });
+  }
+
+  sendToWorker(workerId, eventName, payload) {
+    this.emit(`worker:${workerId}`, { eventName, payload });
+  }
+
+  broadcast(eventName, payload) {
+    this.emit('broadcast', { eventName, payload });
+  }
+}
+
+const notificationHub = new NotificationHub();
+export default notificationHub;

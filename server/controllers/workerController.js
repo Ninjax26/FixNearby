@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Worker from "../models/Worker.js";
 import mongoose from "mongoose";
+import { calculateKarmaScores } from "../utils/karmaScheduler.js";
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -70,7 +71,7 @@ export const registerWorker = async (req, res) => {
       password,
       category: category.trim(),
       experience: experience.trim(),
-      location: location.trim(),
+      location: (typeof location === "string" && location.startsWith("{")) ? JSON.parse(location) : (typeof location === "object" ? location : { type: "Point", coordinates: [0, 0] }),
       contact: contact.trim(),
       bio: bio.trim(),
       profilePicture: req.file?.path || "",
@@ -151,7 +152,7 @@ export const loginWorker = async (req, res) => {
 
 export const getWorkers = async (req, res) => {
   try {
-    const workers = await Worker.find().select("-password");
+    const workers = await Worker.find().select("name email category experience location contact availabilityStatus profilePicture lastActive");
 
     res.status(200).json({
       success: true,
@@ -211,4 +212,98 @@ export const getWorkerProfile = async (req, res) => {
     success: true,
     worker: req.worker,
   });
+};
+
+export const getNearbyWorkers = async (req, res) => {
+  try {
+    const { lat, lng, maxDistance, category, availabilityStatus, page = 1, limit = 10 } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both lat (latitude) and lng (longitude) query parameters."
+      });
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid latitude or longitude coordinates."
+      });
+    }
+
+    const matchQuery = {};
+    if (category) {
+      matchQuery.category = category;
+    }
+    if (availabilityStatus) {
+      matchQuery.availabilityStatus = availabilityStatus;
+    }
+
+    const maxDistMeters = maxDistance ? parseFloat(maxDistance) : 10000; // default 10km
+
+    const pipeline = [
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [longitude, latitude] },
+          distanceField: "distance",
+          spherical: true,
+          maxDistance: maxDistMeters,
+          query: matchQuery
+        }
+      },
+      {
+        $sort: {
+          distance: 1,
+          averageRating: -1,
+          availabilityStatus: 1
+        }
+      }
+    ];
+
+    // Pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skipNum = (pageNum - 1) * limitNum;
+
+    pipeline.push(
+      { $skip: skipNum },
+      { $limit: limitNum }
+    );
+
+    const workers = await Worker.aggregate(pipeline);
+
+    res.status(200).json({
+      success: true,
+      count: workers.length,
+      page: pageNum,
+      limit: limitNum,
+      workers
+    });
+  } catch (error) {
+    console.error("Error finding nearby workers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
+    });
+  }
+};
+
+export const recalculateKarmaScoresController = async (req, res) => {
+  try {
+    await calculateKarmaScores();
+    res.status(200).json({
+      success: true,
+      message: "Karma/Reliability scores recalculated successfully for all workers"
+    });
+  } catch (error) {
+    console.error("Error recalculating karma scores:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
+    });
+  }
 };

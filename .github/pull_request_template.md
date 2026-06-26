@@ -1,32 +1,43 @@
-# Description
+# 🚀 Pull Request Template
 
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+## 📝 Related Issue
+Closes #ISSUE_NUMBER
 
-Fixes # (issue)
+## 📋 Summary
+Provide a concise overview of the contribution, detailing the motivation behind it, the architectural decisions, and the user-facing impact of these changes.
 
-## Type of change
+## 🛠️ Changes Made
+Detail all file modifications, configuration updates, and feature implementations.
+- **Backend**:
+  - [Describe changes in routes, controllers, middleware, or utils]
+- **Frontend**:
+  - [Describe changes in components, layouts, pages, hooks, or styles]
+- **Config & Workflows**:
+  - [Describe changes in GitHub workflows, package.json dependencies, or templates]
 
-Please delete options that are not relevant.
+## 🧪 Testing Verification
+Detail the testing strategy and verification executed to validate the code changes.
+- **Local Integration Testing**:
+  - [Specify commands executed, e.g., `npm run test` or curl commands]
+- **Responsiveness Verification**:
+  - [Detail test results on Mobile, Tablet, and Desktop screen widths]
+- **Accessibility Verification**:
+  - [Confirm screen reader navigation, focus state styling, and keyboard traps checks]
+- **Security Checkpoints**:
+  - [List precautions taken against MongoDB operator injection and cross-site scripting]
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+## 📸 Screenshots (if applicable)
+Add visual aids or walkthrough recordings demonstrating the changes before and after implementation.
+*Pre-Implementation vs. Post-Implementation*
 
-# How Has This Been Tested?
+---
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration.
+## 🚦 Contribution Checklist
+Before submitting, please ensure you satisfy the following checklist items:
 
-- [ ] Test A
-- [ ] Test B
-
-# Checklist:
-
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] **Focused Scope**: This PR targets one isolated feature or fix, modifying only relevant files.
+- [ ] **Code Standards**: The code matches the existing style guidelines and naming conventions of the repository.
+- [ ] **Backward Compatibility**: Existing functions, schemas, and API endpoints maintain full compatibility.
+- [ ] **Tests Pass**: Automated linting and tests execute successfully without warning logs.
+- [ ] **Accessibility & UX**: Interactive UI elements support full keyboard-navigation access and correct ARIA states.
+- [ ] **No Secrets**: No private credentials, API tokens, or environments were committed.
