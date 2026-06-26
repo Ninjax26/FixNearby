@@ -4,6 +4,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import StarRating from "../components/StarRating";
 import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap } from "lucide-react";
 
+
 const demoBookings = [
   {
     id: "BK-101",
@@ -395,36 +396,23 @@ const pendingBookings = bookings.filter(
                       <p className="text-sm font-medium text-slate-700 mb-3">
                         Rate your experience
                       </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => setRating(s)}
-                            className={`group transition-all duration-200 ${
-                              rating >= s ? "scale-110" : "hover:scale-110"
-                            }`}
-                          >
-                            <span
-                              className={`text-4xl transition-all duration-200 ${
-                                rating >= s
-                                  ? "text-yellow-400 drop-shadow"
-                                  : "text-slate-300 group-hover:text-yellow-300"
-                              }`}
-                            >
-                              ★
-                            </span>
-                          </button>
-                        ))}
-                        <div className="ml-2">
-                          {rating === 1 && <span className="text-rose-500 font-semibold">Poor</span>}
-                          {rating === 2 && <span className="text-orange-500 font-semibold">Fair</span>}
-                          {rating === 3 && <span className="text-amber-500 font-semibold">Good</span>}
-                          {rating === 4 && <span className="text-lime-600 font-semibold">Very Good</span>}
-                          {rating === 5 && <span className="text-emerald-600 font-semibold">Excellent</span>}
-                        </div>
-                      </div>
+
+                      <StarRating
+                        rating={rating}
+                        onRatingChange={(value) => setRating(value)}
+                        size="md"
+                      />
+
+                      {rating > 0 && (
+                        <p className="mt-2 text-sm text-slate-600">
+                          Selected Rating:{" "}
+                          <span className="font-semibold text-slate-800">
+                            {rating}/5
+                          </span>
+                        </p>
+                      )}
                     </div>
+
 
                     {/* REVIEW TEXTAREA */}
                     <div className="mb-6">
