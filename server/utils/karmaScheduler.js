@@ -10,8 +10,8 @@ export const calculateKarmaScores = async () => {
 
     for (const worker of workers) {
       // Get completed and cancelled bookings
-      const completedCount = await Booking.countDocuments({ worker: worker._id, status: 'Completed' });
-      const cancelledCount = await Booking.countDocuments({ worker: worker._id, status: 'Cancelled' });
+      const completedCount = await Booking.countDocuments({ workerId: worker._id, status: 'Completed' });
+      const cancelledCount = await Booking.countDocuments({ workerId: worker._id, status: 'Cancelled' });
 
       const totalCompletedAndCancelled = completedCount + cancelledCount;
       const completionRate = totalCompletedAndCancelled === 0 ? 1.0 : completedCount / totalCompletedAndCancelled;

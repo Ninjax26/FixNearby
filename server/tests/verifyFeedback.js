@@ -39,7 +39,7 @@ const runTests = async () => {
       password: 'password123',
       category: 'Plumbing',
       experience: '5 years',
-      location: 'Boston',
+      location: { type: 'Point', coordinates: [-71.0589, 42.3601] },
       contact: '1234567890',
       bio: 'Expert plumber.',
       responsiveness: 90
@@ -47,17 +47,23 @@ const runTests = async () => {
 
     console.log('Creating bookings...');
     const completedBooking = await Booking.create({
-      user: user._id,
-      worker: worker._id,
+      userId: user._id,
+      workerId: worker._id,
       service: 'Plumbing',
+      scheduledTime: new Date(),
+      durationHours: 2,
+      address: '123 Test St',
       price: 150,
       status: 'Completed'
     });
 
     const cancelledBooking = await Booking.create({
-      user: user._id,
-      worker: worker._id,
+      userId: user._id,
+      workerId: worker._id,
       service: 'Plumbing',
+      scheduledTime: new Date(),
+      durationHours: 2,
+      address: '123 Test St',
       price: 200,
       status: 'Cancelled'
     });
