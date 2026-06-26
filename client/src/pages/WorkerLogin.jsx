@@ -160,14 +160,7 @@ const WorkerLogin = () => {
       showToast("Worker login successful!");
 
       // REDIRECT
-      if (response?.worker?._id) {
-
-        navigate(`/worker/${response.worker._id}`);
-
-      } else {
-
-        navigate("/dashboard");
-      }
+      navigate("/worker/dashboard");
 
     } catch (err) {
 

@@ -1,22 +1,29 @@
-const cacheStore = new Map();
+const cache = new Map();
 
-export const cacheMiddleware = (durationSec = 60) => {
+export const cacheMiddleware = (durationInSeconds) => {
   return (req, res, next) => {
-    const key = req.originalUrl || req.url;
-    const cached = cacheStore.get(key);
-    
-    if (cached && cached.expiry > Date.now()) {
-      return res.status(200).json(cached.data);
+    // Only cache GET requests
+    if (req.method !== 'GET') {
+      return next();
     }
-    
-    res.sendResponse = res.json;
-    res.json = (body) => {
-      cacheStore.set(key, {
-        expiry: Date.now() + durationSec * 1000,
-        data: body
+
+    const key = req.originalUrl || req.url;
+    const cachedResponse = cache.get(key);
+
+    if (cachedResponse && cachedResponse.expire > Date.now()) {
+      return res.status(200).json(cachedResponse.data);
+    }
+
+    // Wrap res.json to capture response
+    const originalJson = res.json;
+    res.json = function (body) {
+      cache.set(key, {
+        data: body,
+        expire: Date.now() + durationInSeconds * 1000
       });
-      res.sendResponse(body);
+      return originalJson.call(this, body);
     };
+
     next();
   };
 };

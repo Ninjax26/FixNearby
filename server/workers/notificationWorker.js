@@ -1,0 +1,267 @@
+import { Worker } from 'bullmq';
+import IORedis from 'ioredis';
+import User from '../models/User.js';
+import WorkerModel from '../models/Worker.js';
+import Booking from '../models/Booking.js';
+import Issue from '../models/Issue.js';
+import DeadLetterJob from '../models/DeadLetterJob.js';
+import sendEmail from '../utils/sendEmail.js';
+import sendSMS from '../utils/sendSMS.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+
+// Setup worker connection
+let connection = null;
+try {
+  connection = new IORedis(redisUrl, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false
+  });
+  connection.on('error', (err) => {
+    console.warn(`[Worker Redis Connection Warning] Redis unreachable: ${err.message}`);
+  });
+} catch (err) {
+  console.warn(`[Worker Redis Initialization Warning] Failed: ${err.message}`);
+}
+
+const processJob = async (job) => {
+  const { name, data } = job;
+  console.log(`[Worker] Processing Job: "${name}", ID: ${job.id}`);
+
+  switch (name) {
+    case 'welcome': {
+      const { userId, userType } = data;
+      let userObj;
+      if (userType === 'Worker') {
+        userObj = await WorkerModel.findById(userId);
+      } else {
+        userObj = await User.findById(userId);
+      }
+
+      if (!userObj) {
+        throw new Error(`User not found: ${userId} (${userType})`);
+      }
+
+      const prefs = userObj.notificationPreferences || { email: true, sms: true, push: true };
+
+      if (prefs.email && userObj.email) {
+        await sendEmail({
+          toEmail: userObj.email,
+          subject: 'Welcome to FixNearby!',
+          htmlContent: `<h2>Welcome ${userObj.name}!</h2><p>Thank you for registering with FixNearby. We are excited to have you on board!</p>`
+        });
+      }
+
+      if (prefs.sms && userObj.contact) {
+        await sendSMS({
+          toPhone: userObj.contact,
+          message: `Hello ${userObj.name}, welcome to FixNearby! Your account has been registered successfully.`
+        });
+      } else if (prefs.sms && userObj.phone) {
+        await sendSMS({
+          toPhone: userObj.phone,
+          message: `Hello ${userObj.name}, welcome to FixNearby! Your account has been registered successfully.`
+        });
+      }
+
+      if (prefs.push) {
+        console.log(`[Push Notification Mock] Sent welcome push to ${userObj.name}`);
+      }
+      break;
+    }
+
+    case 'booking_confirmation': {
+      const { bookingId } = data;
+      const booking = await Booking.findById(bookingId).populate('user').populate('worker');
+      if (!booking) {
+        throw new Error(`Booking not found: ${bookingId}`);
+      }
+
+      const user = booking.user;
+      const worker = booking.worker;
+
+      // 1. Notify User
+      if (user) {
+        const userPrefs = user.notificationPreferences || { email: true, sms: true, push: true };
+        if (userPrefs.email && user.email) {
+          await sendEmail({
+            toEmail: user.email,
+            subject: 'Booking Confirmation - FixNearby',
+            htmlContent: `<h2>Booking Confirmed!</h2><p>Your booking for service <strong>${booking.service}</strong> with worker <strong>${worker.name}</strong> is confirmed.</p><p>Price: ₹${booking.price}</p>`
+          });
+        }
+        if (userPrefs.sms && (user.contact || user.phone)) {
+          await sendSMS({
+            toPhone: user.contact || user.phone,
+            message: `FixNearby Booking Confirmed! Service: ${booking.service} with ${worker.name}. Price: ₹${booking.price}.`
+          });
+        }
+        if (userPrefs.push) {
+          console.log(`[Push Notification Mock] Sent booking confirmation push to User: ${user.name}`);
+        }
+      }
+
+      // 2. Notify Worker
+      if (worker) {
+        const workerPrefs = worker.notificationPreferences || { email: true, sms: true, push: true };
+        if (workerPrefs.email && worker.email) {
+          await sendEmail({
+            toEmail: worker.email,
+            subject: 'New Booking Assigned - FixNearby',
+            htmlContent: `<h2>New Booking Assigned</h2><p>You have a new booking for service <strong>${booking.service}</strong> with customer <strong>${user.name}</strong>.</p><p>Price: ₹${booking.price}</p>`
+          });
+        }
+        if (workerPrefs.sms && (worker.contact || worker.phone)) {
+          await sendSMS({
+            toPhone: worker.contact || worker.phone,
+            message: `FixNearby New Booking! Service: ${booking.service} with customer ${user.name}. Price: ₹${booking.price}.`
+          });
+        }
+        if (workerPrefs.push) {
+          console.log(`[Push Notification Mock] Sent booking assigned push to Worker: ${worker.name}`);
+        }
+      }
+      break;
+    }
+
+    case 'booking_status_update': {
+      const { bookingId, oldStatus, newStatus } = data;
+      const booking = await Booking.findById(bookingId).populate('user').populate('worker');
+      if (!booking) {
+        throw new Error(`Booking not found: ${bookingId}`);
+      }
+
+      const user = booking.user;
+      const worker = booking.worker;
+
+      if (user) {
+        const prefs = user.notificationPreferences || { email: true, sms: true, push: true };
+        if (prefs.email && user.email) {
+          await sendEmail({
+            toEmail: user.email,
+            subject: `Booking Status Update - ${newStatus}`,
+            htmlContent: `<h2>Booking Status Updated</h2><p>Your booking for service <strong>${booking.service}</strong> has been updated from <strong>${oldStatus}</strong> to <strong>${newStatus}</strong>.</p>`
+          });
+        }
+        if (prefs.sms && (user.contact || user.phone)) {
+          await sendSMS({
+            toPhone: user.contact || user.phone,
+            message: `FixNearby Booking Status: ${booking.service} updated to ${newStatus}.`
+          });
+        }
+        if (prefs.push) {
+          console.log(`[Push Notification Mock] Sent status update push to User: ${user.name}`);
+        }
+      }
+      break;
+    }
+
+    case 'civic_report_created': {
+      const { issueId } = data;
+      const issue = await Issue.findById(issueId).populate('reportedBy');
+      if (!issue) {
+        throw new Error(`Issue not found: ${issueId}`);
+      }
+
+      const user = issue.reportedBy;
+      if (user) {
+        const prefs = user.notificationPreferences || { email: true, sms: true, push: true };
+        if (prefs.email && user.email) {
+          await sendEmail({
+            toEmail: user.email,
+            subject: 'Civic Report Received - FixNearby',
+            htmlContent: `<h2>Civic Report Submitted</h2><p>Thank you for reporting <strong>${issue.title}</strong> in the category <strong>${issue.category}</strong>. Our team is looking into it.</p>`
+          });
+        }
+        if (prefs.sms && (user.contact || user.phone)) {
+          await sendSMS({
+            toPhone: user.contact || user.phone,
+            message: `FixNearby: Your civic report for "${issue.title}" has been received. Thank you!`
+          });
+        }
+        if (prefs.push) {
+          console.log(`[Push Notification Mock] Sent report creation push to ${user.name}`);
+        }
+      }
+      break;
+    }
+
+    case 'issue_status_update': {
+      const { issueId, oldStatus, newStatus } = data;
+      const issue = await Issue.findById(issueId).populate('reportedBy');
+      if (!issue) {
+        throw new Error(`Issue not found: ${issueId}`);
+      }
+
+      const user = issue.reportedBy;
+      if (user) {
+        const prefs = user.notificationPreferences || { email: true, sms: true, push: true };
+        if (prefs.email && user.email) {
+          await sendEmail({
+            toEmail: user.email,
+            subject: `Civic Report Status Update - ${newStatus}`,
+            htmlContent: `<h2>Report Status Updated</h2><p>Your civic report for <strong>${issue.title}</strong> has been updated to <strong>${newStatus}</strong>.</p>`
+          });
+        }
+        if (prefs.sms && (user.contact || user.phone)) {
+          await sendSMS({
+            toPhone: user.contact || user.phone,
+            message: `FixNearby Report Update: "${issue.title}" is now "${newStatus}".`
+          });
+        }
+        if (prefs.push) {
+          console.log(`[Push Notification Mock] Sent status update push to ${user.name}`);
+        }
+      }
+      break;
+    }
+
+    default:
+      console.warn(`[Worker] Unhandled Job Name: ${name}`);
+  }
+};
+
+let worker = null;
+
+export const startWorker = () => {
+  if (!connection) {
+    console.warn('[Worker] Gracefully skipping worker start: Redis is offline.');
+    return null;
+  }
+
+  worker = new Worker('notification-queue', processJob, {
+    connection,
+    concurrency: 5
+  });
+
+  worker.on('completed', (job) => {
+    console.log(`[Worker] Job completed: ${job.id}`);
+  });
+
+  worker.on('failed', async (job, err) => {
+    console.error(`[Worker] Job failed: ${job?.id || 'unknown'}, Error: ${err.message}`);
+    
+    if (job && job.attemptsMade >= job.opts.attempts) {
+      console.log(`[Worker] Logging job ${job.id} to Dead Letter Queue (MDB) after ${job.attemptsMade} failed attempts.`);
+      try {
+        await DeadLetterJob.create({
+          jobId: job.id,
+          queueName: job.queueName,
+          jobName: job.name,
+          data: job.data,
+          failedReason: err.message,
+          stacktrace: job.stacktrace
+        });
+        console.log(`[Worker] Job ${job.id} recorded in MDB Dead Letter Job collection.`);
+      } catch (dlqErr) {
+        console.error('[Worker] Failed to write to Dead Letter Job collection:', dlqErr);
+      }
+    }
+  });
+
+  console.log('[Worker] Notification background worker listening to Redis-backed BullMQ queue.');
+  return worker;
+};

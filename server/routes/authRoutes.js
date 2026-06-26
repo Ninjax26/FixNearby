@@ -1,95 +1,34 @@
-import express from "express";
-
+import express from 'express';
 import {
   registerUser,
   loginUser,
   getUserProfile,
   updateUserProfile,
-
   registerWorker,
   loginWorker,
   getWorkerProfile,
-
   forgotUserPassword,
   resetUserPassword,
   forgotWorkerPassword,
-  resetWorkerPassword
-} from "../controllers/authController.js";
-
-import {
-  protect,
-  protectWorker,
-} from "../middleware/authMiddleware.js";
-
-import upload from "../middleware/uploadMiddleware.js";
-
-import { userLoginLimiter, userRegisterLimiter, workerLoginLimiter, workerRegisterLimiter } from "../middleware/authRateLimiter.js";
-import { validateRegistration, validateLogin } from "../middleware/validationMiddleware.js";
+  resetWorkerPassword,
+  logoutUser
+} from '../controllers/authController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import { authRateLimiter } from '../middleware/authRateLimiter.js';
 
 const router = express.Router();
 
-{/* USER AUTH ROUTES*/}
-
-router.post("/register", userRegisterLimiter, validateRegistration, registerUser);
-
-router.post("/login", userLoginLimiter, validateLogin, loginUser);
-
-router.get(
-  "/profile",
-  protect,
-  getUserProfile
-);
-
-router.put(
-  "/profile",
-  protect,
-  updateUserProfile
-);
-
-{/* WORKER AUTH ROUTES */}
-
-// WORKER REGISTER
-router.post(
-  "/worker/register",
-  workerRegisterLimiter,
-  upload.single("profilePicture"),
-  validateRegistration,
-  registerWorker
-);
-
-// WORKER LOGIN
-router.post(
-  "/worker/login",
-  workerLoginLimiter,
-  validateLogin,
-  loginWorker
-);
-
-// WORKER PROFILE
-router.get(
-  "/worker/profile",
-  protectWorker,
-  getWorkerProfile
-);
-
-router.post(
-  "/forgot-password",
-  forgotUserPassword
-);
-
-router.put(
-  "/reset-password/:token",
-  resetUserPassword
-);
-
-router.post(
-  "/worker/forgot-password",
-  forgotWorkerPassword
-);
-
-router.put(
-  "/worker/reset-password/:token",
-  resetWorkerPassword
-);
+router.post('/register', authRateLimiter, registerUser);
+router.post('/login', authRateLimiter, loginUser);
+router.post('/worker/register', authRateLimiter, registerWorker);
+router.post('/worker/login', authRateLimiter, loginWorker);
+router.post('/forgot-password', authRateLimiter, forgotUserPassword);
+router.post('/reset-password/:token', authRateLimiter, resetUserPassword);
+router.post('/worker/forgot-password', authRateLimiter, forgotWorkerPassword);
+router.post('/worker/reset-password/:token', authRateLimiter, resetWorkerPassword);
+router.get('/profile', authMiddleware, getUserProfile);
+router.put('/profile', authMiddleware, updateUserProfile);
+router.get('/worker/profile', authMiddleware, getWorkerProfile);
+router.post('/logout', authMiddleware, logoutUser);
 
 export default router;
