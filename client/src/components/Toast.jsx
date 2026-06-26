@@ -42,7 +42,9 @@ const Toast = () => {
           role="alert"
         >
           <div className="flex-shrink-0 mt-0.5">{getIcon(toast.type)}</div>
-          <div className="flex-1 text-sm font-medium leading-5">{toast.message}</div>
+          <div className="flex-1 text-sm font-medium leading-5">
+            {typeof toast.message === 'string' ? toast.message : String(toast.message || '')}
+          </div>
           <button
             onClick={() => removeToast(toast.id)}
             className="flex-shrink-0 rounded-lg p-1 text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"

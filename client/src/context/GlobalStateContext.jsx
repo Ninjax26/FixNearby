@@ -1,23 +1,34 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 
-const GlobalStateContext = createContext();
+export const GlobalStateContext = createContext();
 
 export const GlobalStateProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([]);
-  
-  const triggerNotification = (message, type = 'info') => {
-    const id = Date.now();
-    setNotifications((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 4000);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    category: '',
+    rating: 0,
+    searchQuery: ''
+  });
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('fixnearby_user');
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem('fixnearby_user');
+      }
+    }
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem('fixnearby_user');
+    setCurrentUser(null);
   };
 
   return (
-    <GlobalStateContext.Provider value={{ notifications, triggerNotification }}>
+    <GlobalStateContext.Provider value={{ currentUser, setCurrentUser, activeFilters, setActiveFilters, logout }}>
       {children}
     </GlobalStateContext.Provider>
   );
 };
-
-export const useGlobalState = () => useContext(GlobalStateContext);

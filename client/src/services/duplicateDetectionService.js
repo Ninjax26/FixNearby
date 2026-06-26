@@ -124,6 +124,9 @@ export function findClosestMatch(newIssue, nearbyIssues, maxDistanceMeters) {
   let minDistance = Infinity;
 
   for (const issue of nearbyIssues) {
+    if (!issue || typeof issue.latitude !== 'number' || typeof issue.longitude !== 'number') {
+      continue;
+    }
     // Calculate Haversine distance in kilometers
     const distanceKm = getDistanceKm(
       newIssue.latitude,

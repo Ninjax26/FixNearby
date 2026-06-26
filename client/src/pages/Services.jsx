@@ -7,6 +7,7 @@ import FilterSidebar from "../components/FilterSidebar";
 import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
+import { useLocation } from "../context/LocationContext";
 
 const mockWorkers = [
   {
@@ -185,6 +186,7 @@ const formatDistance = (d) =>
 
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { coords } = useLocation();
 
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || ""
@@ -199,7 +201,6 @@ const Services = () => {
 
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [coords, setCoords] = useState(null);
 
   const [recentWorkers, setRecentWorkers] = useState([]);
 
@@ -235,17 +236,7 @@ const Services = () => {
     availability: 'all',
   });
 
-  // GEOLOCATION
-  useEffect(() => {
-    navigator.geolocation?.getCurrentPosition(
-      (pos) =>
-        setCoords({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }),
-      () => setCoords(null)
-    );
-  }, []);
+  // Geolocation is now provided by LocationContext (useLocation above)
 
   /* LOAD DATA */
   useEffect(() => {
@@ -327,34 +318,77 @@ const Services = () => {
 
   // FILTER + SORT
   const filteredWorkers = useMemo(() => {
-    let result = workers.map((worker) => ({
-      ...worker,
-      distanceKm: null,
-    }));
+    // Compute distance for every worker when user coords are available
+    let result = workers.map((w) => {
+      let distanceKm = null;
+      if (coords && w.mockOffset) {
+        distanceKm = getDistanceKm(
+          coords.latitude,
+          coords.longitude,
+          w.mockOffset.lat,
+          w.mockOffset.lon
+        );
+      }
+      return { ...w, distanceKm };
+    });
 
-    result = result.filter((worker) => {
+    // Text + category filter
+    result = result.filter((w) => {
       const search = searchQuery.trim().toLowerCase();
 
       const matchesSearch =
         !search ||
-        worker.name.toLowerCase().includes(search) ||
-        worker.profession.toLowerCase().includes(search);
+        w.name.toLowerCase().includes(search) ||
+        w.profession.toLowerCase().includes(search);
 
       const matchesCategory =
         categoryFilter === "All" ||
-        worker.profession === categoryFilter;
+        w.profession === categoryFilter;
 
-      return matchesSearch && matchesCategory;
+      // Advanced filters
+      const matchesPrice =
+        w.price >= advancedFilters.minPrice &&
+        w.price <= advancedFilters.maxPrice;
+
+      const matchesRating = w.rating >= advancedFilters.minRating;
+
+      const matchesDistance =
+        !advancedFilters.maxDistance ||
+        w.distanceKm === null ||
+        w.distanceKm <= advancedFilters.maxDistance;
+
+      // Urgent filter: only show workers with "today" or "emergency" in availability
+      const matchesUrgent =
+        !urgentFilter ||
+        /today|emergency|open/i.test(w.availability || "");
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesPrice &&
+        matchesRating &&
+        matchesDistance &&
+        matchesUrgent
+      );
     });
 
+    // Sort
     if (sortBy === "rating") {
       result.sort((a, b) => b.rating - a.rating);
     } else if (sortBy === "price") {
       result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "distance") {
+      result.sort((a, b) => {
+        // Workers without distance go to the end
+        if (a.distanceKm === null && b.distanceKm === null) return 0;
+        if (a.distanceKm === null) return 1;
+        if (b.distanceKm === null) return -1;
+        return a.distanceKm - b.distanceKm;
+      });
     }
 
     return result;
-  }, [workers, searchQuery, categoryFilter, sortBy]);
+  }, [workers, searchQuery, categoryFilter, sortBy, coords, advancedFilters, urgentFilter]);
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];

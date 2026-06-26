@@ -1,220 +1,111 @@
 import Issue from '../models/Issue.js';
 import mongoose from 'mongoose';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { queueNotification } from '../utils/queue.js';
 
-// In-memory fallback store when DB is not connected
-const inMemoryIssues = [];
-
-const isDbConnected = () => mongoose.connection && mongoose.connection.readyState === 1;
-
-export const getNearbyIssues = async (req, res) => {
+export const getIssues = async (req, res) => {
   try {
-    const lat = parseFloat(req.query.lat);
-    const lng = parseFloat(req.query.lng);
-    const category = req.query.category;
-    const radiusKm = parseFloat(req.query.radius) || 1;
-    // Added zoom support to trigger clustering
-    const zoom = parseInt(req.query.zoom) || 10; 
-
-    if (Number.isNaN(lat) || Number.isNaN(lng)) {
-      return res.status(400).json({ message: 'Invalid coordinates' });
-    }
-
-    const maxDistanceMeters = Math.max(10, Math.min(50000, radiusKm * 1000));
-
-    if (isDbConnected()) {
-      // LEVEL 3: SERVER-SIDE CLUSTERING
-      // If zoom is low (< 12), we group issues into buckets to reduce client load
-      if (zoom < 12) {
-        const clusters = await Issue.aggregate([
-          {
-            $geoNear: {
-              near: { type: 'Point', coordinates: [lng, lat] },
-              distanceField: 'dist.calculated',
-              maxDistance: maxDistanceMeters,
-              spherical: true
-            }
-          },
-          { $match: { status: { $nin: ['resolved', 'closed'] } } },
-          {
-            $group: {
-              _id: {
-                latBucket: { $round: ["$latitude", 1] }, 
-                lngBucket: { $round: ["$longitude", 1] }
-              },
-              count: { $sum: 1 },
-              latestIssue: { $first: "$$ROOT" }
-            }
-          }
-        ]);
-        return res.status(200).json({ type: 'cluster', data: clusters });
-      }
-
-      // Standard granular fetch for high zoom levels
-      const issues = await Issue.find({
-        category,
-        status: { $nin: ['resolved', 'closed'] },
-        location: {
-          $near: {
-            $geometry: { type: 'Point', coordinates: [lng, lat] },
-            $maxDistance: maxDistanceMeters
-          }
-        }
-      }).limit(100);
-
-      return res.status(200).json({ type: 'list', data: issues });
-    }
-
-    // Fallback logic (unchanged)
-    const results = inMemoryIssues.filter((it) => {
-        // ... (your existing filter logic)
-    });
-    return res.status(200).json({ type: 'list', data: results });
-
-  } catch (err) {
-    console.error('getNearbyIssues error', err);
-    res.status(500).json({ message: 'Server error' });
+    const issues = await Issue.find({}).populate('reportedBy', 'name email');
+    res.status(200).json({ success: true, count: issues.length, data: issues });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const createIssue = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { title, description, category, latitude, longitude } = req.body;
-
-    if (!title || !description || !category || !latitude || !longitude) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    let thumbnailUrl = null;
-    if (req.file) {
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = path.dirname(__filename);
-      thumbnailUrl = `/uploads/${req.file.filename}`;
-    }
-
-    if (isDbConnected()) {
-      const issue = await Issue.create({
-        title,
-        description,
-        category,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        thumbnailUrl,
-        reportedBy: req.user ? req.user.id : null
+    
+    if (!title || !description || !category || latitude === undefined || longitude === undefined) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields: title, description, category, latitude, and longitude.'
       });
-      return res.status(201).json(issue);
     }
 
-    // Fallback create in memory
-    const id = new Date().getTime().toString();
-    const issue = {
-      id,
+    const parsedLat = parseFloat(latitude);
+    const parsedLng = parseFloat(longitude);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng) || parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid coordinate parameters. Latitude must be between -90 and 90, and Longitude must be between -180 and 180.'
+      });
+    }
+
+    // Concurrency Check: Verify no existing open issue is registered within close coordinates
+    const duplicate = await Issue.findOne({
+      category,
+      status: 'open',
+      latitude: { $gte: parsedLat - 0.0001, $lte: parsedLat + 0.0001 },
+      longitude: { $gte: parsedLng - 0.0001, $lte: parsedLng + 0.0001 }
+    }).session(session);
+
+    if (duplicate) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(409).json({
+        success: false,
+        message: 'A similar issue in this location has already been reported and is currently open.'
+      });
+    }
+
+    const newIssue = new Issue({
       title,
       description,
       category,
-      latitude: Number(latitude),
-      longitude: Number(longitude),
-      thumbnailUrl,
-      status: 'open',
-      upvotes: 0,
-      reportedBy: null,
-      reportedAt: new Date()
-    };
-    inMemoryIssues.push(issue);
-    return res.status(201).json(issue);
-  } catch (err) {
-    console.error('createIssue error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+      latitude: parsedLat,
+      longitude: parsedLng,
+      reportedBy: req.user ? req.user._id : undefined
+    });
 
-export const upvoteIssue = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const userId = req.user?._id;
+    await newIssue.save({ session });
+    await session.commitTransaction();
+    session.endSession();
 
-    if (!userId) {
-      return res.status(401).json({ message: 'Authentication required to upvote' });
-    }
+    // Queue civic report notification
+    await queueNotification('civic_report_created', { issueId: newIssue._id });
 
-    if (isDbConnected()) {
-      // Use an atomic update that only increments upvotes and appends the
-      // user ID when the user has not already voted ($addToSet prevents
-      // duplicates). findByIdAndUpdate with a condition on upvotedBy ensures
-      // atomicity — no separate read-modify-write race is possible.
-      const issue = await Issue.findOneAndUpdate(
-        { _id: id, upvotedBy: { $ne: userId } },
-        {
-          $inc: { upvotes: 1 },
-          $addToSet: { upvotedBy: userId },
-        },
-        { new: true }
-      );
-
-      if (!issue) {
-        // Either the issue does not exist or the user has already upvoted.
-        const exists = await Issue.exists({ _id: id });
-        if (!exists) return res.status(404).json({ message: 'Issue not found' });
-        return res.status(409).json({ message: 'You have already upvoted this issue' });
-      }
-
-      return res.status(200).json(issue);
-    }
-
-    // in-memory fallback (no persistent deduplication available)
-    const issue = inMemoryIssues.find((it) => String(it.id) === String(id));
-    if (!issue) return res.status(404).json({ message: 'Issue not found' });
-    if (!issue.upvotedBy) issue.upvotedBy = [];
-    if (issue.upvotedBy.some((uid) => String(uid) === String(userId))) {
-      return res.status(409).json({ message: 'You have already upvoted this issue' });
-    }
-    issue.upvotedBy.push(userId);
-    issue.upvotes = (issue.upvotes || 0) + 1;
-    return res.status(200).json(issue);
-  } catch (err) {
-    console.error('upvoteIssue error', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-export const getIssueById = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (isDbConnected()) {
-      const issue = await Issue.findById(id);
-      if (!issue) return res.status(404).json({ message: 'Issue not found' });
-      return res.status(200).json(issue);
-    }
-
-    const issue = inMemoryIssues.find((it) => String(it.id) === String(id));
-    if (!issue) return res.status(404).json({ message: 'Issue not found' });
-    return res.status(200).json(issue);
-  } catch (err) {
-    console.error('getIssueById error', err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(201).json({ success: true, data: newIssue });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 export const updateIssueStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status, note } = req.body;
-        
-        const issue = await Issue.findById(id);
-        if (!issue) return res.status(404).json({ message: "Issue not found" });
+  try {
+    const { id } = req.params;
+    const { status, note } = req.body;
 
-        // Logic: Calculate ETA if moving to in-progress
-        if (status === 'in-progress' && issue.status !== 'in-progress') {
-            issue.estimatedArrival = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
-        }
-
-        issue.status = status;
-        issue.statusHistory.push({ status, updatedAt: new Date(), note });
-        await issue.save();
-
-        res.status(200).json(issue);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    const issue = await Issue.findById(id);
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
     }
+
+    const oldStatus = issue.status;
+    issue.status = status;
+    if (status === 'resolved') {
+      issue.resolvedAt = new Date();
+    }
+    issue.statusHistory.push({ status, note, updatedAt: new Date() });
+    await issue.save();
+
+    // Queue status update notification
+    await queueNotification('issue_status_update', {
+      issueId: issue._id,
+      oldStatus,
+      newStatus: status
+    });
+
+    res.status(200).json({ success: true, data: issue });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
