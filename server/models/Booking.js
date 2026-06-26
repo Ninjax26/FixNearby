@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+const STATUS_ENUM = ['Pending', 'Accepted', 'In-Progress', 'Completed', 'Cancelled', 'Expired'];
+
 const bookingSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -13,7 +15,9 @@ const bookingSchema = new mongoose.Schema({
   },
   service: {
     type: String,
-    required: true
+    required: true,
+    trim: true,
+    maxlength: [120, 'Service must be less than 120 characters']
   },
   scheduledTime: {
     type: Date,
@@ -25,7 +29,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Accepted', 'In-Progress', 'Completed', 'Cancelled', 'Expired'],
+    enum: STATUS_ENUM,
     default: 'Pending'
   },
   address: {
@@ -35,10 +39,32 @@ const bookingSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true
-  }
+  },
+  statusHistory: [{
+    status: {
+      type: String,
+      enum: STATUS_ENUM
+    },
+    changedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: 'statusHistory.changedByModel'
+    },
+    changedByModel: {
+      type: String,
+      enum: ['User', 'Worker']
+    },
+    note: { type: String, default: '' },
+    changedAt: { type: Date, default: Date.now }
+  }]
 }, {
   timestamps: true
 });
 
+// Indexes for common access patterns
+bookingSchema.index({ userId: 1, createdAt: -1 });
+bookingSchema.index({ workerId: 1, createdAt: -1 });
+bookingSchema.index({ workerId: 1, status: 1 });
+
 const Booking = mongoose.model('Booking', bookingSchema);
 export default Booking;
+export { STATUS_ENUM };

@@ -4,24 +4,36 @@ import {
   acceptBooking,
   completeBooking,
   cancelBooking,
-  getBookings
+  getBookings,
+  getBookingById
 } from '../controllers/bookingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { checkBookingOverlap } from '../middleware/bookingValidation.js';
+import {
+  loadBooking,
+  requireBookingParticipant,
+  authorizeStatusTransition
+} from '../middleware/bookingMiddleware.js';
 
 const router = express.Router();
 
+// All booking routes require authentication.
+router.use(protect);
+
 router.route('/')
-  .post(protect, checkBookingOverlap, createBooking)
-  .get(protect, getBookings);
+  .post(checkBookingOverlap, createBooking)
+  .get(getBookings);
+
+router.route('/:id')
+  .get(loadBooking, requireBookingParticipant, getBookingById);
 
 router.route('/:id/accept')
-  .patch(protect, acceptBooking);
+  .patch(loadBooking, authorizeStatusTransition, acceptBooking);
 
 router.route('/:id/complete')
-  .patch(protect, completeBooking);
+  .patch(loadBooking, authorizeStatusTransition, completeBooking);
 
 router.route('/:id/cancel')
-  .patch(protect, cancelBooking);
+  .patch(loadBooking, authorizeStatusTransition, cancelBooking);
 
 export default router;
