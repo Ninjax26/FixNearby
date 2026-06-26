@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { SlidersHorizontal } from "lucide-react";
+import {
+  Droplet,
+  Hammer,
+  SlidersHorizontal,
+  Zap,
+  Sparkles,
+  Scale,
+  SprayCan,
+} from "lucide-react";
+
+
 import LoadingSpinner from "../components/LoadingSpinner";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
@@ -155,17 +165,19 @@ const categories = [
 ];
 
 const iconMap = {
-  Electrician: "⚡",
-  Plumber: "🚰",
-  Carpenter: "🪵",
-  Painter: "🎨",
-  "AC Technician": "❄️",
-  Cleaner: "🧹",
-  Mechanic: "🔧",
-  Gardener: "🌱",
-  "Appliance Repair": "🔌",
-  "Pest Control": "🐜",
+  Electrician: Zap,
+  Plumber: Droplet,
+  Carpenter: Hammer,
+  Cleaner: SprayCan, // closest match for cleaning tools/icons in Lucide
+  // Keeping other categories (used by mock data) stable with best-fit Lucide icons.
+  Painter: Sparkles,
+  "AC Technician": Scale,
+  Mechanic: Hammer,
+  Gardener: Sparkles,
+  "Appliance Repair": Zap,
+  "Pest Control": Zap,
 };
+
 
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -551,10 +563,16 @@ const Services = () => {
                   }`}
               >
                 {cat !== "All" && iconMap[cat] && (
-                  <span className="mr-2">{iconMap[cat]}</span>
+                  <span className="mb-1 flex h-6 w-6 items-center justify-center text-2xl">
+                    {(() => {
+                      const Icon = iconMap[cat];
+                      return <Icon className="h-5 w-5" aria-hidden="true" />;
+                    })()}
+                  </span>
                 )}
                 {cat}
               </button>
+
             ))}
           </div>
         </div>
@@ -598,8 +616,13 @@ const Services = () => {
                   className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
                 >
                   <div className="mb-4 text-4xl">
-                    {iconMap[worker.profession] || "👷"}
+                    {(() => {
+                      const Icon = iconMap[worker.profession];
+                      if (!Icon) return <span aria-hidden="true">👷</span>;
+                      return <Icon className="h-10 w-10 text-blue-600" aria-hidden="true" />;
+                    })()}
                   </div>
+
                   <h3 className="text-lg font-bold text-gray-900">
                     {worker.name}
                   </h3>
@@ -665,9 +688,14 @@ const Services = () => {
                     >
                       <div className="flex-1 p-8">
                         <div className="mb-6 flex items-start justify-between">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600">
-                            {iconMap[worker.profession] || "👷"}
+                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                            {(() => {
+                              const Icon = iconMap[worker.profession];
+                              if (!Icon) return <span aria-hidden="true">👷</span>;
+                              return <Icon className="h-8 w-8" aria-hidden="true" />;
+                            })()}
                           </div>
+
                           {worker.verified && (
                             <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700">
                               Verified
