@@ -12,47 +12,46 @@ export const getIssues = async (req, res) => {
 };
 
 export const createIssue = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    const { title, description, category, latitude, longitude } = req.body;
-    
-    if (!title || !description || !category || latitude === undefined || longitude === undefined) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields: title, description, category, latitude, and longitude.'
-      });
+  const executeCreate = async (useSession) => {
+    let session = null;
+    if (useSession) {
+      try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+      } catch (err) {
+        session = null;
+      }
     }
+
+    const { title, description, category, latitude, longitude } = req.body;
 
     const parsedLat = parseFloat(latitude);
     const parsedLng = parseFloat(longitude);
 
-    if (isNaN(parsedLat) || isNaN(parsedLng) || parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid coordinate parameters. Latitude must be between -90 and 90, and Longitude must be between -180 and 180.'
-      });
-    }
-
     // Concurrency Check: Verify no existing open issue is registered within close coordinates
-    const duplicate = await Issue.findOne({
+    const query = {
       category,
       status: 'open',
       latitude: { $gte: parsedLat - 0.0001, $lte: parsedLat + 0.0001 },
       longitude: { $gte: parsedLng - 0.0001, $lte: parsedLng + 0.0001 }
-    }).session(session);
+    };
+
+    const duplicate = session
+      ? await Issue.findOne(query).session(session)
+      : await Issue.findOne(query);
 
     if (duplicate) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(409).json({
-        success: false,
-        message: 'A similar issue in this location has already been reported and is currently open.'
-      });
+      if (session) {
+        await session.abortTransaction();
+        session.endSession();
+      }
+      return {
+        status: 409,
+        data: {
+          success: false,
+          message: 'A similar issue in this location has already been reported and is currently open.'
+        }
+      };
     }
 
     const newIssue = new Issue({
@@ -64,17 +63,61 @@ export const createIssue = async (req, res) => {
       reportedBy: req.user ? req.user._id : undefined
     });
 
-    await newIssue.save({ session });
-    await session.commitTransaction();
-    session.endSession();
+    if (session) {
+      await newIssue.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+    } else {
+      await newIssue.save();
+    }
 
     // Queue civic report notification
-    await queueNotification('civic_report_created', { issueId: newIssue._id });
+    try {
+      await queueNotification('civic_report_created', { issueId: newIssue._id });
+    } catch (notifyErr) {
+      console.error('Failed to queue notification:', notifyErr.message);
+    }
 
-    res.status(201).json({ success: true, data: newIssue });
+    return {
+      status: 201,
+      data: { success: true, data: newIssue }
+    };
+  };
+
+  try {
+    const { title, description, category, latitude, longitude } = req.body;
+    
+    if (!title || !description || !category || latitude === undefined || longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields: title, description, category, latitude, and longitude.'
+      });
+    }
+
+    const parsedLat = parseFloat(latitude);
+    const parsedLng = parseFloat(longitude);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng) || parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid coordinate parameters. Latitude must be between -90 and 90, and Longitude must be between -180 and 180.'
+      });
+    }
+
+    let result;
+    try {
+      result = await executeCreate(true);
+    } catch (err) {
+      if (err.message.includes('Transaction numbers are only allowed') || err.code === 20) {
+        console.warn('MongoDB transactions not supported. Retrying issue creation without session...');
+        result = await executeCreate(false);
+      } else {
+        throw err;
+      }
+    }
+
+    res.status(result.status).json(result.data);
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(500).json({ success: false, message: error.message });
   }
 };
