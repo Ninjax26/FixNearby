@@ -1,6 +1,7 @@
-import Booking from '../models/Booking.js';
+import Booking, { STATUS_ENUM } from '../models/Booking.js';
 import { queueNotification } from '../utils/queue.js';
 import mongoose from 'mongoose';
+import { getPrincipal } from '../middleware/bookingMiddleware.js';
 
 // @desc    Create a new booking with concurrency control, transactions, and standalone DB fallback
 // @route   POST /api/bookings
@@ -69,7 +70,13 @@ export const createBooking = async (req, res, next) => {
       durationHours,
       address,
       price,
-      status: 'Pending'
+      status: 'Pending',
+      statusHistory: [{
+        status: 'Pending',
+        changedBy: req.user._id,
+        changedByModel: 'User',
+        note: 'Booking created'
+      }]
     };
 
     const bookingArray = session
@@ -167,15 +174,16 @@ export const createBooking = async (req, res, next) => {
 // @access  Private
 export const acceptBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
-    if (booking.status !== 'Pending') {
-      return res.status(400).json({ success: false, message: 'Only pending bookings can be accepted' });
-    }
+    const booking = req.booking;
+    const principal = getPrincipal(req);
 
     booking.status = 'Accepted';
+    booking.statusHistory.push({
+      status: 'Accepted',
+      changedBy: principal.ref._id,
+      changedByModel: principal.model,
+      note: 'Booking accepted by worker'
+    });
     await booking.save();
 
     try {
@@ -203,13 +211,17 @@ export const acceptBooking = async (req, res, next) => {
 // @access  Private
 export const completeBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
-
+    const booking = req.booking;
+    const principal = getPrincipal(req);
     const oldStatus = booking.status;
+
     booking.status = 'Completed';
+    booking.statusHistory.push({
+      status: 'Completed',
+      changedBy: principal.ref._id,
+      changedByModel: principal.model,
+      note: 'Booking completed by worker'
+    });
     await booking.save();
 
     try {
@@ -237,13 +249,17 @@ export const completeBooking = async (req, res, next) => {
 // @access  Private
 export const cancelBooking = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found' });
-    }
-
+    const booking = req.booking;
+    const principal = getPrincipal(req);
     const oldStatus = booking.status;
+
     booking.status = 'Cancelled';
+    booking.statusHistory.push({
+      status: 'Cancelled',
+      changedBy: principal.ref._id,
+      changedByModel: principal.model,
+      note: req.body.note || 'Booking cancelled'
+    });
     await booking.save();
 
     try {
@@ -266,19 +282,55 @@ export const cancelBooking = async (req, res, next) => {
   }
 };
 
-// @desc    Get all bookings for user
+// @desc    Get all bookings for user or worker
 // @route   GET /api/bookings
 // @access  Private
 export const getBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find({ userId: req.user._id })
+    const principal = getPrincipal(req);
+    const query = {};
+
+    if (principal.model === 'Worker') {
+      query.workerId = principal.id;
+    } else {
+      query.userId = principal.id;
+    }
+
+    const { status } = req.query;
+    if (status) {
+      const normalized = String(status).trim();
+      if (!STATUS_ENUM.includes(normalized)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status filter. Allowed: ${STATUS_ENUM.join(', ')}`
+        });
+      }
+      query.status = normalized;
+    }
+
+    const bookings = await Booking.find(query)
       .populate('workerId', 'name category')
+      .populate('userId', 'name email')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       count: bookings.length,
       bookings
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get a single booking by ID (participant-only)
+// @route   GET /api/bookings/:id
+// @access  Private (participant)
+export const getBookingById = async (req, res, next) => {
+  try {
+    res.status(200).json({
+      success: true,
+      booking: req.booking
     });
   } catch (error) {
     next(error);
