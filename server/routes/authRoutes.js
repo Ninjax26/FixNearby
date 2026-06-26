@@ -4,15 +4,17 @@ import {
   loginUser,
   getUserProfile,
   updateUserProfile,
-  registerWorker,
-  loginWorker,
-  getWorkerProfile,
   forgotUserPassword,
   resetUserPassword,
   forgotWorkerPassword,
   resetWorkerPassword,
   logoutUser
 } from '../controllers/authController.js';
+import {
+  registerWorker,
+  loginWorker,
+  getWorkerProfile
+} from '../controllers/workerController.js';
 
 import {
   protect,
