@@ -3,21 +3,32 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 import connectDB from './config/db.js';
 import { validateEnv } from './config/envValidate.js';
 import authRoutes from './routes/authRoutes.js';
 import workerRoutes from './routes/workerRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import authMiddleware from './middleware/authMiddleware.js';
 import errorHandler from './middleware/errorHandler.js';
+import csrfProtection from './middleware/csrfMiddleware.js';
+import { compressionMiddleware } from './middleware/compression.js';
+import { initSocket } from './socket.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import { startBookingExpiryScheduler } from './workers/bookingExpiryWorker.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import { initKarmaScheduler } from './utils/karmaScheduler.js';
+import { startWorker } from './workers/notificationWorker.js';
 
 dotenv.config();
 
-// Validate critical configuration environment variables
 validateEnv();
 
 const app = express();
+
+app.use(compressionMiddleware);
 
 // Security Middleware: Strict CSP headers and cross-origin resource protection
 app.use(
@@ -45,8 +56,12 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration with whitelist support
+const parsedEnvOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
+  : [];
+
 const allowedOrigins = [
-  process.env.CLIENT_URL,
+  ...parsedEnvOrigins,
   'http://localhost:5173',
   'http://localhost:3000'
 ].filter(Boolean);
@@ -56,7 +71,9 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
+      // Strip trailing slash from request origin just in case
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (allowedOrigins.indexOf(normalizedOrigin) === -1) {
         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
         return callback(new Error(msg), false);
       }
@@ -67,6 +84,7 @@ app.use(
 );
 
 app.use(express.json({ limit: '10mb' }));
+app.use(csrfProtection);
 
 // Serve uploaded images
 import path from 'path';
@@ -84,6 +102,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/issues', issueRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+// Start Booking Expiry Check Scheduler
+startBookingExpiryScheduler();
+// Initialize Weekly Karma Scheduler
+initKarmaScheduler();
+// Start Background Notification Worker
+startWorker();
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {
@@ -117,8 +145,9 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-
