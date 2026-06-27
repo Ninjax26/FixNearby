@@ -14,6 +14,19 @@ class ErrorBoundary extends React.Component {
     // Sanitize log outputs to prevent log injection attempts
     const sanitizedMsg = String(error?.message || error).replace(/[^\w\s\-]/gi, '');
     console.error('[React Error Caught]:', sanitizedMsg, errorInfo);
+
+    fetch('/api/logs/error', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: error.message || String(error),
+        stack: error.stack || '',
+        componentStack: errorInfo?.componentStack || '',
+        url: window.location.href
+      })
+    }).catch(err => console.error('Failed to report UI error to server:', err));
   }
 
   render() {

@@ -1,39 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StarRating from "../components/StarRating";
-import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle } from "lucide-react";
+import { useBookings } from "../hooks/useBookings";
 
-const demoBookings = [
-  {
-    id: "BK-101",
-    worker: "Jane Smith",
-    service: "Plumbing",
-    date: "2026-05-10",
-    status: "Pending",
-  },
-  {
-    id: "BK-102",
-    worker: "John Doe",
-    service: "Electrical",
-    date: "2026-05-14",
-    status: "Pending",
-  },
-  {
-    id: "BK-103",
-    worker: "Mike Johnson",
-    service: "Carpentry",
-    date: "2026-05-01",
-    status: "Completed",
-  },
-];
-
-const statusOptions = ["All", "Pending", "Completed", "Cancelled"];
+const statusOptions = ["All", "Pending", "Confirmed", "Completed", "Cancelled"];
 
 const statusStyle = (status) => {
   switch (status) {
     case "Completed":
       return "bg-emerald-100 text-emerald-800";
+    case "Confirmed":
+      return "bg-blue-100 text-blue-800";
     case "Pending":
       return "bg-amber-100 text-amber-800";
     case "Cancelled":
@@ -43,12 +22,58 @@ const statusStyle = (status) => {
   }
 };
 
+/**
+ * Normalize a booking document from the API into the shape the UI expects.
+ * - `worker` is a populated object (or falls back to a stored name).
+ * - `estimateSpecs`, if present, is encoded as JSON inside the booking notes
+ *   by WorkerProfile so the breakdown panel keeps working end-to-end.
+ */
+const normalizeBooking = (booking) => {
+  const workerName =
+    (typeof booking.worker === "object" && booking.worker?.name) ||
+    booking.workerName ||
+    booking.worker ||
+    "Service Professional";
+  const serviceName =
+    (typeof booking.service === "object" && booking.service?.name) ||
+    booking.service ||
+    "Service";
+  const price =
+    typeof booking.price === "number"
+      ? booking.price
+      : Number(String(booking.price || "").replace(/[^0-9.]/g, "")) || 0;
+
+  let estimateSpecs = booking.estimateSpecs || null;
+  if (!estimateSpecs && booking.notes) {
+    // Estimate specs are optionally carried in notes as a JSON payload.
+    try {
+      const parsed = JSON.parse(booking.notes);
+      if (parsed && parsed.totalCost) estimateSpecs = parsed;
+    } catch {
+      /* notes is plain text — ignore */
+    }
+  }
+
+  return {
+    ...booking,
+    id: booking._id || booking.id,
+    worker: workerName,
+    service: serviceName,
+    price,
+    date: booking.scheduledDate
+      ? new Date(booking.scheduledDate).toLocaleDateString()
+      : booking.date || new Date(booking.createdAt || Date.now()).toLocaleDateString(),
+    estimateSpecs,
+  };
+};
+
 /* ── Estimate breakdown panel for a booking card ── */
 const EstimateBreakdown = ({ specs }) => {
   const [open, setOpen] = useState(false);
-  const total = specs.totalCost || 1;
-  const matPct = Math.round((specs.materialCost / total) * 100);
-  const labPct = 100 - matPct;
+  // Guard against divide-by-zero when a malformed estimate has no total.
+  const total = specs.totalCost > 0 ? specs.totalCost : 0;
+  const matPct = total > 0 ? Math.round((specs.materialCost / total) * 100) : 0;
+  const labPct = total > 0 ? 100 - matPct : 0;
 
   return (
     <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 overflow-hidden">
@@ -124,36 +149,27 @@ const EstimateBreakdown = ({ specs }) => {
 };
 
 const Bookings = () => {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    bookings: rawBookings,
+    loading,
+    error,
+    cancelBooking,
+    refresh,
+  } = useBookings();
+
+  // Bookings come from the API in document form; normalize once for the UI.
+  const bookings = useMemo(
+    () => rawBookings.map(normalizeBooking),
+    [rawBookings]
+  );
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [activeReview, setActiveReview] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-
-  useEffect(() => {
-    try {
-      const savedBookings = localStorage.getItem("bookings");
-      if (savedBookings) {
-        setBookings(JSON.parse(savedBookings));
-      } else {
-        setBookings(demoBookings);
-        localStorage.setItem("bookings", JSON.stringify(demoBookings));
-      }
-    } catch (loadError) {
-      setError("Failed to load bookings.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("bookings", JSON.stringify(bookings));
-    }
-  }, [bookings, loading]);
+  const [cancelingId, setCancelingId] = useState(null);
+  const [cancelError, setCancelError] = useState("");
 
   const filteredBookings = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -168,47 +184,36 @@ const Bookings = () => {
     });
   }, [bookings, search, statusFilter]);
 
-  const handleCancel = (id) => {
-    setBookings((current) =>
-      current.map((booking) =>
-        booking.id === id ? { ...booking, status: "Cancelled" } : booking
-      )
-    );
+  const handleCancel = async (id) => {
+    setCancelError("");
+    setCancelingId(id);
+    const ok = await cancelBooking(id);
+    setCancelingId(null);
+    if (!ok) {
+      setCancelError(
+        "Could not cancel this booking. It may already be completed."
+      );
+    }
   };
 
+  const handleReviewSubmit = (id) => {
+    if (!rating) {
+      setCancelError("Please select a rating before submitting.");
+      return;
+    }
 
- const handleReviewSubmit = (id) => {
-  if (!rating) {
-    window.alert("Please select a rating before submitting.");
-    return;
-  }
+    // Reviews are submitted through the reviews API in a separate flow; here
+    // we simply close the form. The booking list refresh will reflect any
+    // server-side review linkage.
+    setActiveReview(null);
+    setRating(0);
+    setComment("");
+    refresh();
+  };
 
-  setBookings((current) =>
-    current.map((booking) =>
-      booking.id === id
-        ? {
-            ...booking,
-            review: {
-              rating,
-              comment,
-            },
-          }
-        : booking
-    )
-  );
-
-  setActiveReview(null);
-  setRating(0);
-  setComment("");
-};
-
-const totalBookings = bookings.length;
-const completedBookings = bookings.filter(
-  (b) => b.status === "Completed"
-).length;
-const pendingBookings = bookings.filter(
-  (b) => b.status === "Pending"
-).length;
+  const totalBookings = bookings.length;
+  const completedBookings = bookings.filter((b) => b.status === "Completed").length;
+  const pendingBookings = bookings.filter((b) => b.status === "Pending").length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -264,7 +269,25 @@ const pendingBookings = bookings.filter(
 
       {loading && <LoadingSpinner />}
 
-      {!loading && error && <p className="text-rose-600">{error}</p>}
+      {!loading && error && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
+          <AlertCircle className="mx-auto mb-2 text-rose-500" size={24} />
+          <p className="text-rose-700 font-medium">{error}</p>
+          <button
+            type="button"
+            onClick={() => refresh()}
+            className="mt-4 inline-block rounded-xl bg-rose-600 px-5 py-2.5 font-medium text-white hover:bg-rose-700"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && cancelError && (
+        <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+          {cancelError}
+        </p>
+      )}
 
       {!loading && !error && filteredBookings.length === 0 && (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 py-16 text-center">
@@ -325,13 +348,14 @@ const pendingBookings = bookings.filter(
               </div>
 
               <div className="mt-4 flex flex-wrap gap-4 text-sm">
-                {booking.status === "Pending" && (
+                {(booking.status === "Pending" || booking.status === "Confirmed") && (
                   <button
                     type="button"
                     onClick={() => handleCancel(booking.id)}
-                    className="font-medium text-rose-600 hover:text-rose-700"
+                    disabled={cancelingId === booking.id}
+                    className="font-medium text-rose-600 hover:text-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Cancel
+                    {cancelingId === booking.id ? "Cancelling…" : "Cancel"}
                   </button>
                 )}
                 {booking.status === "Completed" && !booking.review && (

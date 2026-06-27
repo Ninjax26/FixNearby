@@ -19,7 +19,7 @@ const WrenchIcon = () => (
 );
 
 const Navbar = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout, authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -95,7 +95,7 @@ const Navbar = () => {
             </a>
             <Link to="/services" className={desktopLinkCls('/services')}>{t("nav.services")}</Link>
             <LanguageToggle />
-            {isAuthenticated ? (
+            {(authLoading ? false : isAuthenticated) ? (
               <>
                 <Link to="/bookings" className={desktopLinkCls('/bookings')}>{t("nav.bookings")}</Link>
                 <div className="relative ml-1">
@@ -177,7 +177,7 @@ const Navbar = () => {
         <nav className="flex flex-col gap-1">
           <a href="/#how-it-works" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/#how-it-works')}>{t("nav.howItWorks")}</a>
           <Link to="/services" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/services')}>{t("nav.services")}</Link>
-          {isAuthenticated ? (
+          {(authLoading ? false : isAuthenticated) ? (
             <>
               <Link to="/bookings" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/bookings')}>{t("nav.bookings")}</Link>
               <Link to="/profile" onClick={() => setMenuOpen(false)} className={mobileLinkCls('/profile')}>{t("nav.profile")}</Link>
