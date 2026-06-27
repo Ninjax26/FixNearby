@@ -43,6 +43,10 @@ const Register = () => {
         if (value.length < 6) {
           return "Password must be at least 6 characters";
         }
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+        if (!passwordRegex.test(value)) {
+          return "Password must contain uppercase, lowercase and a number";
+        }
         break;
 
       case "phone":
