@@ -1,8 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import api from "../services/apiClient";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
-import { estimateArrivalTime } from "../utils/etaCalculator";
-import { useLocation } from "../context/LocationContext";
 import {
   Star,
   MapPin,
@@ -20,6 +19,9 @@ import {
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
+import api from "../services/apiClient";
+import { createBooking } from "../services/bookingService";
+import { useAuth } from "../context/AuthContext";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -235,27 +237,28 @@ const TABS = [
   { id: "portfolio", label: "Portfolio", icon: Image },
 ];
 
-const getBookings = () => {
-  try {
-    return JSON.parse(localStorage.getItem("bookings")) || [];
-  } catch {
-    return [];
-  }
-};
-
-const saveBookings = (bookings) => {
-  localStorage.setItem("bookings", JSON.stringify(bookings));
+/**
+ * Parse a price string like "$45/hr" or a number into a numeric hourly price.
+ * Used to send a server-validatable numeric price to the booking API instead
+ * of the display string.
+ */
+const parsePriceToNumber = (price) => {
+  if (typeof price === "number") return price;
+  const match = String(price || "").match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) : 0;
 };
 
 const WorkerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { coords: userCoords } = useLocation();
+  const { isAuthenticated } = useAuth();
 
   const [activeTab, setActiveTab]          = useState("overview");
   const [showModal, setShowModal]           = useState(false);
   const [bookingDetails, setBookingDetails] = useState({});
   const [showQuickBookPrompt, setShowQuickBookPrompt] = useState(false);
+  const [bookingError, setBookingError]     = useState("");
+  const [submitting, setSubmitting]         = useState(false);
 
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -314,6 +317,12 @@ const WorkerProfile = () => {
   /* ── Quick book — show estimate prompt if config exists, else book directly ── */
   const handleBooking = () => {
     if (!worker) return;
+    // Booking is a server-side action tied to the authenticated user; bounce
+    // unauthenticated visitors to login instead of silently failing.
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: `/worker/${id}` } });
+      return;
+    }
     if (hasEstimator) {
       setShowQuickBookPrompt(true);
       return;
@@ -322,71 +331,85 @@ const WorkerProfile = () => {
   };
 
   /* ── Confirmed quick book (no estimate) ── */
-  const confirmQuickBook = () => {
-    if (!worker) return;
+  const confirmQuickBook = async () => {
+    if (!worker || submitting) return;
     setShowQuickBookPrompt(false);
+    setSubmitting(true);
+    setBookingError("");
 
-    const newBooking = {
-      id: "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
-      worker: worker.name,
-      service: worker.profession,
-      date: new Date().toLocaleDateString(),
-      time: "10:00 AM",
-      price: worker.price,
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const price = parsePriceToNumber(worker.price);
+      const response = await createBooking({
+        worker: worker.id,
+        service: worker.profession,
+        price,
+        scheduledDate: new Date().toISOString(),
+      });
+      const saved = response.booking;
 
-    saveBookings([newBooking, ...getBookings()]);
-
-    setBookingDetails({
-      service: worker.profession,
-      worker: worker.name,
-      date: new Date().toLocaleDateString(),
-      time: "10:00 AM",
-      price: worker.price,
-      eta: estimateArrivalTime(userCoords, worker.location),
-    });
-
-    setShowModal(true);
+      setBookingDetails({
+        service: worker.profession,
+        worker: worker.name,
+        date: new Date().toLocaleDateString(),
+        time: "10:00 AM",
+        price: worker.price,
+        bookingId: saved?._id,
+      });
+      setShowModal(true);
+    } catch (err) {
+      setBookingError(err.message || "Could not create booking. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   /* ── Estimate-based booking ── */
-  const handleEstimateBooking = (estimate) => {
-    if (!worker) return;
+  const handleEstimateBooking = async (estimate) => {
+    if (!worker || submitting) return;
+    setSubmitting(true);
+    setBookingError("");
 
-    const newBooking = {
-      id: "BK-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
-      worker: worker.name,
-      service: worker.profession,
-      date: new Date().toLocaleDateString(),
-      time: "10:00 AM",
-      price: `$${estimate.totalCost.toFixed(2)}`,
-      status: "Pending",
-      createdAt: new Date().toISOString(),
-      estimateSpecs: {
-        summary: estimate.summary,
-        materials: estimate.materials,
-        laborHours: estimate.laborHours,
-        laborCost: estimate.laborCost,
-        materialCost: estimate.materialCost,
-        totalCost: estimate.totalCost,
-      },
-    };
+    try {
+      const response = await createBooking({
+        worker: worker.id,
+        service: worker.profession,
+        price: estimate.totalCost,
+        scheduledDate: new Date().toISOString(),
+        // Carry the full estimate breakdown so the Bookings page can render
+        // the cost split without a separate API round-trip.
+        notes: JSON.stringify({
+          summary: estimate.summary,
+          materials: estimate.materials,
+          laborHours: estimate.laborHours,
+          laborCost: estimate.laborCost,
+          materialCost: estimate.materialCost,
+          totalCost: estimate.totalCost,
+        }),
+      });
+      const saved = response.booking;
 
-    saveBookings([newBooking, ...getBookings()]);
-
-    setBookingDetails({
-      service: worker.profession,
-      worker: worker.name,
-      date: new Date().toLocaleDateString(),
-      time: "10:00 AM",
-      price: `$${estimate.totalCost.toFixed(2)}`,
-      estimateSpecs: newBooking.estimateSpecs,
-      eta: estimateArrivalTime(userCoords, worker.location),
-    });
-
-    setShowModal(true);
+      setBookingDetails({
+        service: worker.profession,
+        worker: worker.name,
+        date: new Date().toLocaleDateString(),
+        time: "10:00 AM",
+        price: `$${estimate.totalCost.toFixed(2)}`,
+        estimateSpecs: {
+          summary: estimate.summary,
+          materials: estimate.materials,
+          laborHours: estimate.laborHours,
+          laborCost: estimate.laborCost,
+          materialCost: estimate.materialCost,
+          totalCost: estimate.totalCost,
+        },
+        bookingId: saved?._id,
+      });
+      setShowModal(true);
+    } catch (err) {
+      setBookingError(err.message || "Could not create booking. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const closeModal = () => {
@@ -502,10 +525,32 @@ const WorkerProfile = () => {
             {/* CTA */}
             <button
               onClick={handleBooking}
-              className="w-full mt-6 bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-3 rounded-2xl shadow-md"
+              disabled={submitting}
+              className="w-full mt-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition text-white font-semibold py-3 rounded-2xl shadow-md flex items-center justify-center gap-2"
             >
-              Quick Book
+              {submitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Booking…
+                </>
+              ) : (
+                "Quick Book"
+              )}
             </button>
+
+            {bookingError && (
+              <p
+                role="alert"
+                className="mt-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2"
+              >
+                {bookingError}
+              </p>
+            )}
+            {!isAuthenticated && (
+              <p className="mt-3 text-xs text-gray-500 text-center">
+                You'll need to sign in to complete a booking.
+              </p>
+            )}
 
             {/* Inline estimate prompt — shown after Quick Book tap */}
             {showQuickBookPrompt && (
@@ -539,13 +584,13 @@ const WorkerProfile = () => {
 
             {/* Contact */}
             <div className="flex gap-3 mt-4">
-              <button className="flex-1 border border-gray-200 hover:bg-gray-100 py-2.5 sm:py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition text-sm font-semibold text-gray-700">
-                <Phone size={16} />
+              <button className="flex-1 border border-gray-200 hover:bg-gray-100 py-3 rounded-2xl flex items-center justify-center gap-2 transition">
+                <Phone size={18} />
                 Call
               </button>
 
-              <button className="flex-1 border border-gray-200 hover:bg-gray-100 py-2.5 sm:py-3 px-3 rounded-2xl flex items-center justify-center gap-2 transition text-sm font-semibold text-gray-700">
-                <MessageCircle size={16} />
+              <button className="flex-1 border border-gray-200 hover:bg-gray-100 py-3 rounded-2xl flex items-center justify-center gap-2 transition">
+                <MessageCircle size={18} />
                 Chat
               </button>
             </div>
@@ -583,7 +628,7 @@ const WorkerProfile = () => {
               {/* About */}
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-2xl font-bold mb-4">About Worker</h2>
-                <p className="text-gray-600 leading-8 break-words whitespace-pre-line">{worker.bio}</p>
+                <p className="text-gray-600 leading-8">{worker.bio}</p>
               </div>
 
               {/* Services */}

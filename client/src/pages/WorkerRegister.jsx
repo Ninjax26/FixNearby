@@ -170,11 +170,21 @@ const WorkerRegister = () => {
     }
 
     // PASSWORD VALIDATION
-    if (name === "password" && value.length < 8) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        password: "Password must be at least 8 characters",
-      }));
+    if (name === "password") {
+      if (value.length < 6) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          password: "Password must be at least 6 characters",
+        }));
+      } else {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+        if (!passwordRegex.test(value)) {
+          setFieldErrors((prev) => ({
+            ...prev,
+            password: "Password must contain uppercase, lowercase and a number",
+          }));
+        }
+      }
     }
 
     // PHONE VALIDATION

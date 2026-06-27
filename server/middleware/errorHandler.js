@@ -23,6 +23,17 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 400 };
   }
 
+  // JWT Errors
+  if (err.name === 'JsonWebTokenError') {
+    const message = 'Not authorized, token validation failed';
+    error = { message, statusCode: 401 };
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    const message = 'Not authorized, token has expired';
+    error = { message, statusCode: 401 };
+  }
+
   const statusCode = error.statusCode || 500;
   const responseMessage = (statusCode === 500 && process.env.NODE_ENV === 'production')
     ? 'Internal Server Error'
