@@ -19,7 +19,6 @@ import {
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
-import api from "../services/apiClient";
 import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
 
