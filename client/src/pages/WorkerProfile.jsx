@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import api from "../services/apiClient";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import {
   Star,
