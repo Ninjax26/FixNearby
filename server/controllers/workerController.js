@@ -161,13 +161,29 @@ export const loginWorker = async (req, res) => {
   }
 };
 
+// FIX #571: Optimized getWorkers with pagination, field projection, and .lean()
 export const getWorkers = async (req, res) => {
   try {
-    const workers = await Worker.find().select("name email category experience location contact availabilityStatus profilePicture lastActive");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const workers = await Worker.find()
+      .select("name email category experience location contact availabilityStatus profilePicture lastActive averageRating")
+      .limit(limit)
+      .skip(skip)
+      .lean();
+
+    const total = await Worker.countDocuments();
 
     res.status(200).json({
       success: true,
       workers,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page
+      }
     });
 
   } catch (error) {

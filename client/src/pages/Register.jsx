@@ -26,7 +26,8 @@ const Register = () => {
   // ---------------- VALIDATION ----------------
 
   const validateFields = (name, value) => {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z]+\.[a-zA-Z]{2,}$/;
+    // FIX #588: Updated email regex to accept subdomains & multi-part TLDs
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     switch (name) {
       case "name":
@@ -265,8 +266,10 @@ const Register = () => {
                 placeholder="Password"
                 className={`${inputStyles("password")} pr-12`}
               />
+              {/* FIX #589: Added aria-label for accessibility */}
               <button
                 type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-700"
               >

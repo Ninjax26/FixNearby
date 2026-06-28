@@ -234,8 +234,10 @@ const validateFields = (name, value) => {
                 className={`${inputStyles("password")} pr-12`}
               />
 
+              {/* FIX #589: Added aria-label for accessibility */}
               <button
                 type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 onClick={() =>
                   setShowPassword((prev) => !prev)
                 }

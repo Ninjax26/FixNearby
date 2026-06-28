@@ -22,12 +22,22 @@ const Footer = () => {
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const handleSearch = () => {
     if (query.trim() !== "") {
       navigate(`/services?search=${query}`);
       setQuery("");
     }
+  };
+
+  // FIX #590: Handle newsletter submission
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    console.log("Newsletter email:", newsletterEmail);
+    // TODO: Send to backend API
+    setNewsletterEmail("");
+    alert("Thanks for subscribing!");
   };
 
   const linkClass = (path) =>
@@ -131,8 +141,9 @@ const Footer = () => {
               </Link>
             </li>
 
+            {/* FIX #591: Changed /register to /worker/register */}
             <li>
-              <Link to="/register" className={linkClass("/register")}>
+              <Link to="/worker/register" className={linkClass("/worker/register")}>
                 <FaArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
                 Join as a Pro
               </Link>
@@ -221,14 +232,17 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Newsletter */}
-          <form className="flex flex-col sm:flex-row gap-3">
+          {/* Newsletter - FIX #590: Added form handler */}
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative w-full">
               <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm" />
 
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
+                required
                 className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-900/90 border border-gray-700 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition"
               />
             </div>
