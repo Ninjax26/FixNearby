@@ -19,6 +19,7 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  Heart,
 } from "lucide-react";
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
@@ -26,6 +27,7 @@ import SmartEstimator from "../components/SmartEstimator";
 import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
 import { getWorkerAvailability } from "../services/availabilityService";
+import { getFavorites, toggleFavorite } from "../services/favoriteService";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -266,6 +268,42 @@ const WorkerProfile = () => {
 
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      const checkSavedStatus = async () => {
+        try {
+          const favs = await getFavorites();
+          const saved = favs.some((f) => String(f.worker._id || f.worker.id) === String(id));
+          setIsSaved(saved);
+        } catch (err) {
+          console.error("Failed to load saved status:", err);
+        }
+      };
+      checkSavedStatus();
+    } else {
+      setIsSaved(false);
+    }
+  }, [isAuthenticated, id]);
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      alert("Please log in to save professionals to your favorites.");
+      return;
+    }
+
+    const previousSaved = isSaved;
+    setIsSaved(!previousSaved);
+
+    try {
+      await toggleFavorite(id, previousSaved);
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+      setIsSaved(previousSaved);
+      alert("Failed to update favorite. Please try again.");
+    }
+  };
 
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -538,7 +576,21 @@ const WorkerProfile = () => {
               <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center text-4xl font-bold text-blue-700">
                 {worker.name.charAt(0)}
               </div>
-              <h1 className="text-2xl font-bold mt-4">{worker.name}</h1>
+              <div className="flex items-center gap-2 mt-4 justify-center">
+                <h1 className="text-2xl font-bold">{worker.name}</h1>
+                <button
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-all focus:outline-none"
+                  title={isSaved ? "Remove from Saved" : "Save Professional"}
+                >
+                  <Heart
+                    className={`h-5 w-5 transition-transform active:scale-125 ${
+                      isSaved ? "fill-red-500 text-red-500" : "text-slate-400"
+                    }`}
+                  />
+                </button>
+              </div>
               <p className="text-blue-600 font-medium">{worker.profession}</p>
               <div className="flex items-center gap-1 mt-3 bg-yellow-50 px-3 py-1 rounded-full">
                 <Star size={16} className="fill-yellow-400 text-yellow-400" />

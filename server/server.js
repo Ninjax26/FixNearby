@@ -22,6 +22,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import { initKarmaScheduler } from './utils/karmaScheduler.js';
 import { startWorker } from './workers/notificationWorker.js';
 import { startBookingReminderScheduler } from './workers/bookingReminderWorker.js';
+import favoriteRoutes from './routes/favoriteRoutes.js';
 
 dotenv.config();
 
@@ -106,6 +107,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Start Booking Expiry Check Scheduler
 startBookingExpiryScheduler();
