@@ -37,7 +37,6 @@ export const useBookings = (initialParams = {}) => {
 
   useEffect(() => {
     fetchBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.status]);
 
   /**
