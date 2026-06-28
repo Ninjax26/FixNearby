@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability } from '../controllers/workerController.js';
+import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews } from '../controllers/workerController.js';
 import { protectWorker } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
@@ -13,5 +13,6 @@ router.post('/recalculate-karma', protectWorker, recalculateKarmaScoresControlle
 router.get('/', getWorkers);
 router.get('/:id', getWorkerById);
 router.get('/:id/availability', getWorkerAvailability);
+router.get('/:id/reviews', getWorkerReviews);
 
 export default router;

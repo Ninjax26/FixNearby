@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { calculateKarmaScores } from "../utils/karmaScheduler.js";
 import { validatePassword } from "../utils/validatePassword.js";
 import Booking from "../models/Booking.js";
+import Review from "../models/Review.js";
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -446,6 +447,61 @@ export const getWorkerAvailability = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching worker availability:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
+    });
+  }
+};
+
+export const getWorkerReviews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      // Fallback for mock workers (e.g. numeric ID)
+      const mockReviews = [
+        {
+          _id: "mock-r1",
+          rating: 5,
+          reviewText: "Excellent work! Quick turnaround and extremely professional.",
+          user: { name: "Alice Johnson" },
+          createdAt: new Date(Date.now() - 2 * 24 * 3600000).toISOString()
+        },
+        {
+          _id: "mock-r2",
+          rating: 4.5,
+          reviewText: "Very skilled, polite, and clean. Solved the problem on the first visit.",
+          user: { name: "Robert Miller" },
+          createdAt: new Date(Date.now() - 5 * 24 * 3600000).toISOString()
+        }
+      ];
+      return res.status(200).json({
+        success: true,
+        count: mockReviews.length,
+        reviews: mockReviews
+      });
+    }
+
+    const worker = await Worker.findById(id);
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found"
+      });
+    }
+
+    const reviews = await Review.find({ worker: id })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: reviews.length,
+      reviews
+    });
+  } catch (error) {
+    console.error("Error fetching worker reviews:", error);
     res.status(500).json({
       success: false,
       message: "Server error: " + error.message

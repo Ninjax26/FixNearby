@@ -15,6 +15,10 @@ import {
   Calculator,
   MessageSquare,
   Image,
+  Award,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";

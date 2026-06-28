@@ -106,6 +106,25 @@ const workerSchema = new mongoose.Schema(
       sms: { type: Boolean, default: true },
       push: { type: Boolean, default: true }
     },
+    certifications: {
+      type: [String],
+      default: []
+    },
+    portfolio: [
+      {
+        image: { type: String, default: "" },
+        description: { type: String, default: "" },
+        completionDate: { type: String, default: "" },
+        customerRating: { type: Number, default: 5 },
+        review: { type: String, default: "" }
+      }
+    ],
+    faqs: [
+      {
+        question: { type: String, default: "" },
+        answer: { type: String, default: "" }
+      }
+    ]
   },
   {
     timestamps: true,
