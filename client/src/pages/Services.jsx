@@ -8,6 +8,7 @@ import {
   Sparkles,
   Scale,
   SprayCan,
+  Heart,
 } from "lucide-react";
 
 
@@ -19,6 +20,8 @@ import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
 import { useLocation } from "../context/LocationContext";
 import { getWorkerAvailability } from "../services/availabilityService";
+import { useAuth } from "../context/AuthContext";
+import { getFavorites, toggleFavorite } from "../services/favoriteService";
 
 const mockWorkers = [
   {
@@ -284,6 +287,7 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { coords } = useLocation();
+  const { isAuthenticated } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || ""
@@ -298,6 +302,61 @@ const Services = () => {
 
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
+
+  // Fetch favorited worker IDs
+  useEffect(() => {
+    if (isAuthenticated) {
+      const loadFavorites = async () => {
+        try {
+          const favs = await getFavorites();
+          const ids = new Set(favs.map(f => f.worker._id || f.worker.id));
+          setFavoritedWorkerIds(ids);
+        } catch (err) {
+          console.error("Failed to load favorites:", err);
+        }
+      };
+      loadFavorites();
+    } else {
+      setFavoritedWorkerIds(new Set());
+    }
+  }, [isAuthenticated]);
+
+  const handleToggleFavorite = async (workerId) => {
+    if (!isAuthenticated) {
+      alert("Please log in to save professionals to your favorites.");
+      return;
+    }
+
+    const isSaved = favoritedWorkerIds.has(workerId);
+    // Optimistic UI update
+    setFavoritedWorkerIds(prev => {
+      const copy = new Set(prev);
+      if (isSaved) {
+        copy.delete(workerId);
+      } else {
+        copy.add(workerId);
+      }
+      return copy;
+    });
+
+    try {
+      await toggleFavorite(workerId, isSaved);
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+      // Revert optimistic update on failure
+      setFavoritedWorkerIds(prev => {
+        const copy = new Set(prev);
+        if (isSaved) {
+          copy.add(workerId);
+        } else {
+          copy.delete(workerId);
+        }
+        return copy;
+      });
+      alert("Failed to update favorite. Please try again.");
+    }
+  };
 
   const [recentWorkers, setRecentWorkers] = useState([]);
 
@@ -769,8 +828,28 @@ const Services = () => {
                   {filteredWorkers.map((worker) => (
                     <div
                       key={worker.id}
-                      className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl"
+                      className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl relative"
                     >
+                      {/* Favorite/Save Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleToggleFavorite(worker._id || worker.id);
+                        }}
+                        className="absolute top-4 right-4 p-2.5 rounded-full bg-white/95 hover:bg-white text-gray-400 hover:text-red-500 transition-all shadow-sm border border-gray-100/60 z-10 focus:outline-none"
+                        title={favoritedWorkerIds.has(worker._id || worker.id) ? "Remove from Saved" : "Save Professional"}
+                      >
+                        <Heart
+                          className={`h-5 w-5 transition-transform active:scale-125 ${
+                            favoritedWorkerIds.has(worker._id || worker.id)
+                              ? "fill-red-500 text-red-500"
+                              : "text-gray-400 hover:text-red-500"
+                          }`}
+                        />
+                      </button>
+
                       <div className="flex-1 p-8">
                         <div className="mb-6 flex items-start justify-between">
                           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">

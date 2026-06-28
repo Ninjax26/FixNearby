@@ -215,6 +215,17 @@ const Navbar = () => {
                         {t("nav.myBookings")}
                       </Link>
 
+                      <Link
+                        to="/saved-workers"
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        role="menuitem"
+                      >
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                        </svg>
+                        Saved Workers
+                      </Link>
+
                       <div className="my-1 border-t border-slate-100" />
 
                       <button
@@ -359,6 +370,17 @@ const Navbar = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
                 {t("nav.bookings")}
+              </Link>
+
+              <Link
+                to="/saved-workers"
+                onClick={() => setMenuOpen(false)}
+                className={mobileLinkCls('/saved-workers')}
+              >
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+                Saved Workers
               </Link>
 
               <Link
