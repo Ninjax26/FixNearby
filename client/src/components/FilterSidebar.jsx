@@ -80,6 +80,9 @@ const FilterSidebar = ({
       
       {/* Sidebar */}
       <div
+        role="dialog"
+        aria-label="Filter options"
+        aria-modal={isOpen ? "true" : "false"}
         className={`fixed inset-y-0 left-0 z-50 w-80 transform overflow-y-auto bg-white shadow-xl transition-transform duration-300 lg:relative lg:z-0 lg:translate-x-0 lg:shadow-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } ${className}`}
@@ -100,7 +103,8 @@ const FilterSidebar = ({
             )}
             <button
               onClick={onClose}
-              className="rounded-lg p-1 transition hover:bg-gray-100 lg:hidden"
+              className="rounded-lg p-1 transition hover:bg-gray-100 lg:hidden focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              aria-label="Close filters"
             >
               <X className="h-5 w-5 text-gray-600" />
             </button>
@@ -119,7 +123,8 @@ const FilterSidebar = ({
                 <button
                   key={category}
                   onClick={() => handleLocalFilterChange('category', category)}
-                  className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition ${
+                  aria-pressed={localFilters.category === category}
+                  className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                     localFilters.category === category
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -171,7 +176,8 @@ const FilterSidebar = ({
                 <button
                   key={rating}
                   onClick={() => handleLocalFilterChange('minRating', rating)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  aria-pressed={localFilters.minRating === rating}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                     localFilters.minRating === rating
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -227,7 +233,8 @@ const FilterSidebar = ({
                 <button
                   key={option.value}
                   onClick={() => handleLocalFilterChange('availability', option.value)}
-                  className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition ${
+                  aria-pressed={localFilters.availability === option.value}
+                  className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition focus:ring-2 focus:ring-blue-500 focus:outline-none ${
                     localFilters.availability === option.value
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
