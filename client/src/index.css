@@ -28,3 +28,21 @@
     z-index: 50;
   }
 }
+
+/* Leaflet custom map markers styling */
+.custom-map-marker {
+  transition: all 0.2s ease-in-out;
+}
+.custom-map-marker:hover {
+  transform: scale(1.15);
+}
+.custom-cluster-marker {
+  transition: all 0.2s ease-in-out;
+}
+.custom-cluster-marker:hover {
+  transform: scale(1.1);
+}
+.leaflet-container {
+  font-family: inherit;
+  z-index: 10;
+}
