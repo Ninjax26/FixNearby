@@ -3,6 +3,7 @@ import Worker from "../models/Worker.js";
 import mongoose from "mongoose";
 import { calculateKarmaScores } from "../utils/karmaScheduler.js";
 import { validatePassword } from "../utils/validatePassword.js";
+import Booking from "../models/Booking.js";
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -310,6 +311,141 @@ export const recalculateKarmaScoresController = async (req, res) => {
     });
   } catch (error) {
     console.error("Error recalculating karma scores:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error: " + error.message
+    });
+  }
+};
+
+export const getWorkerAvailability = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const dateRange = parseInt(req.query.dateRange) || 7; // default 7 days ahead
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      // Fallback to generating mock slots for mock workers with numeric/invalid IDs
+      const mockSlots = [];
+      const now = new Date();
+      const slotHours = [9, 11, 13, 15]; // 9 AM, 11 AM, 1 PM, 3 PM
+      const slotDurationMs = 2 * 3600000;
+      let count = 0;
+      for (let dayOffset = 0; dayOffset < dateRange; dayOffset++) {
+        const baseDate = new Date();
+        baseDate.setDate(baseDate.getDate() + dayOffset);
+        for (const hour of slotHours) {
+          const slotStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), hour, 0, 0, 0);
+          const slotEnd = new Date(slotStart.getTime() + slotDurationMs);
+          if (slotStart <= now) continue;
+
+          // Book some slots deterministically based on worker ID to look dynamic
+          const isBooked = (parseInt(id || "0") + hour + dayOffset) % 3 === 0;
+          if (!isBooked) {
+            let label = "";
+            const isToday = slotStart.toDateString() === now.toDateString();
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const isTomorrow = slotStart.toDateString() === tomorrow.toDateString();
+            const timeString = slotStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (isToday) {
+              label = `Today, ${timeString}`;
+            } else if (isTomorrow) {
+              label = `Tomorrow, ${timeString}`;
+            } else {
+              const options = { weekday: 'short', month: 'short', day: 'numeric' };
+              label = `${slotStart.toLocaleDateString([], options)}, ${timeString}`;
+            }
+            mockSlots.push({
+              start: slotStart.toISOString(),
+              end: slotEnd.toISOString(),
+              label
+            });
+            count++;
+            if (count >= 5) break;
+          }
+        }
+        if (count >= 5) break;
+      }
+      return res.status(200).json({
+        success: true,
+        workerId: id,
+        availableSlots: mockSlots
+      });
+    }
+
+    const worker = await Worker.findById(id);
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found"
+      });
+    }
+
+    // Fetch active bookings in range
+    const now = new Date();
+    const endPeriod = new Date(now.getTime() + dateRange * 24 * 3600000);
+
+    const bookings = await Booking.find({
+      workerId: id,
+      status: { $in: ['Accepted', 'In-Progress'] },
+      scheduledTime: { $gte: new Date(now.getTime() - 24 * 3600000), $lte: endPeriod }
+    });
+
+    const availableSlots = [];
+    const slotHours = [9, 11, 13, 15]; // 9 AM, 11 AM, 1 PM, 3 PM
+    const slotDurationMs = 2 * 3600000;
+
+    for (let dayOffset = 0; dayOffset < dateRange; dayOffset++) {
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() + dayOffset);
+
+      for (const hour of slotHours) {
+        const slotStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), hour, 0, 0, 0);
+        const slotEnd = new Date(slotStart.getTime() + slotDurationMs);
+
+        if (slotStart <= now) {
+          continue;
+        }
+
+        // Check overlap with bookings
+        const isOverlapping = bookings.some(booking => {
+          const bookingStart = new Date(booking.scheduledTime).getTime();
+          const bookingEnd = bookingStart + booking.durationHours * 3600000;
+          return slotStart.getTime() < bookingEnd && bookingStart < slotEnd.getTime();
+        });
+
+        if (!isOverlapping) {
+          let label = "";
+          const isToday = slotStart.toDateString() === now.toDateString();
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const isTomorrow = slotStart.toDateString() === tomorrow.toDateString();
+          const timeString = slotStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          if (isToday) {
+            label = `Today, ${timeString}`;
+          } else if (isTomorrow) {
+            label = `Tomorrow, ${timeString}`;
+          } else {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            label = `${slotStart.toLocaleDateString([], options)}, ${timeString}`;
+          }
+
+          availableSlots.push({
+            start: slotStart.toISOString(),
+            end: slotEnd.toISOString(),
+            label
+          });
+        }
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      workerId: id,
+      availableSlots: availableSlots.slice(0, 5)
+    });
+  } catch (error) {
+    console.error("Error fetching worker availability:", error);
     res.status(500).json({
       success: false,
       message: "Server error: " + error.message

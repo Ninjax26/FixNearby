@@ -8,6 +8,10 @@ import Message from './models/Message.js';
 // Map format: userId -> Set of socket.ids
 const userSockets = new Map();
 
+let ioInstance;
+
+export const getIo = () => ioInstance;
+
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -15,6 +19,8 @@ export const initSocket = (server) => {
       credentials: true
     }
   });
+
+  ioInstance = io;
 
   // Socket middleware for authentication
   io.use(async (socket, next) => {

@@ -18,6 +18,7 @@ import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
 import { useLocation } from "../context/LocationContext";
+import { getWorkerAvailability } from "../services/availabilityService";
 
 const mockWorkers = [
   {
@@ -195,6 +196,90 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
 
 const formatDistance = (d) =>
   d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
+
+const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
+  const [slots, setSlots] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const fetchSlots = async () => {
+      try {
+        const res = await getWorkerAvailability(workerId);
+        if (res?.success && res.availableSlots && active) {
+          setSlots(res.availableSlots);
+        }
+      } catch (err) {
+        console.error("Error fetching slots for worker " + workerId, err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchSlots();
+
+    const interval = setInterval(fetchSlots, 10000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [workerId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-1.5">
+        <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs text-gray-400">Loading slots...</span>
+      </div>
+    );
+  }
+
+  let urgencyText = "Stable Availability";
+  let urgencyStyle = "bg-green-50 text-green-700 border-green-100";
+  if (slots.length === 0) {
+    urgencyText = "Fully Booked Today";
+    urgencyStyle = "bg-red-50 text-red-700 border-red-100 animate-pulse";
+  } else if (slots.length === 1) {
+    urgencyText = "🚨 High Demand - 1 Slot Left!";
+    urgencyStyle = "bg-red-600 text-white border-red-700 font-bold shadow-sm shadow-red-200 animate-pulse";
+  } else if (slots.length <= 2) {
+    urgencyText = "⚠️ Limited: 2 Slots Left";
+    urgencyStyle = "bg-amber-50 text-amber-700 border-amber-200";
+  } else {
+    urgencyText = `✅ ${slots.length} slots available`;
+    urgencyStyle = "bg-blue-50 text-blue-700 border-blue-100";
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 text-xs font-semibold">
+        <span className={`rounded-full px-3 py-1 border transition-all ${urgencyStyle}`}>
+          {urgencyText}
+        </span>
+        <span className="rounded-full bg-slate-50 border border-gray-100 px-3 py-1 text-slate-600">
+          {mockResponseTime || "Replies in 15 min"}
+        </span>
+      </div>
+
+      {slots.length > 0 && (
+        <div className="flex flex-col gap-1 rounded-xl bg-slate-50 p-2.5 border border-slate-100/50">
+          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Next available times:</span>
+          <div className="flex flex-wrap gap-1.5 mt-0.5">
+            {slots.slice(0, 3).map((slot, index) => (
+              <span
+                key={index}
+                className="text-[11px] font-semibold bg-white border border-slate-200 text-slate-700 rounded-lg px-2 py-0.5 shadow-sm"
+              >
+                {slot.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -710,13 +795,12 @@ const Services = () => {
                           {worker.profession}
                         </p>
 
-                        <div className="mb-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-                          <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                            {worker.availability}
-                          </span>
-                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                            {worker.responseTime}
-                          </span>
+                        <div className="mb-4">
+                          <WorkerSlots
+                            workerId={worker.id}
+                            mockAvailability={worker.availability}
+                            mockResponseTime={worker.responseTime}
+                          />
                         </div>
 
                         <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">

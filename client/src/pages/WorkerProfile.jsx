@@ -21,6 +21,7 @@ import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
 import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
+import { getWorkerAvailability } from "../services/availabilityService";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -262,6 +263,32 @@ const WorkerProfile = () => {
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchSlots = async () => {
+      setSlotsLoading(true);
+      try {
+        const res = await getWorkerAvailability(id);
+        if (res?.success && res.availableSlots) {
+          setAvailableSlots(res.availableSlots);
+          if (res.availableSlots.length > 0) {
+            setSelectedSlot(res.availableSlots[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load worker slots", err);
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+    if (id) {
+      fetchSlots();
+    }
+  }, [id]);
+
   useEffect(() => {
     const loadWorker = async () => {
       setLoading(true);
@@ -338,23 +365,44 @@ const WorkerProfile = () => {
 
     try {
       const price = parsePriceToNumber(worker.price);
+      const slotToBook = selectedSlot || (availableSlots.length > 0 ? availableSlots[0] : null);
+      const scheduledTime = slotToBook ? slotToBook.start : new Date().toISOString();
+
       const response = await createBooking({
-        worker: worker.id,
+        workerId: worker.id,
         service: worker.profession,
         price,
-        scheduledDate: new Date().toISOString(),
+        scheduledTime,
+        durationHours: 2,
+        address: "123 Main St, New York"
       });
       const saved = response.booking;
 
+      const scheduledDate = new Date(scheduledTime);
       setBookingDetails({
         service: worker.profession,
         worker: worker.name,
-        date: new Date().toLocaleDateString(),
-        time: "10:00 AM",
+        date: scheduledDate.toLocaleDateString(),
+        time: scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         price: worker.price,
         bookingId: saved?._id,
       });
       setShowModal(true);
+
+      // Refetch slots
+      try {
+        const res = await getWorkerAvailability(id);
+        if (res?.success && res.availableSlots) {
+          setAvailableSlots(res.availableSlots);
+          if (res.availableSlots.length > 0) {
+            setSelectedSlot(res.availableSlots[0]);
+          } else {
+            setSelectedSlot(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refetch slots", err);
+      }
     } catch (err) {
       setBookingError(err.message || "Could not create booking. Please try again.");
     } finally {
@@ -369,11 +417,16 @@ const WorkerProfile = () => {
     setBookingError("");
 
     try {
+      const slotToBook = selectedSlot || (availableSlots.length > 0 ? availableSlots[0] : null);
+      const scheduledTime = slotToBook ? slotToBook.start : new Date().toISOString();
+
       const response = await createBooking({
-        worker: worker.id,
+        workerId: worker.id,
         service: worker.profession,
         price: estimate.totalCost,
-        scheduledDate: new Date().toISOString(),
+        scheduledTime,
+        durationHours: 2,
+        address: "123 Main St, New York",
         // Carry the full estimate breakdown so the Bookings page can render
         // the cost split without a separate API round-trip.
         notes: JSON.stringify({
@@ -387,11 +440,12 @@ const WorkerProfile = () => {
       });
       const saved = response.booking;
 
+      const scheduledDate = new Date(scheduledTime);
       setBookingDetails({
         service: worker.profession,
         worker: worker.name,
-        date: new Date().toLocaleDateString(),
-        time: "10:00 AM",
+        date: scheduledDate.toLocaleDateString(),
+        time: scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         price: `$${estimate.totalCost.toFixed(2)}`,
         estimateSpecs: {
           summary: estimate.summary,
@@ -404,6 +458,21 @@ const WorkerProfile = () => {
         bookingId: saved?._id,
       });
       setShowModal(true);
+
+      // Refetch slots
+      try {
+        const res = await getWorkerAvailability(id);
+        if (res?.success && res.availableSlots) {
+          setAvailableSlots(res.availableSlots);
+          if (res.availableSlots.length > 0) {
+            setSelectedSlot(res.availableSlots[0]);
+          } else {
+            setSelectedSlot(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refetch slots", err);
+      }
     } catch (err) {
       setBookingError(err.message || "Could not create booking. Please try again.");
     } finally {
@@ -518,6 +587,47 @@ const WorkerProfile = () => {
                 <p className="text-xs text-emerald-600 mt-1.5 font-medium">
                   Use Smart Estimator for exact pricing
                 </p>
+              )}
+            </div>
+
+            {/* Time Slot Picker */}
+            <div className="mt-6 border-t border-gray-100 pt-6">
+              <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Clock size={16} className="text-blue-600" />
+                Select Appointment Slot
+              </h3>
+              {slotsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : availableSlots.length === 0 ? (
+                <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">
+                  No slots available for the next 7 days.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {availableSlots.map((slot) => {
+                    const isSelected = selectedSlot?.start === slot.start;
+                    return (
+                      <button
+                        key={slot.start}
+                        onClick={() => setSelectedSlot(slot)}
+                        type="button"
+                        className={`text-xs font-semibold py-2 px-2.5 rounded-xl border text-center transition-all ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-100"
+                            : "bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50/50"
+                        }`}
+                      >
+                        {slot.label.split(",").map((part, i) => (
+                          <div key={i} className={i === 1 ? "font-bold text-[10px] opacity-90" : ""}>
+                            {part.trim()}
+                          </div>
+                        ))}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
 

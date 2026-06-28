@@ -13,4 +13,12 @@ export const updateAvailabilityStatus = async (status) => {
 export const getWorkerStatus = async (workerId) => {
   const res = await api.get(`/api/availability/status/${workerId}`);
   return res.data;
+};
+
+// Fetch worker's upcoming appointment slots (real-time availability)
+export const getWorkerAvailability = async (workerId, dateRange = 7) => {
+  const res = await api.get(`/workers/${workerId}/availability`, {
+    params: { dateRange }
+  });
+  return res.data;
 };

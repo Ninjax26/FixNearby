@@ -2,6 +2,7 @@ import Booking, { STATUS_ENUM } from '../models/Booking.js';
 import { queueNotification } from '../utils/queue.js';
 import mongoose from 'mongoose';
 import { getPrincipal } from '../middleware/bookingMiddleware.js';
+import { getIo } from '../socket.js';
 
 // @desc    Create a new booking with concurrency control, transactions, and standalone DB fallback
 // @route   POST /api/bookings
@@ -147,6 +148,16 @@ export const createBooking = async (req, res, next) => {
         console.error('Failed to queue notification:', notifyErr.message);
       }
 
+      // Emit availability update socket event
+      try {
+        const io = getIo();
+        if (io) {
+          io.emit('availability-update', { workerId: booking.workerId });
+        }
+      } catch (ioErr) {
+        console.error('Failed to emit availability update:', ioErr.message);
+      }
+
       // Setup a timeout to automatically transition status to 'Expired' in 15 minutes
       const expiryTimeMs = req.body._testExpiryTimeMs || 15 * 60 * 1000;
       setTimeout(async () => {
@@ -196,6 +207,15 @@ export const acceptBooking = async (req, res, next) => {
       console.error('Failed to queue status update notification:', notifyErr.message);
     }
 
+    try {
+      const io = getIo();
+      if (io) {
+        io.emit('availability-update', { workerId: booking.workerId });
+      }
+    } catch (ioErr) {
+      console.error('Failed to emit availability update:', ioErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Booking accepted successfully',
@@ -234,6 +254,15 @@ export const completeBooking = async (req, res, next) => {
       console.error('Failed to queue status update notification:', notifyErr.message);
     }
 
+    try {
+      const io = getIo();
+      if (io) {
+        io.emit('availability-update', { workerId: booking.workerId });
+      }
+    } catch (ioErr) {
+      console.error('Failed to emit availability update:', ioErr.message);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Booking completed successfully',
@@ -270,6 +299,15 @@ export const cancelBooking = async (req, res, next) => {
       });
     } catch (notifyErr) {
       console.error('Failed to queue status update notification:', notifyErr.message);
+    }
+
+    try {
+      const io = getIo();
+      if (io) {
+        io.emit('availability-update', { workerId: booking.workerId });
+      }
+    } catch (ioErr) {
+      console.error('Failed to emit availability update:', ioErr.message);
     }
 
     res.status(200).json({
