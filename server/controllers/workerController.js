@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Worker from "../models/Worker.js";
 import mongoose from "mongoose";
 import { calculateKarmaScores } from "../utils/karmaScheduler.js";
+import { validatePassword } from "../utils/validatePassword.js";
 
 const generateToken = (id) => {
   return jwt.sign(
@@ -52,6 +53,14 @@ export const registerWorker = async (req, res) => {
             message: "Invalid email format",
           });
         }
+
+      const passwordCheck = validatePassword(password);
+      if (!passwordCheck.valid) {
+        return res.status(400).json({
+          success: false,
+          message: passwordCheck.message,
+        });
+      }
 
       const existingWorker =
         await Worker.findOne({
