@@ -9,6 +9,7 @@ import {
   Scale,
   SprayCan,
   Heart,
+  Star,
 } from "lucide-react";
 
 

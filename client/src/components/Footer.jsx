@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import useToast from "../hooks/useToast";
 import {
   FaGithub,
   FaEnvelope,
@@ -31,13 +32,14 @@ const Footer = () => {
     }
   };
 
-  // FIX #590: Handle newsletter submission
+  // FIX #590: Handle newsletter submission — prevent page reload & show toast
+  const { showToast } = useToast();
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    console.log("Newsletter email:", newsletterEmail);
+    if (!newsletterEmail.trim()) return;
     // TODO: Send to backend API
     setNewsletterEmail("");
-    alert("Thanks for subscribing!");
+    showToast("Thanks for subscribing! You'll hear from us soon. 🎉", "success");
   };
 
   const linkClass = (path) =>
