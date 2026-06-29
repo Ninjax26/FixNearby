@@ -76,6 +76,7 @@ const ResetPasswordUser = () => {
 
             <button
                 type="button"
+                aria-label={showPassword ? "Hide password" : "Show password"}
                 onClick={() =>
                 setShowPassword(!showPassword)
                 }
@@ -110,6 +111,7 @@ const ResetPasswordUser = () => {
 
             <button
                 type="button"
+                aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 onClick={() =>
                 setShowConfirmPassword(
                     !showConfirmPassword
