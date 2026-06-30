@@ -279,8 +279,9 @@ const WorkerProfile = () => {
       const fetchReviews = async () => {
         try {
           const res = await api.get(`/reviews?workerId=${id}`);
-          if (res.data.success && res.data.reviews && res.data.reviews.length > 0) {
-            const formatted = res.data.reviews.map(r => ({
+          const reviewList = res.data.reviews || res.data.data || [];
+          if (res.data.success && reviewList.length > 0) {
+            const formatted = reviewList.map(r => ({
               id: r._id,
               name: r.user?.name || "Anonymous",
               rating: r.rating,
