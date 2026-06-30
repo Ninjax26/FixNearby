@@ -5,9 +5,16 @@ const ToastContext = createContext(null);
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = useCallback((message, type = 'success') => {
+  const showToast = useCallback((messageOrToast, type = 'success') => {
     const id = Math.random().toString(36).substr(2, 9);
-    const toast = { id, message, type };
+    const toast =
+      typeof messageOrToast === 'object' && messageOrToast !== null
+        ? {
+            id,
+            message: messageOrToast.message,
+            type: messageOrToast.type || type,
+          }
+        : { id, message: messageOrToast, type };
 
     setToasts(prev => [...prev, toast]);
 
