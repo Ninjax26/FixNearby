@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Users,
@@ -10,9 +11,12 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
+import IssueSubmissionForm from "../components/IssueSubmissionForm";
 
 const Community = () => {
+  const [activeTab, setActiveTab] = useState("feed"); // "feed" or "report"
   const feeds = [
     {
       id: 1,
@@ -147,81 +151,112 @@ const Community = () => {
 
             {/* RIGHT */}
             <div className="relative">
-              <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl">
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h3 className="text-2xl font-bold">
-                      Live Community Feed
-                    </h3>
+              {/* Tab Toggler */}
+              <div className="flex border-b border-white/10 mb-6 gap-6">
+                <button
+                  onClick={() => setActiveTab("feed")}
+                  className={`pb-3 text-lg font-bold transition-all relative ${
+                    activeTab === "feed"
+                      ? "text-cyan-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-cyan-300"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Live Feed
+                </button>
+                <button
+                  onClick={() => setActiveTab("report")}
+                  className={`pb-3 text-lg font-bold transition-all relative flex items-center gap-2 ${
+                    activeTab === "report"
+                      ? "text-cyan-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-cyan-300"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <AlertTriangle className="w-4 h-4 text-cyan-300" />
+                  Report Civic Issue
+                </button>
+              </div>
 
-                    <p className="text-slate-400 mt-1">
-                      Trending discussions today
-                    </p>
+              {activeTab === "feed" ? (
+                <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h3 className="text-2xl font-bold">
+                        Live Community Feed
+                      </h3>
+
+                      <p className="text-slate-400 mt-1">
+                        Trending discussions today
+                      </p>
+                    </div>
+
+                    <TrendingUp className="w-7 h-7 text-cyan-300" />
                   </div>
 
-                  <TrendingUp className="w-7 h-7 text-cyan-300" />
-                </div>
-
-                <div className="space-y-5">
-                  {feeds.map((feed) => (
-                    <div
-                      key={feed.id}
-                      className="bg-[#121933] border border-white/5 rounded-3xl p-5 hover:border-cyan-400/30 transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center font-bold">
-                            {feed.user.charAt(0)}
-                          </div>
-
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold">
-                                {feed.user}
-                              </h4>
-
-                              {feed.verified && (
-                                <BadgeCheck className="w-4 h-4 text-cyan-300" />
-                              )}
+                  <div className="space-y-5">
+                    {feeds.map((feed) => (
+                      <div
+                        key={feed.id}
+                        className="bg-[#121933] border border-white/5 rounded-3xl p-5 hover:border-cyan-400/30 transition"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center font-bold">
+                              {feed.user.charAt(0)}
                             </div>
 
-                            <p className="text-sm text-slate-400">
-                              {feed.role}
-                            </p>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold">
+                                  {feed.user}
+                                </h4>
+
+                                {feed.verified && (
+                                  <BadgeCheck className="w-4 h-4 text-cyan-300" />
+                                )}
+                              </div>
+
+                              <p className="text-sm text-slate-400">
+                                {feed.role}
+                              </p>
+                            </div>
+                          </div>
+
+                          {feed.trending && (
+                            <span className="bg-cyan-400/20 text-cyan-300 text-xs px-3 py-1 rounded-full">
+                              Trending
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-5 text-slate-300 leading-relaxed">
+                          {feed.post}
+                        </p>
+
+                        <div className="flex items-center gap-6 mt-6 text-slate-400">
+                          <div className="flex items-center gap-2">
+                            <Heart className="w-5 h-5" />
+                            <span>{feed.likes}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="w-5 h-5" />
+                            <span>{feed.comments}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Image className="w-5 h-5" />
+                            <span>Photos</span>
                           </div>
                         </div>
-
-                        {feed.trending && (
-                          <span className="bg-cyan-400/20 text-cyan-300 text-xs px-3 py-1 rounded-full">
-                            Trending
-                          </span>
-                        )}
                       </div>
-
-                      <p className="mt-5 text-slate-300 leading-relaxed">
-                        {feed.post}
-                      </p>
-
-                      <div className="flex items-center gap-6 mt-6 text-slate-400">
-                        <div className="flex items-center gap-2">
-                          <Heart className="w-5 h-5" />
-                          <span>{feed.likes}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <MessageCircle className="w-5 h-5" />
-                          <span>{feed.comments}</span>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <Image className="w-5 h-5" />
-                          <span>Photos</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[32px] p-6 shadow-2xl text-slate-900">
+                  <IssueSubmissionForm onSubmitSuccess={() => setActiveTab("feed")} />
+                </div>
+              )}
 
               {/* FLOATING CARD */}
               <div className="absolute -bottom-8 -left-10 hidden lg:block bg-gradient-to-r from-blue-500 to-cyan-400 rounded-3xl p-6 shadow-2xl">
@@ -231,7 +266,7 @@ const Community = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-3xl font-black">
+                    <h4 className="text-3xl font-black text-white">
                       24K+
                     </h4>
 
