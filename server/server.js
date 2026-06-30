@@ -24,6 +24,7 @@ import { startWorker } from './workers/notificationWorker.js';
 import { startBookingReminderScheduler } from './workers/bookingReminderWorker.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import estimateRoutes from './routes/estimateRoutes.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
 
 dotenv.config();
 
@@ -110,6 +111,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/estimates', estimateRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // Start Booking Expiry Check Scheduler
 startBookingExpiryScheduler();
