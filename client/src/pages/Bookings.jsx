@@ -5,6 +5,7 @@ import StarRating from "../components/StarRating";
 import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
+import useToast from "../hooks/useToast";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -183,6 +184,7 @@ const Bookings = () => {
     rescheduleBooking,
     refresh,
   } = useBookings();
+  const { showToast } = useToast();
 
   // Bookings come from the API in document form; normalize once for the UI.
   const bookings = useMemo(
@@ -255,7 +257,7 @@ const Bookings = () => {
 
   const handleReviewSubmit = async (id) => {
     if (!rating) {
-      alert("Please select a rating before submitting.");
+      showToast("Please select a rating before submitting.", "warning");
       return;
     }
 
@@ -273,7 +275,7 @@ const Bookings = () => {
         }
       });
       if (response.data.success) {
-        alert("Review submitted successfully!");
+        showToast("Review submitted successfully!", "success");
         setActiveReview(null);
         setRating(0);
         setComment("");
@@ -282,7 +284,7 @@ const Bookings = () => {
       }
     } catch (err) {
       console.error("Error submitting review:", err);
-      alert(err.response?.data?.message || "Failed to submit review.");
+      showToast(err.response?.data?.message || "Failed to submit review.", "error");
     }
   };
 
