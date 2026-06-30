@@ -414,18 +414,45 @@ const Services = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const backendWorkers = await fetchWorkers();
-        // Merge backend workers and mock workers, preventing duplicate IDs
-        if (backendWorkers && backendWorkers.length > 0) {
-          const merged = new Map();
-          mockWorkers.forEach(w => merged.set(w.id, w));
-          backendWorkers.forEach(w => merged.set(w.id, w));
-          setWorkers(Array.from(merged.values()));
+        const queryParams = {
+          q: searchQuery,
+          category: categoryFilter,
+          minPrice: advancedFilters.minPrice,
+          maxPrice: advancedFilters.maxPrice,
+          minRating: advancedFilters.minRating,
+          maxDistance: advancedFilters.maxDistance,
+          availability: advancedFilters.availability,
+          sort: sortBy,
+          lat: coords?.latitude || null,
+          lon: coords?.longitude || null,
+        };
+        const searchResponse = await searchWorkers(queryParams);
+        const backendWorkers = searchResponse?.data || [];
+        // Map backend search result to client expectations
+        const mappedBackend = backendWorkers.map(w => ({
+          ...w,
+          id: w._id || w.id,
+          profession: w.category || w.profession,
+          price: w.price ? (w.price.toString().startsWith('$') ? w.price : `$${w.price}/hr`) : "$30/hr",
+          availability: w.availability || 
+            (w.availabilityStatus === "available" ? "Available today" : 
+             w.availabilityStatus === "busy" ? "Busy" : 
+             w.availabilityStatus === "offline" ? "Offline" : "Available today"),
+          responseTime: w.responseTime || "Replies in 15 min",
+          outcomeText: w.outcomeText || `Review past work and request a ${w.category?.toLowerCase() || 'service'} visit.`,
+          mockOffset: w.mockOffset || (w.coordinates ? { lat: w.coordinates.lat, lon: w.coordinates.lon } : null),
+          verified: w.verified ?? true,
+          rating: Number(w.rating) || 4.5,
+          completedJobs: w.completedJobs || 12,
+        }));
+
+        if (mappedBackend && mappedBackend.length > 0) {
+          setWorkers(mappedBackend);
         } else {
           setWorkers(mockWorkers);
         }
       } catch (err) {
-        console.error("Failed to fetch workers, falling back to mock data", err);
+        console.error("Failed to fetch search results from backend, falling back to mock data", err);
         setWorkers(mockWorkers);
       } finally {
         const storedRecent =
@@ -435,7 +462,7 @@ const Services = () => {
       }
     };
     loadData();
-  }, []);
+  }, [searchQuery, categoryFilter, sortBy, coords, advancedFilters]);
 
   // SYNC URL PARAMS TO STATE
   useEffect(() => {
