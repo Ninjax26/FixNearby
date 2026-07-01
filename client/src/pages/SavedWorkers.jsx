@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getFavorites, removeFavorite } from "../services/favoriteService";
 import { useNavigate } from "react-router-dom";
+import useToast from "../hooks/useToast";
 
 // ────────────────────────────────────────────────────────
 //  Inline styles — no extra CSS file needed
@@ -267,6 +268,7 @@ const SavedWorkers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -292,7 +294,7 @@ const SavedWorkers = () => {
       await removeFavorite(workerId);
       setFavorites((prev) => prev.filter((fav) => fav.worker._id !== workerId));
     } catch (err) {
-      alert("Failed to remove. Try again.");
+      showToast("Failed to remove saved worker. Try again.", "error");
     }
   };
 

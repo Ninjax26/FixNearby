@@ -23,6 +23,7 @@ import { useLocation } from "../context/LocationContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { useAuth } from "../context/AuthContext";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
+import useToast from "../hooks/useToast";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import EstimateWizard from "../components/EstimateWizard";
 import MapView from "../components/MapView";
@@ -292,6 +293,7 @@ const Services = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { coords } = useLocation();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || ""
@@ -339,7 +341,7 @@ const Services = () => {
 
   const handleToggleFavorite = async (workerId) => {
     if (!isAuthenticated) {
-      alert("Please log in to save professionals to your favorites.");
+      showToast("Please log in to save professionals to your favorites.", "error");
       return;
     }
 
@@ -369,7 +371,7 @@ const Services = () => {
         }
         return copy;
       });
-      alert("Failed to update favorite. Please try again.");
+      showToast("Failed to update favorite. Please try again.", "error");
     }
   };
 

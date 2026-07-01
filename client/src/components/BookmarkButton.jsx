@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { toggleFavorite } from "../services/favoriteService";
+import useToast from "../hooks/useToast";
 
 const BookmarkButton = ({ workerId, initialBookmarked = false, onToggle }) => {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const { showToast } = useToast();
 
   const handleToggle = async (e) => {
     e.stopPropagation(); // prevent card click
@@ -21,7 +23,7 @@ const BookmarkButton = ({ workerId, initialBookmarked = false, onToggle }) => {
       if (onToggle) onToggle(workerId, !bookmarked);
     } catch (err) {
       console.error("Bookmark toggle failed:", err);
-      alert("Failed to update bookmark. Please login first.");
+      showToast("Failed to update bookmark. Please login first.", "error");
     } finally {
       setLoading(false);
       setTimeout(() => setAnimating(false), 400);

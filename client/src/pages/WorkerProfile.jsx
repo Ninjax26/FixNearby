@@ -29,6 +29,7 @@ import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
+import useToast from "../hooks/useToast";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -259,6 +260,7 @@ const WorkerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab]          = useState("overview");
   const [showModal, setShowModal]           = useState(false);
@@ -361,7 +363,7 @@ const WorkerProfile = () => {
 
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
-      alert("Please log in to save professionals to your favorites.");
+      showToast("Please log in to save professionals to your favorites.", "error");
       return;
     }
 
@@ -373,7 +375,7 @@ const WorkerProfile = () => {
     } catch (err) {
       console.error("Failed to toggle favorite:", err);
       setIsSaved(previousSaved);
-      alert("Failed to update favorite. Please try again.");
+      showToast("Failed to update favorite. Please try again.", "error");
     }
   };
 
