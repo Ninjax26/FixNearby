@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 
 // ─── Layout Components (always loaded — tiny, needed immediately) ─────────────
 import Navbar          from './components/Navbar';
@@ -41,12 +42,26 @@ const ResetPasswordWorker = lazy(()=>import('./pages/ResetPasswordWorker'));
 
 // ─── Route Definitions ────────────────────────────────────────────────────────
 // Grouped for clarity and easy future additions
+// ---------------- Auth Guard ----------------
+// User-protected routes (client-side guard).
+// Backend still enforces authorization via JWT middleware.
+function RequireAuth({ children }) {
+  const { isAuthenticated, authLoading } = useAuth();
+
+  if (authLoading) {
+    return <div className="flex min-h-[40vh] items-center justify-center">Loading...</div>;
+  }
+
+  return isAuthenticated ? children : <Login />;
+}
+
 const ROUTES = [
   // Core
   { path: '/',                  element: <Home /> },
   { path: '/login',             element: <Login /> },
   { path: '/register',          element: <Register /> },
   { path: '/dashboard',         element: <Dashboard /> },
+
 
   // auth - forgot and reset password routes
   { path: '/forgot-password', element: <ForgotPasswordUser/>},
@@ -64,9 +79,12 @@ const ROUTES = [
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
 
-  // User
-  { path: '/profile',           element: <Profile /> },
-  { path: '/bookings',          element: <Bookings /> },
+  // User (protected)
+  { path: '/profile',           element: <RequireAuth><Profile /></RequireAuth> },
+  { path: '/bookings',          element: <RequireAuth><Bookings /></RequireAuth> },
+
+
+
 
   // Info & Support
   { path: '/help',              element: <HelpCenter /> },
