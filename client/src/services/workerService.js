@@ -1,16 +1,18 @@
 import api from "./apiClient";
 
+const createWorkerServiceError = (error, fallbackMessage) => {
+  const serviceError = new Error(error.response?.data?.message || fallbackMessage);
+  serviceError.status = error.response?.status;
+  return serviceError;
+};
+
 export const workerSignup = async (data) => {
   try {
     const res = await api.post("/workers/register", data);
     return res.data;
   } catch (error) {
     console.error(error.response?.data?.message || error);
-    const err = new Error(
-  error.response?.data?.message || "Registration failed"
-);
-err.status = error.response?.status;
-throw err;
+    throw createWorkerServiceError(error, "Registration failed");
   }
 };
 
@@ -21,16 +23,8 @@ export const workerLogin = async (data) => {
     return res.data;
 
   } catch (error) {
-
-    console.error(
-      error.response?.data?.message || error
-    );
-
-    const err = new Error(
-  error.response?.data?.message || "Login failed"
-);
-err.status = error.response?.status;
-throw err;
+    console.error(error.response?.data?.message || error);
+    throw createWorkerServiceError(error, "Login failed");
   }
 };
 
@@ -57,10 +51,6 @@ export const fetchWorkers = async () => {
     }));
   } catch (error) {
     console.error(error.response?.data?.message || error);
-    const err = new Error(
-  error.response?.data?.message || "Failed to fetch workers"
-);
-err.status = error.response?.status;
-throw err;
+    throw createWorkerServiceError(error, "Failed to fetch workers");
   }
 };
