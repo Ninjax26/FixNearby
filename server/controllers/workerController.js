@@ -6,6 +6,8 @@ import { validatePassword } from "../utils/validatePassword.js";
 import Booking from "../models/Booking.js";
 import Review from "../models/Review.js";
 
+const WORKER_AVAILABILITY_STATUSES = ["available", "busy", "offline"];
+
 const generateToken = (id) => {
   return jwt.sign(
     { id },
@@ -239,6 +241,86 @@ export const getWorkerProfile = async (req, res) => {
     success: true,
     worker: req.worker,
   });
+};
+
+export const updateWorkerAvailabilityStatus = async (req, res) => {
+  try {
+    const { availabilityStatus } = req.body;
+
+    if (!WORKER_AVAILABILITY_STATUSES.includes(availabilityStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Availability status must be available, busy, or offline",
+      });
+    }
+
+    const worker = await Worker.findByIdAndUpdate(
+      req.worker._id,
+      {
+        availabilityStatus,
+        lastActive: new Date(),
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("availabilityStatus lastActive");
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      availabilityStatus: worker.availabilityStatus,
+      lastActive: worker.lastActive,
+    });
+  } catch (error) {
+    console.error("Error updating worker availability status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+export const getWorkerAvailabilityStatus = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(workerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid worker ID",
+      });
+    }
+
+    const worker = await Worker.findById(workerId)
+      .select("availabilityStatus lastActive")
+      .lean();
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      availabilityStatus: worker.availabilityStatus,
+      lastActive: worker.lastActive,
+    });
+  } catch (error) {
+    console.error("Error fetching worker availability status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 
 export const getNearbyWorkers = async (req, res) => {
