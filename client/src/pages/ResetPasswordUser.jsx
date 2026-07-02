@@ -23,6 +23,18 @@ const ResetPasswordUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!password.trim()) {
+      return showToast(
+        "Password is required.", "error"
+      );
+    }
+
+    if (password.length < 6) {
+      return showToast(
+        "Password must be at least 6 characters.", "error"
+      );
+    }
+
     if (password !== confirmPassword) {
       return showToast(
         "Passwords do not match.", "error"
