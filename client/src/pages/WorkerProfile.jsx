@@ -503,6 +503,7 @@ const WorkerProfile = () => {
       const price = parsePriceToNumber(worker.price);
       const slotToBook = selectedSlot || (availableSlots.length > 0 ? availableSlots[0] : null);
       const scheduledTime = slotToBook ? slotToBook.start : new Date().toISOString();
+      console.log(`[QuickBook] Selected slot starting time: ${scheduledTime}`);
 
       const response = await createBooking({
         workerId: worker.id,

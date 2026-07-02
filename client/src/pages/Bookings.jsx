@@ -228,6 +228,8 @@ const Bookings = () => {
       setCancelError(
         "Could not cancel this booking. It may already be completed."
       );
+    } else {
+      showToast("Booking cancelled successfully.", "success");
     }
   };
 

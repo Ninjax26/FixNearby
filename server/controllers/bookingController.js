@@ -22,6 +22,7 @@ export const createBooking = async (req, res, next) => {
     const { workerId, service, scheduledTime, durationHours, address, price } = req.body;
     const start = new Date(scheduledTime);
     const end = new Date(start.getTime() + durationHours * 3600000);
+    console.log(`[BookingController] Creating booking: start=${start.toISOString()}, end=${end.toISOString()}, worker=${workerId}`);
 
     // Overlap condition query
     const query = {
