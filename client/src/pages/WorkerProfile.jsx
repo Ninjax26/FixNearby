@@ -473,7 +473,6 @@ const WorkerProfile = () => {
     setAutoQuickBookStarted(true);
     // handleBooking may redirect to /login when unauthenticated.
     handleBooking();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, worker, autoQuickBookStarted, hasEstimator]);
 
   /* ── Quick book — show estimate prompt if config exists, else book directly ── */
