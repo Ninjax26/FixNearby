@@ -36,6 +36,7 @@ const isValidPassword = (password) => {
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
+    console.log(`[Security Audit] Registration attempt for email: ${email}`);
 
     // 1. Check all fields
     if (!name || !email || !password) {

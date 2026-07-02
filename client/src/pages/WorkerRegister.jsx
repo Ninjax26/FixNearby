@@ -464,9 +464,13 @@ const WorkerRegister = () => {
                     </button>
                   </div>
 
-                  {fieldErrors.password && (
+                  {fieldErrors.password ? (
                     <p className="text-red-500 text-xs mt-1">
                       {fieldErrors.password}
+                    </p>
+                  ) : (
+                    <p className="text-gray-400 text-[11px] mt-1">
+                      Must contain at least 6 characters, including 1 uppercase, 1 lowercase and 1 number.
                     </p>
                   )}
 
