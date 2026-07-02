@@ -14,6 +14,7 @@ import {
 
 
 import LoadingSpinner from "../components/LoadingSpinner";
+import SkeletonLoader from "../components/SkeletonLoader";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
 import useSearch from "../hooks/useSearch";
@@ -850,7 +851,11 @@ const Services = () => {
             <div className="lg:col-span-7 space-y-6">
               {/* WORKER CARDS */}
               {loading ? (
-                <LoadingSpinner />
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {[...Array(4)].map((_, i) => (
+                    <SkeletonLoader key={i} type="card" />
+                  ))}
+                </div>
               ) : filteredWorkers.length === 0 ? (
                 <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
                   <h3 className="text-2xl font-bold text-gray-900">No services found</h3>

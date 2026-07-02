@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getFavorites, removeFavorite } from "../services/favoriteService";
 import { useNavigate } from "react-router-dom";
 import useToast from "../hooks/useToast";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // ────────────────────────────────────────────────────────
 //  Inline styles — no extra CSS file needed
@@ -380,9 +381,10 @@ const SavedWorkers = () => {
 
         {/* States */}
         {loading && (
-          <div style={styles.loader}>
-            <span style={{ fontSize: "24px", animation: "spin 1s linear infinite" }}>⏳</span>
-            Loading your saved workers...
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <SkeletonLoader key={i} type="card" />
+            ))}
           </div>
         )}
 
