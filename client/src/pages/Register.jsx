@@ -276,9 +276,11 @@ const Register = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.password && errors.password && (
-                <span className="text-red-600">{errors.password}</span>
+            <div className="min-h-[22px] mt-1 text-xs text-gray-500">
+              {interacted.password && errors.password ? (
+                <span className="text-red-600 font-semibold">{errors.password}</span>
+              ) : (
+                <span>Must contain at least 6 characters, including 1 uppercase, 1 lowercase and 1 number.</span>
               )}
             </div>
           </div>
