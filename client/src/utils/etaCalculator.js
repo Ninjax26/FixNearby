@@ -11,6 +11,8 @@
  * When real worker coordinates are available from the backend, replace
  * CITY_COORDS with actual worker lat/lng data.
  *
+ * Referenced by client/src/utils/mathUtils.js.
+ *
  * @param {{ latitude: number, longitude: number } | null} userCoords
  * @param {string} workerLocation  – e.g. "New York, USA"
  * @returns {{ label: string, minMinutes: number, maxMinutes: number }}

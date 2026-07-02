@@ -26,11 +26,13 @@ export const getDistanceKm = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+import { roundTo } from './mathUtils.js';
+
 /**
  * formatDistance
  * Converts km to a human-readable string (e.g. "0.8 km" or "450 m").
  */
 export const formatDistance = (km) => {
   if (km < 1) return `${Math.round(km * 1000)} m`;
-  return `${km.toFixed(1)} km`;
+  return `${roundTo(km, 1)} km`;
 };
