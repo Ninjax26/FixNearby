@@ -14,6 +14,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Verify Contributing Guidelines Path
+        run: test -f docs/CONTRIBUTING.md
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:

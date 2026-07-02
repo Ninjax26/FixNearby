@@ -1,7 +1,7 @@
 {
   "name": "FixNearby-server",
   "version": "1.0.0",
-  "description": "FixNearby backend API",
+  "description": "FixNearby backend API and service components",
   "main": "server.js",
   "type": "module",
   "scripts": {
