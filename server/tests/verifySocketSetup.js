@@ -9,6 +9,7 @@ import User from '../models/User.js';
 import Worker from '../models/Worker.js';
 import Message from '../models/Message.js';
 import errorHandler from '../middleware/errorHandler.js';
+import { capitalize } from '../utils/stringHelper.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function runTests() {
   console.log('--- STARTING REAL-TIME SOCKET.IO SETUP & JWT HANDSHAKE TESTS ---');
+  console.log(`[Verify Socket] Test check capitalization: ${capitalize('socket')}`);
 
   // Connect to Database
   console.log('Connecting to database...');
