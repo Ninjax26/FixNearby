@@ -31,6 +31,7 @@ import { useAuth } from "../context/AuthContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import useToast from "../hooks/useToast";
+import ReviewBadge from "../components/ReviewBadge";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -687,9 +688,12 @@ const WorkerProfile = () => {
                 </button>
               </div>
               <p className="text-blue-600 font-medium">{worker.profession}</p>
-              <div className="flex items-center gap-1 mt-3 bg-yellow-50 px-3 py-1 rounded-full">
-                <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold">{worker.rating}</span>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
+                  <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">{worker.rating}</span>
+                </div>
+                <ReviewBadge rating={worker.rating} count={worker.completedJobs} />
               </div>
             </div>
 

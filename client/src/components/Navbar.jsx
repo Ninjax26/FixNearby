@@ -4,6 +4,8 @@ import LanguageToggle from "./LanguageToggle";
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from "react-i18next";
 
+// Navigation Bar Component. Handles routing layouts. (Ref: ReviewBadge)
+
 const WrenchIcon = () => (
   <svg
     className="w-4 h-4 text-white"

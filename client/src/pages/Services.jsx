@@ -17,6 +17,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import SkeletonLoader from "../components/SkeletonLoader";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
+import ReviewBadge from "../components/ReviewBadge";
 import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
@@ -929,7 +930,12 @@ const Services = () => {
                         {/* CONTENT */}
                         <div className="flex flex-1 flex-col p-6">
                           <div className="mb-2 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-gray-900">{worker.name}</h3>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">{worker.name}</h3>
+                              <div className="mt-1">
+                                <ReviewBadge rating={worker.rating} count={worker.completedJobs} />
+                              </div>
+                            </div>
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm font-bold text-gray-700">{worker.rating}</span>
