@@ -188,7 +188,7 @@ function AppContent() {
           </Suspense>
         </ErrorBoundary>
       </main>
-
+git push origin fix/error-boundary-app
       <BackToTop />
       {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
