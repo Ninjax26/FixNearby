@@ -69,7 +69,7 @@ const ForgotPasswordWorker = () => {
         </form>
 
         <Link
-          to="/login"
+          to="/worker/login"
           className="btn-text mt-4 text-center w-full"
         >
           Back to Login
