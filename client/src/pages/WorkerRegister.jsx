@@ -443,7 +443,7 @@ const WorkerRegister = () => {
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      placeholder="Password (min. 8 chars)"
+                      placeholder="Password (min. 6 chars)"
                       value={formData.password}
                       onChange={handleChange}
                       onBlur={handleBlur}
