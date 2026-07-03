@@ -171,7 +171,7 @@ export const getWorkers = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const workers = await Worker.find()
-      .select("name email category experience location contact availabilityStatus profilePicture lastActive averageRating")
+      .select("name email category experience location contact availabilityStatus profilePicture lastActive averageRating reviewCount")
       .limit(limit)
       .skip(skip)
       .lean();
