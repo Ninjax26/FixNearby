@@ -7,8 +7,19 @@ import {
   createIssue,
   upvoteIssue,
   getIssueById,
-  updateIssueStatus
+  updateIssueStatus,
+  createBookingDispute,
+  respondToDispute,
+  supportReviewDispute
 } from '../controllers/issueController.js';
+
+// Existing routes remain unchanged
+
+// Dispute routes
+router.post('/dispute', protect, createBookingDispute);
+router.post('/:id/respond', protect, respondToDispute);
+router.patch('/:id/dispute/status', protect, supportReviewDispute);
+
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();

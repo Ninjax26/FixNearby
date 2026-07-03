@@ -1,6 +1,7 @@
 import Issue from '../models/Issue.js';
 import mongoose from 'mongoose';
 import { queueNotification } from '../utils/queue.js';
+import Booking from '../models/Booking.js';
 
 export const getIssues = async (req, res) => {
   try {
@@ -256,3 +257,101 @@ export const updateIssueStatus = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ---------- Dispute Handlers ----------
+/**
+ * Create a booking dispute linked to a specific booking.
+ */
+export const createBookingDispute = async (req, res) => {
+  try {
+    const { bookingId, title, description } = req.body;
+    if (!bookingId || !title || !description) {
+      return res.status(400).json({ success: false, message: 'bookingId, title, and description are required' });
+    }
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+    if (String(booking.userId) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only dispute your own bookings' });
+    }
+    const newIssue = new Issue({
+      title,
+      description,
+      category: 'Booking Dispute',
+      bookingId: booking._id,
+      workerId: booking.workerId,
+      reportedBy: req.user._id,
+    });
+    await newIssue.save();
+    await queueNotification('booking_dispute_created', { issueId: newIssue._id, bookingId });
+    return res.status(201).json({ success: true, data: newIssue });
+  } catch (err) {
+    console.error('createBookingDispute error', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * Worker responds to a dispute.
+ */
+export const respondToDispute = async (req, res) => {
+  try {
+    const { id } = req.params; // issue id
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'Response message is required' });
+    }
+    const issue = await Issue.findById(id);
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
+    }
+    if (issue.category !== 'Booking Dispute') {
+      return res.status(400).json({ success: false, message: 'Not a booking dispute' });
+    }
+    if (String(issue.workerId) !== String(req.user._id) && req.user.role !== 'worker') {
+      return res.status(403).json({ success: false, message: 'Only the assigned worker can respond' });
+    }
+    issue.responses.push({ responder: req.user._id, message });
+    await issue.save();
+    await queueNotification('dispute_response', { issueId: issue._id, responderId: req.user._id });
+    return res.status(200).json({ success: true, data: issue });
+  } catch (err) {
+    console.error('respondToDispute error', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * Support staff updates dispute status.
+ */
+export const supportReviewDispute = async (req, res) => {
+  try {
+    if (req.user.role !== 'support') {
+      return res.status(403).json({ success: false, message: 'Support role required' });
+    }
+    const { id } = req.params;
+    const { status, note } = req.body;
+    const validStatuses = ['open', 'in-progress', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status value' });
+    }
+    const issue = await Issue.findById(id);
+    if (!issue) {
+      return res.status(404).json({ success: false, message: 'Issue not found' });
+    }
+    const oldStatus = issue.status;
+    issue.status = status;
+    if (status === 'resolved') {
+      issue.resolvedAt = new Date();
+    }
+    issue.statusHistory.push({ status, note, updatedAt: new Date() });
+    await issue.save();
+    await queueNotification('dispute_status_updated', { issueId: issue._id, oldStatus, newStatus: status });
+    return res.status(200).json({ success: true, data: issue });
+  } catch (err) {
+    console.error('supportReviewDispute error', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
