@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import Worker from './models/Worker.js';
 import Message from './models/Message.js';
+import allowedOrigins from './config/corsOrigins.js';
 
 // Map to track active user socket mappings
 // Map format: userId -> Set of socket.ids
@@ -15,7 +16,7 @@ export const getIo = () => ioInstance;
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: '*',
+      origin: allowedOrigins,
       credentials: true
     }
   });
