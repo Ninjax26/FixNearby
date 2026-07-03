@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import Worker from './models/Worker.js';
 import Message from './models/Message.js';
+import { verifySocketAuth } from './utils/verifySocketAuth.js';
+import { messageRetryService } from './services/messageRetryService.js;
 
 // Map to track active user socket mappings
 // Map format: userId -> Set of socket.ids
@@ -23,39 +25,7 @@ export const initSocket = (server) => {
   ioInstance = io;
 
   // Socket middleware for authentication
-  io.use(async (socket, next) => {
-    try {
-      // Find token in auth handshakes or authorization headers
-      let token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
-      if (token && token.startsWith('Bearer ')) {
-        token = token.split(' ')[1];
-      }
-
-      if (!token) {
-        return next(new Error('Authentication error: Token not provided'));
-      }
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      let user = await User.findById(decoded.id).select('-password');
-      let userType = 'User';
-
-      if (!user) {
-        user = await Worker.findById(decoded.id).select('-password');
-        userType = 'Worker';
-      }
-
-      if (!user) {
-        return next(new Error('Authentication error: User/Worker not found'));
-      }
-
-      socket.user = user;
-      socket.userType = userType;
-      next();
-    } catch (err) {
-      return next(new Error('Authentication error: Invalid token'));
-    }
-  });
+  io.use(verifySocketAuth);
 
   io.on('connection', async (socket) => {
     const userId = socket.user._id.toString();
