@@ -46,19 +46,6 @@ const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
 const ForgotPasswordWorker = lazy(()=>import('./pages/ForgotPasswordWorker'));
 const ResetPasswordWorker = lazy(()=>import('./pages/ResetPasswordWorker'));
 
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const Contact = lazy(() => import("./components/Contact"));
-const Community = lazy(() => import("./pages/Community"));
-const Feedback = lazy(() => import("./pages/Feedback"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const SavedWorkers = lazy(() => import("./pages/SavedWorkers"));
-const Recommendations = lazy(() => import("./pages/Recommendations")); // ✨ NEW
-const NotFound = lazy(() => import("./pages/NotFound"));
-
-const ForgotPasswordUser = lazy(() => import("./pages/ForgotPasswordUser"));
-const ResetPasswordUser = lazy(() => import("./pages/ResetPasswordUser"));
-const ForgotPasswordWorker = lazy(() => import("./pages/ForgotPasswordWorker"));
-const ResetPasswordWorker = lazy(() => import("./pages/ResetPasswordWorker"));
 
 // ─── Route Definitions ────────────────────────────────────────────────────────
 // Grouped for clarity and easy future additions
