@@ -669,14 +669,14 @@ const Services = () => {
       {/* SEARCH + SORT */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <input
-          className="w-full rounded-xl border px-4 py-3"
+          className="w-full rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
           placeholder="Search services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
         <select
-          className="rounded-xl border px-4 py-3"
+          className="rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -709,7 +709,7 @@ const Services = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="distance">📍 Nearest</option>
             <option value="rating">⭐ Top Rated</option>
@@ -720,7 +720,7 @@ const Services = () => {
             onClick={() => setUrgentFilter((prev) => !prev)}
             className={`rounded-xl border px-5 py-3 font-bold shadow-sm transition-all duration-300 flex items-center justify-center gap-2 ${urgentFilter
               ? "border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               }`}
           >
             <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
@@ -729,7 +729,7 @@ const Services = () => {
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden"
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             <SlidersHorizontal className="h-5 w-5" />
             <span>Advanced Filters</span>
