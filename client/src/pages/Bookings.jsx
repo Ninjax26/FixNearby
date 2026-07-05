@@ -357,7 +357,7 @@ const Bookings = () => {
         </div>
       </div>
 
-      {loading && <LoadingSpinner />}
+      {loading && <SkeletonLoader type="booking" count={3} />}
 
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">

@@ -23,6 +23,7 @@ import {
   Heart,
 } from "lucide-react";
 
+import SkeletonLoader from "../components/SkeletonLoader";
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
 import EstimateWizard from "../components/EstimateWizard";
@@ -623,9 +624,8 @@ const WorkerProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 mt-4">Loading profile...</p>
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <SkeletonLoader type="profile" />
       </div>
     );
   }
