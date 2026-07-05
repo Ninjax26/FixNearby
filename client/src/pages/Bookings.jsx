@@ -7,7 +7,7 @@ import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
-import CancelBookingModal from "../components/CancelBookingModal";
+import { showApiError } from "../utils/apiErrorHandler";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -296,7 +296,7 @@ const Bookings = () => {
       }
     } catch (err) {
       console.error("Error submitting review:", err);
-      showToast(err.response?.data?.message || "Failed to submit review.", "error");
+      showApiError(err, showToast);
     }
   };
 

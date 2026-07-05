@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/authService";
 import useToast from "../hooks/useToast";
-import { validateEmail, validatePassword } from "../utils/validation";
+import { parseApiError } from "../utils/apiErrorHandler";
 import {
   FaEye,
   FaEyeSlash,
@@ -109,11 +109,7 @@ const Login = () => {
 
       navigate("/dashboard");
     } catch (error) {
-      setApiError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Login failed. Please try again."
-      );
+      setApiError(parseApiError(error).message);
     } finally {
       setLoading(false);
     }

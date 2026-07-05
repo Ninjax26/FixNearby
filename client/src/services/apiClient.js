@@ -13,6 +13,26 @@ const api = axios.create({
     timeout:10000
 })
 
+// Response interceptor for standardized error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const raw = localStorage.getItem("fixnearby_user");
+      if (raw) {
+        try {
+          const userData = JSON.parse(raw);
+          if (userData?.token) {
+            localStorage.removeItem("fixnearby_user");
+            window.location.href = "/login";
+          }
+        } catch {}
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Request interceptor to automatically add the Authorization header
 api.interceptors.request.use(
   (config) => {
