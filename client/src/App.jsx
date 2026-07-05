@@ -88,14 +88,6 @@ const ROUTES = [
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
   { path: '/civic-issues',      element: <CivicIssues /> },
-  { path: "/services", element: <Services /> },
-  { path: "/worker/register", element: <WorkerRegister /> },
-  { path: "/worker/login", element: <WorkerLogin /> },
-  { path: "/worker/dashboard", element: <WorkerDashboard /> },
-  { path: "/worker/:id", element: <WorkerProfile /> },
-  { path: "/saved-workers", element: <SavedWorkers /> },
-  { path: "/recommendations", element: <Recommendations /> }, // ✨ NEW
-
   // User (protected)
   {
     path: "/profile",
@@ -163,7 +155,6 @@ function AppContent() {
           </Suspense>
         </ErrorBoundary>
       </main>
-git push origin fix/error-boundary-app
       <BackToTop />
       {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />

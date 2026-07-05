@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 
-import LoadingSpinner from "../components/LoadingSpinner";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 import SkeletonLoader from "../components/SkeletonLoader";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
@@ -292,6 +292,8 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
 };
 
 const Services = () => {
+  useDocumentTitle("Services");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { coords } = useLocation();
   const { isAuthenticated } = useAuth();

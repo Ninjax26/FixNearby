@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 import LoadingSpinner from "../components/LoadingSpinner";
 import StarRating from "../components/StarRating";
 import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
@@ -300,6 +301,8 @@ const Bookings = () => {
   const handleRemoveImage = (idx) => {
     setReviewImages(prev => prev.filter((_, i) => i !== idx));
   };
+
+  useDocumentTitle("My Bookings");
 
   const totalBookings = bookings.length;
   const completedBookings = bookings.filter((b) => b.status === "Completed").length;
