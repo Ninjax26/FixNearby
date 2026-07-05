@@ -1,35 +1,30 @@
 import { useState, useEffect } from 'react';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import IssueSubmissionForm from '../components/IssueSubmissionForm';
+import IssueCard from '../components/IssueCard';
+import IssueFilterBar from '../components/IssueFilterBar';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { getNearbyIssues, upvoteIssue } from '../services/issueService';
 import useToast from '../hooks/useToast';
-import { AlertTriangle, MapPin, ThumbsUp, CheckCircle, Clock, Search, Filter } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import useGeolocation from '../hooks/useGeolocation';
 
+const CATEGORIES = ['All', 'Traffic Light', 'Pothole', 'Street Light', 'Sidewalk', 'Drainage'];
+
 const CivicIssues = () => {
-  const { coords, loading: geoLoading } = useGeolocation();
+  useDocumentTitle("Civic Issues");
+  const { coords } = useGeolocation();
   const { showToast } = useToast();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('list'); // 'list' | 'report'
-
-  const categories = [
-    'All',
-    'Traffic Light',
-    'Pothole',
-    'Street Light',
-    'Sidewalk',
-    'Drainage',
-    'Graffiti',
-    'Litter',
-    'Other'
-  ];
+  const [activeTab, setActiveTab] = useState('list');
+  const [upvotingIds, setUpvotingIds] = useState(new Set());
 
   const fetchIssues = async () => {
     try {
       setLoading(true);
-      // Default coordinates if geolocation not yet loaded
       const lat = coords?.latitude || 40.7128;
       const lng = coords?.longitude || -74.0060;
       const data = await getNearbyIssues({
@@ -38,14 +33,11 @@ const CivicIssues = () => {
         category: filterCategory !== 'All' ? filterCategory : undefined,
         radiusKm: 10
       });
-      if (data && Array.isArray(data.data)) {
-        setIssues(data.data);
-      } else if (Array.isArray(data)) {
-        setIssues(data);
-      }
+      const issueList = data?.data || data || [];
+      setIssues(Array.isArray(issueList) ? issueList : []);
     } catch (error) {
       console.error('Failed to load issues:', error);
-      showToast({ type: 'error', message: 'Could not fetch neighborhood reports.' });
+      showToast('Could not fetch neighborhood reports.', 'error');
     } finally {
       setLoading(false);
     }
@@ -56,44 +48,40 @@ const CivicIssues = () => {
   }, [coords, filterCategory]);
 
   const handleUpvote = async (id) => {
+    setUpvotingIds(prev => new Set(prev).add(id));
     try {
       await upvoteIssue(id);
-      showToast({ type: 'success', message: 'Upvote recorded!' });
+      showToast('Upvote recorded!', 'success');
       fetchIssues();
     } catch (error) {
-      showToast({ type: 'error', message: error.message || 'Already upvoted or failed to upvote.' });
+      showToast(error.message || 'Already upvoted or failed to upvote.', 'error');
+    } finally {
+      setUpvotingIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   };
 
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'resolved':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'in-progress':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      default:
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-    }
-  };
-
-  const filteredIssues = issues.filter(issue => 
+  const filteredIssues = issues.filter(issue =>
     issue.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     issue.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalIssues = issues.length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl">
-          Civic Reporting Portal 🛠️
+          Civic Reporting Portal
         </h1>
         <p className="mt-4 text-lg text-slate-600">
           Help improve your neighborhood. Report public issues like potholes, broken street lights, or road obstructions, and track their resolution status.
         </p>
       </div>
 
-      {/* Navigation tabs */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex rounded-xl bg-slate-100 p-1.5">
           <button
@@ -104,7 +92,7 @@ const CivicIssues = () => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            Active Reports
+            Active Reports {!loading && `(${totalIssues})`}
           </button>
           <button
             onClick={() => setActiveTab('report')}
@@ -128,46 +116,19 @@ const CivicIssues = () => {
         </div>
       ) : (
         <div className="space-y-6 animate-fadeIn">
-          {/* Controls */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative w-full md:max-w-md">
-              <Search className="absolute left-4 top-3.5 text-slate-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search reported issues..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
+          <IssueFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            filterCategory={filterCategory}
+            onCategoryChange={setFilterCategory}
+            categories={CATEGORIES}
+            totalCount={totalIssues}
+          />
 
-            {/* Category Filter */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Filter className="text-slate-400 shrink-0" size={18} />
-              <div className="flex flex-wrap gap-2">
-                {categories.slice(0, 5).map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFilterCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                      filterCategory === cat
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* List */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2, 3, 4].map(n => (
-                <div key={n} className="animate-pulse bg-white border border-slate-200 rounded-2xl p-6 h-48" />
+                <SkeletonLoader key={n} type="card" />
               ))}
             </div>
           ) : filteredIssues.length === 0 ? (
@@ -185,42 +146,12 @@ const CivicIssues = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredIssues.map((issue) => (
-                <div
+                <IssueCard
                   key={issue._id}
-                  className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition duration-200"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadgeColor(issue.status)}`}>
-                        {issue.status?.toUpperCase() || 'OPEN'}
-                      </span>
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                        <Clock size={12} />
-                        {new Date(issue.reportedAt || Date.now()).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{issue.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                      {issue.description}
-                    </p>
-                  </div>
-
-                  <div className="border-t border-slate-100 pt-4 flex items-center justify-between mt-auto">
-                    <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
-                      <MapPin size={14} className="text-slate-400" />
-                      {issue.category}
-                    </span>
-
-                    <button
-                      onClick={() => handleUpvote(issue._id)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-700 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition"
-                    >
-                      <ThumbsUp size={14} />
-                      Upvote ({issue.upvotes || 0})
-                    </button>
-                  </div>
-                </div>
+                  issue={issue}
+                  onUpvote={handleUpvote}
+                  isUpvoting={upvotingIds.has(issue._id)}
+                />
               ))}
             </div>
           )}
