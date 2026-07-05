@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import api from '../services/apiClient';
 import FocusTrap from './FocusTrap';
 
 const Star = ({ filled, onClick }) => (
@@ -52,19 +53,16 @@ const ReviewModal = ({ isOpen, onClose, bookingId }) => {
     formData.append('reviewText', reviewText);
     images.forEach((file) => formData.append('images', file));
     try {
-      const res = await fetch(`/api/bookings/${bookingId}/review`, {
-        method: 'POST',
-        body: formData,
+      const res = await api.post(`/bookings/${bookingId}/review`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || 'Failed to submit review');
-      } else {
-        // success - close modal
+      if (res.data.success) {
         onClose();
+      } else {
+        setError(res.data.message || 'Failed to submit review');
       }
     } catch (e) {
-      setError('Network error while submitting review');
+      setError(e.response?.data?.message || 'Network error while submitting review');
     } finally {
       setSubmitting(false);
     }
@@ -82,26 +80,26 @@ const ReviewModal = ({ isOpen, onClose, bookingId }) => {
         aria-label="Submit review"
       >
         <div
-          className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative"
+          className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-lg dark:bg-slate-800"
           onClick={(e) => e.stopPropagation()}
         >
           <button
             id="close-review-modal"
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
             aria-label="Close review modal"
           >
             <X size={20} />
           </button>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Leave a Review</h2>
-          <div className="flex mb-4">
+          <h2 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Leave a Review</h2>
+          <div className="mb-4 flex">
             {[1, 2, 3, 4, 5].map((i) => (
               <Star key={i} filled={i <= rating} onClick={() => setRating(i)} />
             ))}
           </div>
           <textarea
             placeholder="Write your review..."
-            className="w-full p-2 border rounded mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="mb-3 w-full rounded border p-2 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400"
             rows={4}
             value={reviewText}
             onChange={(e) => setReviewText(e.target.value)}
@@ -110,16 +108,16 @@ const ReviewModal = ({ isOpen, onClose, bookingId }) => {
             type="file"
             accept="image/*"
             multiple
-            className="mb-3"
+            className="mb-3 dark:text-slate-300"
             onChange={handleImageChange}
           />
-          {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+          {error && <p className="mb-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button
-            className="w-full bg-emerald-600 text-white py-2 rounded hover:bg-emerald-700 disabled:opacity-50"
+            className="w-full rounded bg-emerald-600 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
             onClick={handleSubmit}
             disabled={submitting}
           >
-            {submitting ? 'Submitting…' : 'Submit Review'}
+            {submitting ? 'Submitting\u2026' : 'Submit Review'}
           </button>
         </div>
       </div>

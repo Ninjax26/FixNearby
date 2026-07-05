@@ -6,7 +6,6 @@ import useToast from "../hooks/useToast";
 import { parseApiError } from "../utils/apiErrorHandler";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-
 const Register = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -24,44 +23,16 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ---------------- VALIDATION ----------------
+  const VALIDATORS = {
+    name: validateName,
+    email: validateEmail,
+    password: validatePassword,
+    phone: validatePhone,
+  };
 
   const validateFields = (name, value) => {
-    // FIX #588: Updated email regex to accept subdomains & multi-part TLDs
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    switch (name) {
-      case "name":
-        if (!value.trim()) return "Username is required";
-        break;
-
-      case "email":
-        if (!value || !emailRegex.test(value)) {
-          return "Invalid email address";
-        }
-        break;
-
-      case "password":
-        if (value.length < 6) {
-          return "Password must be at least 6 characters";
-        }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
-        if (!passwordRegex.test(value)) {
-          return "Password must contain uppercase, lowercase and a number";
-        }
-        break;
-
-      case "phone":
-        if (value && !/^[0-9]{10}$/.test(value.trim())) {
-          return "Enter a valid phone number";
-        }
-        break;
-
-      default:
-        return "";
-    }
-
-    return "";
+    const fn = VALIDATORS[name];
+    return fn ? fn(value) : "";
   };
 
   // ---------------- HANDLE CHANGE ----------------

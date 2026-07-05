@@ -1,34 +1,39 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useContext } from 'react';
+import { useAuth } from './AuthContext';
 
-export const GlobalStateContext = createContext();
+export const GlobalStateContext = createContext(null);
 
 export const GlobalStateProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [activeFilters, setActiveFilters] = useState({
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const activeFilters = {
     category: '',
     rating: 0,
     searchQuery: ''
-  });
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('fixnearby_user');
-    if (storedUser) {
-      try {
-        setCurrentUser(JSON.parse(storedUser));
-      } catch (e) {
-        localStorage.removeItem('fixnearby_user');
-      }
-    }
-  }, []);
-
-  const logout = () => {
-    localStorage.removeItem('fixnearby_user');
-    setCurrentUser(null);
   };
 
+  const setActiveFilters = () => {};
+
   return (
-    <GlobalStateContext.Provider value={{ currentUser, setCurrentUser, activeFilters, setActiveFilters, logout }}>
+    <GlobalStateContext.Provider value={{
+      currentUser: user,
+      setCurrentUser: () => {},
+      activeFilters,
+      setActiveFilters,
+      logout,
+      isAuthenticated
+    }}>
       {children}
     </GlobalStateContext.Provider>
   );
 };
+
+export const useGlobalState = () => {
+  const ctx = useContext(GlobalStateContext);
+  if (!ctx) {
+    throw new Error('useGlobalState must be used inside <GlobalStateProvider>');
+  }
+  return ctx;
+};
+
+export default GlobalStateContext;

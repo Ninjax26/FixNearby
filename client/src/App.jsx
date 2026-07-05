@@ -88,14 +88,6 @@ const ROUTES = [
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
   { path: '/civic-issues',      element: <CivicIssues /> },
-  { path: "/services", element: <Services /> },
-  { path: "/worker/register", element: <WorkerRegister /> },
-  { path: "/worker/login", element: <WorkerLogin /> },
-  { path: "/worker/dashboard", element: <WorkerDashboard /> },
-  { path: "/worker/:id", element: <WorkerProfile /> },
-  { path: "/saved-workers", element: <SavedWorkers /> },
-  { path: "/recommendations", element: <Recommendations /> }, // ✨ NEW
-
   // User (protected)
   {
     path: "/profile",
@@ -147,12 +139,17 @@ function AppContent() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <Navbar />
       {showLocationBanner && <LocationBanner />}
       <Toast />
 
-      <main className="flex-grow bg-gray-50">
-        {/* Suspense wraps all lazy routes — shows PageLoader during chunk fetch */}
+      <main id="main-content" className="flex-grow bg-gray-50 dark:bg-slate-900" tabIndex={-1}>
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -163,9 +160,7 @@ function AppContent() {
           </Suspense>
         </ErrorBoundary>
       </main>
-git push origin fix/error-boundary-app
       <BackToTop />
-      {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
       <Footer />
     </div>
