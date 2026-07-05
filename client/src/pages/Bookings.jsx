@@ -6,6 +6,7 @@ import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
+import CancelBookingModal from "../components/CancelBookingModal";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -200,6 +201,8 @@ const Bookings = () => {
   const [reviewImages, setReviewImages] = useState([]);
   const [cancelingId, setCancelingId] = useState(null);
   const [cancelError, setCancelError] = useState("");
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState(null);
 
   const [reschedulingId, setReschedulingId] = useState(null);
   const [newTime, setNewTime] = useState("");
@@ -220,10 +223,16 @@ const Bookings = () => {
   }, [bookings, search, statusFilter]);
 
   const handleCancel = async (id) => {
+    setCancelTargetId(id);
+    setCancelModalOpen(true);
+  };
+
+  const confirmCancel = async (reason) => {
     setCancelError("");
-    setCancelingId(id);
-    const ok = await cancelBooking(id);
+    setCancelingId(cancelTargetId);
+    const ok = await cancelBooking(cancelTargetId, reason);
     setCancelingId(null);
+    setCancelTargetId(null);
     if (!ok) {
       setCancelError(
         "Could not cancel this booking. It may already be completed."
@@ -707,6 +716,12 @@ const Bookings = () => {
           ))}
         </div>
       )}
+
+      <CancelBookingModal
+        isOpen={cancelModalOpen}
+        onClose={() => { setCancelModalOpen(false); setCancelTargetId(null); }}
+        onConfirm={confirmCancel}
+      />
     </div>
   );
 };
