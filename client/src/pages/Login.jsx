@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/authService";
 import useToast from "../hooks/useToast";
+import { validateEmail, validatePassword } from "../utils/validation";
 import {
   FaEye,
   FaEyeSlash,
@@ -27,31 +28,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ---------------- VALIDATION ----------------
-
-const validateFields = (name, value) => {
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  switch (name) {
-    case "email":
-      if (!value.trim()) return "Email is required";
-      if (!emailRegex.test(value))
-        return "Please enter a valid email";
-      break;
-
-    case "password":
-      if (!value.trim()) return "Password is required";
-      if (value.length < 6)
-        return "Password must be at least 6 characters";
-      break;
-
-    default:
-      return "";
-  }
-
-  return "";
-};
+  const validateFields = (name, value) => {
+    if (name === "email") return validateEmail(value) || (value.trim() ? "" : "Email is required");
+    if (name === "password") return validatePassword(value) || (value.trim() ? "" : "Password is required");
+    return "";
+  };
   // ---------------- HANDLE CHANGE ----------------
 
   const handleChange = (e) => {

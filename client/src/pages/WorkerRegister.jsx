@@ -16,6 +16,7 @@ import {
 
 import { workerSignup } from "../services/workerService";
 import useToast from "../hooks/useToast";
+import { validateEmail, validatePassword, getPasswordStrength } from "../utils/validation";
 
 const WorkerRegister = () => {
   const navigate = useNavigate();
@@ -58,38 +59,7 @@ const WorkerRegister = () => {
     profilePicture: "Please upload your profile picture",
   };
 
-  // PHONE VALIDATION
   const validatePhone = (phone) => /^[0-9]{10}$/.test(phone);
-
-  // PASSWORD STRENGTH
-  const getPasswordStrength = (password) => {
-
-    if (password.length < 6) {
-      return "weak";
-    }
-
-    const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/;
-
-    const mediumRegex =
-      /^(?=.*[a-z])(?=.*[0-9])/;
-
-    if (
-      strongRegex.test(password) &&
-      password.length >= 8
-    ) {
-      return "strong";
-    }
-
-    if (
-      mediumRegex.test(password) &&
-      password.length >= 6
-    ) {
-      return "medium";
-    }
-
-    return "weak";
-  };
 
   const passwordStrength = getPasswordStrength(formData.password);
 
@@ -157,33 +127,17 @@ const WorkerRegister = () => {
       return;
     }
 
-    // EMAIL VALIDATION
     if (name === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!emailRegex.test(value)) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          email: "Please enter a valid email address",
-        }));
+      const msg = validateEmail(value);
+      if (msg) {
+        setFieldErrors((prev) => ({ ...prev, email: msg }));
       }
     }
 
-    // PASSWORD VALIDATION
     if (name === "password") {
-      if (value.length < 6) {
-        setFieldErrors((prev) => ({
-          ...prev,
-          password: "Password must be at least 6 characters",
-        }));
-      } else {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
-        if (!passwordRegex.test(value)) {
-          setFieldErrors((prev) => ({
-            ...prev,
-            password: "Password must contain uppercase, lowercase and a number",
-          }));
-        }
+      const msg = validatePassword(value);
+      if (msg) {
+        setFieldErrors((prev) => ({ ...prev, password: msg }));
       }
     }
 
@@ -474,45 +428,14 @@ const WorkerRegister = () => {
                     </p>
                   )}
 
-                  {/* PASSWORD STRENGTH */}
                   {formData.password.length > 0 && (
                     <div className="mt-2">
-
                       <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            passwordStrength === "weak"
-                              ? "bg-red-500 w-1/3"
-                              : passwordStrength === "medium"
-                              ? "bg-orange-400 w-2/3"
-                              : "bg-green-500 w-full"
-                          }`}
-                        />
-
+                        <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`} />
                       </div>
-
-                      <p
-                        className={`text-sm mt-2 font-medium ${
-                          passwordStrength === "weak"
-                            ? "text-red-500"
-                            : passwordStrength === "medium"
-                            ? "text-orange-500"
-                            : "text-green-600"
-                        }`}
-                      >
-
-                        {passwordStrength === "weak" &&
-                          "Weak Strength Password"}
-
-                        {passwordStrength === "medium" &&
-                          "Medium Strength Password"}
-
-                        {passwordStrength === "strong" &&
-                          "Strong Password"}
-
+                      <p className={`text-sm mt-2 font-medium ${passwordStrength.color.split(' ')[0]}`}>
+                        {passwordStrength.label} Password
                       </p>
-
                     </div>
                   )}
 
