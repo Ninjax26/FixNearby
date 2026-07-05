@@ -33,6 +33,7 @@ import { getWorkerAvailability } from "../services/availabilityService";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import useToast from "../hooks/useToast";
 import ReviewBadge from "../components/ReviewBadge";
+import ReviewList from "../components/ReviewList";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -950,65 +951,17 @@ const WorkerProfile = () => {
 
           {/* ── REVIEWS TAB ── */}
           {activeTab === "reviews" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Customer Reviews</h2>
-                <div className="flex items-center gap-1 text-yellow-500 font-semibold">
-                  <Star size={18} className="fill-yellow-400" />
-                  {worker.rating}
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{review.name}</h3>
-                        {review.isVerified && (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                            ✓ Verified
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-yellow-500 text-sm font-medium">★ {review.rating}</span>
-                        {!review.reported ? (
-                          <button
-                            type="button"
-                            onClick={() => handleReportReview(review.id)}
-                            className="text-[11px] font-semibold text-slate-400 hover:text-red-500 transition ml-2 border border-slate-100 rounded-lg px-2 py-0.5 hover:bg-red-50 hover:border-red-100"
-                          >
-                            Report
-                          </button>
-                        ) : (
-                          <span className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 rounded-full px-2 py-0.5 ml-2 animate-pulse">
-                            🚨 Flagged
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 mt-2 leading-7">{review.text}</p>
-                    
-                    {/* Optional Images Grid */}
-                    {review.images && review.images.length > 0 && (
-                      <div className="flex gap-2 flex-wrap mt-3">
-                        {review.images.map((img, imgIdx) => (
-                          <img
-                            key={imgIdx}
-                            src={img}
-                            alt="Review detail"
-                            className="w-20 h-20 rounded-xl object-cover border border-slate-200"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <h2 className="mb-6 text-2xl font-bold dark:text-white">Customer Reviews</h2>
+              <ReviewList reviews={reviews.map(r => ({
+                _id: r.id,
+                rating: r.rating,
+                reviewText: r.text,
+                createdAt: r.createdAt,
+                isVerified: r.isVerified,
+                images: r.images,
+                user: { name: r.name }
+              }))} />
             </div>
           )}
 
