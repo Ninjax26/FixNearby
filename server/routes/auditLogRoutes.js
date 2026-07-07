@@ -1,3 +1,4 @@
+// Modernized with audit logger middleware
 import express from 'express';
 import { getAuditLogs } from '../controllers/auditLogController.js';
 import { protect } from '../middleware/authMiddleware.js';
