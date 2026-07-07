@@ -1,3 +1,4 @@
+import { bookingRateLimiter } from '../middleware/rateLimiter.js';
 import express from 'express';
 import {
   createBooking,

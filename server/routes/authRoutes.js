@@ -1,3 +1,4 @@
+import { globalApiLimiter } from '../middleware/rateLimiter.js';
 import express from 'express';
 import {
   registerUser,
@@ -33,6 +34,7 @@ import {
 import { validateRegistration, validateLogin } from '../middleware/validationMiddleware.js';
 
 const router = express.Router();
+router.use(globalApiLimiter);
 
 {/* USER AUTH ROUTES */}
 
