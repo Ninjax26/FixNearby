@@ -14,7 +14,7 @@ import Toast from "./components/Toast";
 import LocationBanner from "./components/LocationBanner";
 import BackToTop from "./components/BackToTop";
 import SOSButton from "./components/SOSButton";
-import useOfflineSync from "./hooks/useOfflineSync";
+import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
 import AriaAnnouncer from "./components/AriaAnnouncer";
 
@@ -133,7 +133,7 @@ const PageLoader = () => (
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const location = useLocation();
-  useOfflineSync();
+  useNetworkSync();
 
   // Hide LocationBanner on Home — it has its own live-location section
   const showLocationBanner = location.pathname !== "/";
