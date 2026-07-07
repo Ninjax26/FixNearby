@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import LanguageToggle from "./LanguageToggle";
+import NavLanguageToggle from "./NavLanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from "react-i18next";
@@ -157,7 +157,7 @@ const Navbar = () => {
               </Link>
 
               <ThemeToggle />
-              <LanguageToggle />
+              <NavLanguageToggle />
 
               {authenticated ? (
                 <>
@@ -417,7 +417,7 @@ const Navbar = () => {
 
           <div className="flex items-center gap-3 px-3 py-2">
             <ThemeToggle />
-            <LanguageToggle />
+            <NavLanguageToggle />
           </div>
         </nav>
 
