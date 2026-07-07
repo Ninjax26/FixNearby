@@ -17,6 +17,7 @@ import {
 import { workerSignup } from "../services/workerService";
 import useToast from "../hooks/useToast";
 import { validateEmail, validatePassword, getPasswordStrength } from "../utils/validation";
+import { isValidCoordinates } from "../utils/geoUtils";
 
 const WorkerRegister = () => {
   const navigate = useNavigate();
@@ -189,6 +190,16 @@ const WorkerRegister = () => {
 
     if (!formData.location.trim()) {
       errors.location = fieldMessages.location;
+    } else if (formData.location.includes(",")) {
+      const parts = formData.location.split(",").map((p) => parseFloat(p.trim()));
+      if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        errors.location = "If entering coordinates, use format: latitude, longitude";
+      } else {
+        const [lat, lng] = parts;
+        if (!isValidCoordinates(lat, lng)) {
+          errors.location = "Invalid coordinates. Latitude [-90, 90], Longitude [-180, 180]";
+        }
+      }
     }
 
     if (!validatePhone(formData.contact)) {
@@ -219,8 +230,23 @@ const WorkerRegister = () => {
 
       const payload = new FormData();
 
+      let finalLocation = formData.location;
+      if (formData.location.includes(",")) {
+        const [lat, lng] = formData.location.split(",").map((p) => parseFloat(p.trim()));
+        if (!isNaN(lat) && !isNaN(lng)) {
+          finalLocation = JSON.stringify({
+            type: "Point",
+            coordinates: [lng, lat],
+          });
+        }
+      }
+
       Object.keys(formData).forEach((key) => {
-        payload.append(key, formData[key]);
+        if (key === "location") {
+          payload.append(key, finalLocation);
+        } else {
+          payload.append(key, formData[key]);
+        }
       });
 
       await workerSignup(payload);
