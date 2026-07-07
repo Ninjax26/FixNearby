@@ -26,6 +26,7 @@ import { startBookingReminderScheduler } from './workers/bookingReminderWorker.j
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import estimateRoutes from './routes/estimateRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
 
 dotenv.config();
 
@@ -103,6 +104,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/estimates', estimateRoutes);
 app.use('/api/availability', availabilityRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
 
 // Start Booking Expiry Check Scheduler
 startBookingExpiryScheduler();
