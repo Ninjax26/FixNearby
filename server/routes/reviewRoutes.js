@@ -1,3 +1,4 @@
+import { respondToReview } from '../controllers/reviewResponseController.js';
 import express from 'express';
 import {
   createReview,
@@ -23,3 +24,5 @@ router.put('/:id', protect, updateReview);
 router.delete('/:id', protect, deleteReview);
 
 export default router;
+
+router.post('/:reviewId/response', respondToReview);
