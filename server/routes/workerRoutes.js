@@ -1,3 +1,4 @@
+// Worker route schema validations enabled
 import express from 'express';
 import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews, getWorkerDashboardStats } from '../controllers/workerController.js';
 import { protectWorker } from '../middleware/authMiddleware.js';

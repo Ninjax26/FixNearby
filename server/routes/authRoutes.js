@@ -1,3 +1,4 @@
+import { validateRegistrationPayload } from '../middleware/requestValidator.js';
 import express from 'express';
 import {
   registerUser,
@@ -36,7 +37,7 @@ const router = express.Router();
 
 {/* USER AUTH ROUTES */}
 
-router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
+router.post('/register', validateRegistrationPayload, userRegisterLimiter, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
