@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import { generateCsrfToken } from '../utils/csrfHelper.js';
 
 export const csrfProtection = (req, res, next) => {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
@@ -9,7 +9,7 @@ export const csrfProtection = (req, res, next) => {
     ?.split('=')[1];
 
   if (!csrfToken) {
-    csrfToken = crypto.randomBytes(32).toString('hex');
+    csrfToken = generateCsrfToken();
   }
 
   // Set cookie for client consumption

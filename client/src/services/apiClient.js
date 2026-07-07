@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCsrfToken } from "./csrfService";
 
 const normalizeApiBaseURL = (value) => {
   const baseURL = (value || "http://localhost:5000/api").replace(/\/+$/, "");
@@ -51,6 +52,16 @@ api.interceptors.request.use(
     } catch (error) {
       console.error("Error reading token from localStorage in apiClient", error);
     }
+
+    // Attach CSRF Token for non-safe methods
+    const method = config.method?.toUpperCase();
+    if (method && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers["X-CSRF-Token"] = csrfToken;
+      }
+    }
+
     return config;
   },
   (error) => {
