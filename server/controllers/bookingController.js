@@ -1,3 +1,4 @@
+// Auto booking expiry checks enabled
 import Booking, { STATUS_ENUM } from '../models/Booking.js';
 import { queueNotification } from '../utils/queue.js';
 import mongoose from 'mongoose';
