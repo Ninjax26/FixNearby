@@ -5,6 +5,8 @@ import { signupUser } from "../services/authService";
 import useToast from "../hooks/useToast";
 import { parseApiError } from "../utils/apiErrorHandler";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { validateName, validateEmail, validatePassword, validatePhone } from "../utils/clientValidation";
+import FormErrorField from "../components/FormErrorField";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -178,11 +180,7 @@ const Register = () => {
               placeholder="Full Name"
               className={inputStyles("name")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.name && errors.name && (
-                <span className="text-red-600">{errors.name}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.name && errors.name} />
           </div>
 
           {/* Email */}
@@ -198,11 +196,7 @@ const Register = () => {
               placeholder="Email Address"
               className={inputStyles("email")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.email && errors.email && (
-                <span className="text-red-600">{errors.email}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.email && errors.email} />
           </div>
 
           {/* Phone */}
@@ -217,11 +211,7 @@ const Register = () => {
               placeholder="Phone Number"
               className={inputStyles("phone")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.phone && errors.phone && (
-                <span className="text-red-600">{errors.phone}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.phone && errors.phone} />
           </div>
 
           {/* Password */}
@@ -248,13 +238,13 @@ const Register = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-            <div className="min-h-[22px] mt-1 text-xs text-gray-500">
-              {interacted.password && errors.password ? (
-                <span className="text-red-600 font-semibold">{errors.password}</span>
-              ) : (
+            {interacted.password && errors.password ? (
+              <FormErrorField error={errors.password} />
+            ) : (
+              <div className="min-h-[22px] mt-1 text-xs text-gray-500">
                 <span>Must contain at least 6 characters, including 1 uppercase, 1 lowercase and 1 number.</span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}

@@ -38,7 +38,7 @@ router.use(globalApiLimiter);
 
 {/* USER AUTH ROUTES */}
 
-router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
+router.post('/register', validateRegistrationPayload, userRegisterLimiter, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);

@@ -1,3 +1,4 @@
+import { checkPasswordStrength } from '../utils/passwordPolicy.js';
 import Worker from "../models/Worker.js";
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
@@ -35,6 +36,7 @@ const isValidPassword = (password) => {
 };
 
 export const registerUser = async (req, res) => {
+  if (!checkPasswordStrength(req.body.password)) { return res.status(400).json({ success: false, message: 'Password is too weak. Must contain uppercase, lowercase, numbers, and symbols.' }); }
   try {
     const { name, email, password, phone } = req.body;
     console.log(`[Security Audit] Registration attempt for email: ${email}`);

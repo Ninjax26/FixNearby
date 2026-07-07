@@ -16,7 +16,7 @@ import BackToTop from "./components/BackToTop";
 import SOSButton from "./components/SOSButton";
 import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
-import AriaAnnouncer from "./components/AriaAnnouncer";
+import SuspenseBoundary from "./components/SuspenseBoundary";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
@@ -153,14 +153,13 @@ function AppContent() {
 
       <main id="main-content" className="flex-grow bg-gray-50 dark:bg-slate-900" tabIndex={-1}>
         <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
+          <SuspenseBoundary>
             <Routes>
               {ROUTES.map(({ path, element }) => (
                 <Route key={path} path={path} element={element} />
               ))}
             </Routes>
-          </Suspense>
-        </ErrorBoundary>
+          </SuspenseBoundary>        </ErrorBoundary>
       </main>
       <BackToTop />
       <SOSButton />

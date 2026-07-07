@@ -1,3 +1,4 @@
+import { FavoriteService } from '../services/favoriteService.js';
 import Favorite from '../models/Favorite.js';
 import Worker from '../models/Worker.js';
 

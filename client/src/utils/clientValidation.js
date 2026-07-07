@@ -27,16 +27,6 @@ export const validatePhone = (phone) => {
   return '';
 };
 
-export const validateRequired = (value, fieldName) => {
-  if (!value || !String(value).trim()) return `${fieldName} is required`;
-  return '';
-};
-
-export const validateMinLength = (value, min, fieldName) => {
-  if (!value || String(value).trim().length < min) return `${fieldName} must be at least ${min} characters`;
-  return '';
-};
-
 export const getPasswordStrength = (password) => {
   if (!password) return { level: 'none', label: '', color: '' };
   if (password.length < 6) return { level: 'weak', label: 'Weak', color: 'text-red-500 bg-red-500 w-1/3' };
