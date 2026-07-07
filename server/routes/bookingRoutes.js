@@ -1,3 +1,4 @@
+// Registered automated booking expiry policies
 import express from 'express';
 import {
   createBooking,
