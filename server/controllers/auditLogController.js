@@ -1,3 +1,4 @@
+// Extended audit controller checks
 import AuditLog from '../models/AuditLog.js';
 
 // @desc    Get all audit logs
