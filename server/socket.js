@@ -6,6 +6,8 @@ import Message from './models/Message.js';
 import allowedOrigins from './config/corsOrigins.js';
 import { verifySocketAuth } from './utils/verifySocketAuth.js';
 import { messageRetryService } from './services/messageRetryService.js';
+import { handleSendMessage, handleTyping } from './socketHandlers/chatHandler.js';
+import { handlePresenceUpdate } from './socketHandlers/presenceHandler.js';
 
 // Map to track active user socket mappings
 // Map format: userId -> Set of socket.ids
@@ -56,88 +58,13 @@ export const initSocket = (server) => {
 
     // Message transmission
     // Presence update from client
-  socket.on('presence_update', async (data, callback) => {
-    try {
-      const allowed = ['available', 'busy', 'offline'];
-      const { status } = data;
-      if (!allowed.includes(status)) {
-        if (callback) callback({ success: false, error: 'Invalid status' });
-        return;
-      }
-      // Update DB based on user type
-      if (userType === 'Worker') {
-        await Worker.findByIdAndUpdate(userId, { availabilityStatus: status, lastActive: new Date() });
-      } else {
-        await User.findByIdAndUpdate(userId, { status });
-      }
-      io.emit('user-presence', { userId, status, userType });
-      if (callback) callback({ success: true });
-    } catch (err) {
-      if (callback) callback({ success: false, error: err.message });
-    }
-  });
+    socket.on('presence_update', handlePresenceUpdate(io, socket, userId, userType));
 
-  // Message transmission with ordering & ack
-  socket.on('sendMessage', async (data, callback) => {
-    try {
-      const { receiverId, receiverModel, text, timestamp } = data;
-      if (!receiverId || !receiverModel || !text) {
-        if (callback) callback({ success: false, error: 'Invalid message payload' });
-        return;
-      }
-      if (!['User', 'Worker'].includes(receiverModel)) {
-        if (callback) callback({ success: false, error: 'Invalid receiver model' });
-        return;
-      }
-      // Simple ordering check – reject if timestamp older than last stored (optional)
-      if (timestamp) {
-        const lastMsg = await Message.findOne({
-          $or: [
-            { senderId: userId, receiverId },
-            { senderId: receiverId, receiverId: userId }
-          ]
-        }).sort({ createdAt: -1 });
-        if (lastMsg && new Date(timestamp) < lastMsg.createdAt) {
-          if (callback) callback({ success: false, error: 'Out‑of‑order message' });
-          return;
-        }
-      }
-      // Persist message
-      const message = await Message.create({
-        senderId: userId,
-        senderModel: userType,
-        receiverId,
-        receiverModel,
-        text,
-        createdAt: timestamp ? new Date(timestamp) : undefined
-      });
-      const msgData = {
-        _id: message._id,
-        senderId: message.senderId,
-        senderModel: message.senderModel,
-        receiverId: message.receiverId,
-        receiverModel: message.receiverModel,
-        text: message.text,
-        createdAt: message.createdAt,
-        updatedAt: message.updatedAt
-      };
-      io.to(receiverId).emit('receiveMessage', msgData);
-      io.to(userId).emit('receiveMessage', msgData);
-      // Ack to sender
-      socket.emit('message_ack', { messageId: message._id });
-      if (callback) callback({ success: true, message: msgData });
-    } catch (err) {
-      if (callback) callback({ success: false, error: err.message });
-    }
-  });
+    // Message transmission with ordering & ack
+    socket.on('sendMessage', handleSendMessage(io, socket, userId, userType));
 
     // Typing indicators
-    socket.on('typing', (data) => {
-      const { receiverId } = data;
-      if (receiverId) {
-        io.to(receiverId).emit('typing', { senderId: userId });
-      }
-    });
+    socket.on('typing', handleTyping(io, io, userId));
 
     socket.on('stop_typing', (data) => {
       const { receiverId } = data;
