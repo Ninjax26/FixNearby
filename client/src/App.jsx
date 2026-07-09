@@ -17,6 +17,7 @@ import SOSButton from "./components/SOSButton";
 import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SuspenseBoundary from "./components/SuspenseBoundary";
+import AriaAnnouncer from "./components/AriaAnnouncer";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
@@ -39,8 +40,10 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
-const CivicIssues      = lazy(() => import('./pages/CivicIssues'));
-const NotFound         = lazy(() => import('./pages/NotFound'));
+const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
+const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'));
+const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
+const NotFound            = lazy(() => import('./pages/NotFound'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
@@ -88,7 +91,8 @@ const ROUTES = [
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
-  { path: '/civic-issues',      element: <CivicIssues /> },
+  { path: '/civic-issues',           element: <CivicIssues /> },
+  { path: '/civic-issues/report',    element: <ReportIssue /> },
   // User (protected)
   {
     path: "/profile",
