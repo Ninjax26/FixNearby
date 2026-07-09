@@ -15,13 +15,83 @@ graph TD
     API -->|NoSQL Queries| DB[(MongoDB Database)]
     API -->|Caching & Queues| Cache[(Redis Cache Server)]
     API -->|Mailing Client| Brevo[Brevo SMTP Gateway]
+    
+    subgraph "Security Layer"
+        RL[Rate Limiter]
+        CSRF[CSRF Protection]
+        HELM[Helmet Headers]
+        CORS[CORS Middleware]
+    end
+    
+    subgraph "Background Workers"
+        NW[Notification Worker]
+        BEW[Booking Expiry Worker]
+        KS[Karma Scheduler]
+        BRW[Booking Reminder Worker]
+    end
+    
+    API --> RL
+    RL --> CSRF
+    CSRF --> CORS
+    CORS --> HELM
+    NW -->|BullMQ| Cache
+    BEW --> DB
+    KS --> DB
+    BRW --> DB
 ```
 
 ### Key Service Layers
-1. **Frontend (Client)**: A fast React single-page application built using Vite, styled using Tailwind CSS, and containing page components with route-based lazy loading.
+1. **Frontend (Client)**: A fast React single-page application built using Vite, styled using Tailwind CSS, and containing page components with route-based lazy loading. Includes offline support via service workers.
 2. **Backend (Server)**: An Express.js REST API providing routing, controllers, input validation middleware, secure token authentication, and data models.
 3. **Mailing Service**: External transaction email delivery configured using the Brevo SMTP SDK.
 4. **Queue & Background Workers**: Redis-backed BullMQ message queues managing background notifications, retry strategies, and dead-letter log storage.
+5. **Real-Time Layer**: Socket.IO for live chat, real-time booking updates, and availability notifications.
+6. **Monitoring & Logging**: Structured JSON logging with Pino, error categorization middleware, and client-side error reporting.
+
+---
+
+## 📊 Data Flow Architecture
+
+```mermaid
+flowchart LR
+    subgraph "Client Tier"
+        REACT[React SPA]
+        SW[Service Worker]
+        LS[Local Storage Cache]
+    end
+    
+    subgraph "API Gateway"
+        LB[Load Balancer]
+        WAF[WAF / Security]
+        API[Express API]
+        WS[Socket.IO]
+    end
+    
+    subgraph "Data Tier"
+        MONGO[(MongoDB)]
+        REDIS[(Redis)]
+        FS[File Storage]
+    end
+    
+    subgraph "Workers"
+        NW[Notification]
+        EW[Expiry]
+        KW[Karma]
+    end
+    
+    REACT --> API
+    REACT --> WS
+    SW --> API
+    LS --> REACT
+    API --> MONGO
+    API --> REDIS
+    WS --> REDIS
+    API --> FS
+    NW --> REDIS
+    NW --> MONGO
+    EW --> MONGO
+    KW --> MONGO
+```
 
 ---
 
@@ -32,19 +102,28 @@ Every incoming request to the server passes through the following secure pipelin
 ```mermaid
 sequenceDiagram
     participant Client
+    participant WAF as WAF / CDN
     participant Sanitizer
     participant RateLimiter
     participant Auth
+    participant Logger
     participant Cache
     participant Controller
 
-    Client->>Sanitizer: POST /api/issues (JSON Body)
-    Sanitizer->>Sanitizer: Sanitization & Type Checks
-    Sanitizer->>RateLimiter: Check IP Limit Threshold
+    Client->>WAF: HTTP Request
+    WAF->>WAF: DDoS Protection
+    WAF->>Sanitizer: Clean Request
+    Sanitizer->>Sanitizer: Input Sanitization & Type Checks
+    Sanitizer->>RateLimiter: Check IP & User Tier
     RateLimiter->>Auth: Validate JWT / Blacklist
-    Auth->>Cache: Query Cache Key
-    Cache->>Controller: Match Route & DB Transaction
-    Controller-->>Client: 201 Created / Success
+    Auth->>Logger: Log Request Metadata
+    Logger->>Cache: Query Cache Key
+    alt Cache Hit
+        Cache-->>Client: Cached Response
+    else Cache Miss
+        Cache->>Controller: Forward to Handler
+        Controller-->>Client: Processed Response
+    end
 ```
 
 ---
@@ -66,3 +145,85 @@ To prevent blocking main thread processes, all outgoing notifications (Welcome e
 - **Tech Stack**: BullMQ backed by a Redis connection.
 - **Retry Mechanism**: Employs an exponential retry backoff strategy.
 - **Dead-Letter Storage**: If a notification job fails repeatedly and exhausts its retry limit, the worker captures the error stack trace and logs a document inside the `DeadLetterJob` MongoDB collection for developer inspection.
+
+### 3. Booking Expiry & Reminder Schedulers
+- **Expiry Worker**: Checks every 60 seconds for pending bookings exceeding the response timeout and auto-cancels them.
+- **Reminder Worker**: Sends push notifications or emails to users 24 hours before scheduled booking times.
+- **Implementation**: Background interval runners using `setInterval` with plans to migrate to BullMQ repeating jobs.
+
+### 4. Real-Time Communication Architecture
+```mermaid
+sequenceDiagram
+    participant User
+    participant Worker
+    participant SocketIO as Socket.IO Server
+    participant Redis as Redis Adapter
+    participant Mongo as MongoDB
+    
+    User->>SocketIO: connect (JWT auth)
+    Worker->>SocketIO: connect (JWT auth)
+    SocketIO->>Redis: Pub/Sub Channel
+    User->>SocketIO: send_message
+    SocketIO->>Redis: Publish message
+    Redis->>SocketIO: Deliver to worker
+    SocketIO-->>Worker: message event
+    Worker->>Mongo: Persist message
+```
+
+---
+
+## 🔐 Security Architecture
+
+```mermaid
+graph TD
+    subgraph "Perimeter"
+        CORS[CORS Whitelist]
+        HELM[Helmet Headers]
+        RL[Rate Limiting]
+    end
+    
+    subgraph "Request Layer"
+        CSRF[CSRF Tokens]
+        SANITIZE[XSS Sanitization]
+        VALIDATE[Input Validation]
+    end
+    
+    subgraph "Auth Layer"
+        JWT[JWT Verification]
+        BL[JWT Blacklist]
+        RBAC[Role-Based Access]
+    end
+    
+    subgraph "Data Layer"
+        ENC[Password Hashing]
+        ESC[Mongoose Escaping]
+        AUDIT[Audit Logging]
+    end
+    
+    Request --> CORS
+    CORS --> HELM
+    HELM --> RL
+    RL --> CSRF
+    CSRF --> SANITIZE
+    SANITIZE --> VALIDATE
+    VALIDATE --> JWT
+    JWT --> BL
+    BL --> RBAC
+    RBAC --> ENC
+    ENC --> ESC
+    ESC --> AUDIT
+```
+
+---
+
+## 🔄 Component Interaction Matrix
+
+| Component | Technology | Dependencies | Scale Strategy |
+|-----------|-----------|--------------|----------------|
+| React Client | Vite + React 18 | Express API, Socket.IO | CDN / Vercel |
+| Express API | Node.js + Express | MongoDB, Redis | Horizontal (stateless) |
+| Socket.IO | Socket.IO + Redis | Redis adapter | Multi-instance via Redis |
+| MongoDB | Mongoose 7 | - | Replica set / Atlas |
+| Redis | ioredis | - | Cluster mode |
+| BullMQ | BullMQ | Redis | Worker concurrency |
+| Email | Brevo SDK | External API | Queue-backed |
