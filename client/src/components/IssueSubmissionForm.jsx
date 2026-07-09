@@ -142,19 +142,12 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        showToast({
-          type: 'error',
-          message: 'Image size must be less than 5MB'
-        });
+        showToast('Image size must be less than 5MB', 'error');
         return;
       }
 
-      // Validate file type
       if (!file.type.startsWith('image/')) {
-        showToast({
-          type: 'error',
-          message: 'Please upload a valid image file'
-        });
+        showToast('Please upload a valid image file', 'error');
         return;
       }
 
@@ -203,16 +196,13 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
     try {
       setIsSubmitting(true);
       const response = await upvoteIssue(issueId);
-      showToast({
-        type: 'success',
-        message: `Upvoted!`,
-      });
+      showToast('Upvoted!', 'success');
       setShowDuplicateModal(false);
       setDuplicateIssue(null);
       setCandidateList(null);
       resetForm();
     } catch (error) {
-      showToast({ type: 'error', message: error.message || 'Failed to upvote issue.' });
+      showToast(error.message || 'Failed to upvote issue.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -235,7 +225,7 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
       setDuplicateIssue(null);
       setShowDuplicateModal(true);
     } catch (err) {
-      showToast({ type: 'error', message: 'Failed to load nearby reports.' });
+      showToast('Failed to load nearby reports.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -247,10 +237,7 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
       setIsSubmitting(true);
       const newIssue = await createIssue(formData);
 
-      showToast({
-        type: 'success',
-        message: 'Issue reported successfully!'
-      });
+      showToast('Issue reported successfully!', 'success');
 
       // Reset form
       resetForm();
@@ -260,10 +247,7 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
         onSubmitSuccess(newIssue);
       }
     } catch (error) {
-      showToast({
-        type: 'error',
-        message: error.message || 'Failed to submit issue. Please try again.'
-      });
+      showToast(error.message || 'Failed to submit issue. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -275,10 +259,7 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
 
     // Validate form
     if (!validateForm()) {
-      showToast({
-        type: 'error',
-        message: 'Please fix the errors in the form'
-      });
+      showToast('Please fix the errors in the form', 'error');
       return;
     }
 
@@ -308,10 +289,7 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
         await submitNewIssue();
       }
     } catch (error) {
-      showToast({
-        type: 'error',
-        message: 'Failed to check for duplicates. Please try again.'
-      });
+      showToast('Failed to check for duplicates. Please try again.', 'error');
       setIsSubmitting(false);
     }
   };
@@ -324,20 +302,14 @@ const IssueSubmissionForm = ({ onSubmitSuccess }) => {
       setIsSubmitting(true);
       const response = await upvoteIssue(duplicateIssue.id);
 
-      showToast({
-        type: 'success',
-        message: `Upvoted! Total upvotes: ${response.newUpvoteCount || response.upvotes || duplicateIssue.upvotes + 1}`
-      });
+      showToast(`Upvoted! Total upvotes: ${response.newUpvoteCount || response.upvotes || duplicateIssue.upvotes + 1}`, 'success');
 
       // Close modal and reset form
       setShowDuplicateModal(false);
       setDuplicateIssue(null);
       resetForm();
     } catch (error) {
-      showToast({
-        type: 'error',
-        message: error.message || 'Failed to upvote issue. Please try again.'
-      });
+      showToast(error.message || 'Failed to upvote issue. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
