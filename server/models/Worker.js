@@ -85,10 +85,7 @@ const workerSchema = new mongoose.Schema(
     resetPasswordExpire: {
       type: Date,
     },
-    averageRating: {
-      type: Number,
-      default: 0,
-    },
+
     reviewCount: {
       type: Number,
       default: 0,
@@ -124,7 +121,23 @@ const workerSchema = new mongoose.Schema(
         question: { type: String, default: "" },
         answer: { type: String, default: "" }
       }
-    ]
+    ],
+    slaResponseMins: {
+      type: Number,
+      default: 30
+    },
+    serviceCoverage: {
+      type: [String],
+      default: ['Local Metro Area']
+    },
+    cancellationPolicy: {
+      type: String,
+      default: 'Free cancellation up to 24 hours prior to slot.'
+    },
+    refundPolicy: {
+      type: String,
+      default: 'Full refund guaranteed if response SLA is missed.'
+    }
   },
   {
     timestamps: true,

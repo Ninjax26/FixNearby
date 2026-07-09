@@ -1,6 +1,8 @@
+import { checkPasswordStrength } from '../utils/passwordPolicy.js';
 import Worker from "../models/Worker.js";
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import { writeAuditLog } from '../models/AuditLog.js';
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
 import { queueNotification } from "../utils/queue.js";
@@ -34,8 +36,10 @@ const isValidPassword = (password) => {
 };
 
 export const registerUser = async (req, res) => {
+  if (!checkPasswordStrength(req.body.password)) { return res.status(400).json({ success: false, message: 'Password is too weak. Must contain uppercase, lowercase, numbers, and symbols.' }); }
   try {
     const { name, email, password, phone } = req.body;
+    console.log(`[Security Audit] Registration attempt for email: ${email}`);
 
     // 1. Check all fields
     if (!name || !email || !password) {
@@ -84,6 +88,17 @@ export const registerUser = async (req, res) => {
     // Queue welcome notification job
     await queueNotification('welcome', { userId: user._id, userType: 'User' });
 
+    // Write audit log
+    writeAuditLog({
+      actorId: user._id,
+      actorType: 'User',
+      action: 'USER_REGISTERED',
+      resource: 'User',
+      resourceId: user._id,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
     // 7. Response 
     res.status(201).json({
       _id: user._id,
@@ -114,6 +129,16 @@ export const loginUser = async (req, res) => {
 
     // 3. Check password
     if (user && (await user.matchPassword(password))) {
+      writeAuditLog({
+        actorId: user._id,
+        actorType: 'User',
+        action: 'USER_LOGGED_IN',
+        resource: 'User',
+        resourceId: user._id,
+        ip: req.ip,
+        userAgent: req.get('user-agent'),
+      });
+
       res.status(200).json({
         _id: user._id,
         name: user.name,

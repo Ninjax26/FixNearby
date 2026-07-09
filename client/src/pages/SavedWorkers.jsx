@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getFavorites, removeFavorite } from "../services/favoriteService";
 import { useNavigate } from "react-router-dom";
+import useToast from "../hooks/useToast";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 // ────────────────────────────────────────────────────────
 //  Inline styles — no extra CSS file needed
@@ -173,6 +175,11 @@ const WorkerCard = ({ favorite, onRemove }) => {
 
   const navigate = useNavigate();
 
+  const quickBook = () => {
+    if (!worker?._id) return;
+    navigate(`/worker/${worker._id}?quickBook=1`);
+  };
+
   return (
     <div
       style={styles.card}
@@ -185,6 +192,7 @@ const WorkerCard = ({ favorite, onRemove }) => {
         e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.08)";
       }}
     >
+
       {/* Remove button */}
       <button
         style={styles.removeBtn}
@@ -246,15 +254,26 @@ const WorkerCard = ({ favorite, onRemove }) => {
         })}
       </p>
 
-      {/* View Profile button */}
+      {/* Quick booking button */}
       <button
         style={styles.viewBtn}
-        onClick={() => navigate(`/worker/${worker._id}`)}
+        onClick={quickBook}
         onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+      >
+        Book now ⚡
+      </button>
+
+      {/* View Profile button */}
+      <button
+        style={{ ...styles.viewBtn, background: "#fff", color: "#4b4b6a", border: "1.5px solid #dde1e7", marginTop: "10px" }}
+        onClick={() => navigate(`/worker/${worker._id}`)}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
         onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
       >
         View Profile →
       </button>
+
     </div>
   );
 };
@@ -266,35 +285,77 @@ const SavedWorkers = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const FAVORITES_CACHE_KEY = "favoritesCache";
+  const FAVORITES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    let cancelled = false;
+
+    const loadCachedThenRefresh = async () => {
+      try {
+        const raw = localStorage.getItem(FAVORITES_CACHE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const age = Date.now() - (parsed?.cachedAt || 0);
+          if (Array.isArray(parsed?.favorites) && age < FAVORITES_CACHE_TTL_MS) {
+            if (!cancelled) {
+              setFavorites(parsed.favorites);
+              setLoading(false);
+            }
+          }
+        }
+      } catch {
+        // Ignore cache failures
+      }
+
       try {
         const data = await getFavorites();
-        setFavorites(data);
+        if (!cancelled) {
+          setFavorites(data);
+          setLoading(false);
+          localStorage.setItem(
+            FAVORITES_CACHE_KEY,
+            JSON.stringify({ cachedAt: Date.now(), favorites: data })
+          );
+        }
       } catch (err) {
-        setError(
-          err.message === "User not authenticated"
-            ? "Please login to view your saved workers."
-            : "Failed to load saved workers. Try again."
-        );
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setError(
+            err.message === "User not authenticated"
+              ? "Please login to view your saved workers."
+              : "Failed to load saved workers. Try again."
+          );
+          setLoading(false);
+        }
       }
     };
 
-    fetchFavorites();
+    loadCachedThenRefresh();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
 
   const handleRemove = async (workerId) => {
     try {
       await removeFavorite(workerId);
-      setFavorites((prev) => prev.filter((fav) => fav.worker._id !== workerId));
+      const next = favorites.filter((fav) => fav.worker._id !== workerId);
+      setFavorites(next);
+      localStorage.setItem(
+        FAVORITES_CACHE_KEY,
+        JSON.stringify({ cachedAt: Date.now(), favorites: next })
+      );
     } catch (err) {
-      alert("Failed to remove. Try again.");
+      showToast("Failed to remove saved worker. Try again.", "error");
     }
   };
+
 
   return (
     <div style={styles.page}>
@@ -320,9 +381,10 @@ const SavedWorkers = () => {
 
         {/* States */}
         {loading && (
-          <div style={styles.loader}>
-            <span style={{ fontSize: "24px", animation: "spin 1s linear infinite" }}>⏳</span>
-            Loading your saved workers...
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <SkeletonLoader key={i} type="card" />
+            ))}
           </div>
         )}
 

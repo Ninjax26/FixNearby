@@ -2,7 +2,7 @@
 
 import api from "./apiClient";
 
-const BASE_URL = "/api/favorites";
+const BASE_URL = "/favorites";
 
 /**
  * Add a worker to favorites

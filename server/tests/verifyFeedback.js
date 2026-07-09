@@ -6,11 +6,13 @@ import Worker from '../models/Worker.js';
 import Booking from '../models/Booking.js';
 import Review from '../models/Review.js';
 import { calculateKarmaScores } from '../utils/karmaScheduler.js';
+import { capitalize } from '../utils/stringUtils.js';
 
 dotenv.config();
 
 const runTests = async () => {
   try {
+    console.log(`[Verify Feedback] Testing string capitalization helper: ${capitalize('feedback')}`);
     console.log('Connecting to database...');
     await connectDB();
 

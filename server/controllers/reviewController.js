@@ -40,7 +40,7 @@ export const createReview = async (req, res) => {
       });
     }
 
-    if (booking.user.toString() !== req.user._id.toString()) {
+    if (booking.userId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized: You can only review your own bookings'
@@ -62,7 +62,7 @@ export const createReview = async (req, res) => {
       reviewText,
       bookingReference,
       user: req.user._id,
-      worker: booking.worker
+      worker: booking.workerId
     });
 
     res.status(201).json({
@@ -245,5 +245,131 @@ export const deleteReview = async (req, res) => {
       success: false,
       message: 'Server error: ' + error.message
     });
+  }
+};
+
+// @desc    Create a review for a completed booking
+// @route   POST /api/bookings/:id/review
+// @access  Private (User owner only)
+export const createBookingReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { rating, reviewText } = req.body;
+
+    if (!rating || !reviewText) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide rating and review text'
+      });
+    }
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    // Gating check: Status must be Completed
+    if (booking.status !== 'Completed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Reviews can only be submitted for completed bookings'
+      });
+    }
+
+    // Owner check: Only user who made the booking can review it
+    if (booking.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized: You can only review your own bookings'
+      });
+    }
+
+    // Uniqueness check: Already reviewed?
+    const existing = await Review.findOne({ bookingReference: id });
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'A review has already been submitted for this booking'
+      });
+    }
+
+    // Map uploaded files to URLs
+    let images = [];
+    if (req.files && req.files.length > 0) {
+      images = req.files.map(file => `/uploads/${file.filename}`);
+    } else if (req.body.images) {
+      images = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+    }
+
+    const review = await Review.create({
+      rating: Number(rating),
+      reviewText,
+      bookingReference: id,
+      user: req.user._id,
+      worker: booking.workerId,
+      images,
+      isVerified: true
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Review submitted successfully',
+      review
+    });
+  } catch (error) {
+    if (next) {
+      next(error);
+    } else {
+      console.error(error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+};
+
+// @desc    Report an abusive review
+// @route   POST /api/reviews/:id/report
+// @access  Private
+export const reportReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a reason for reporting'
+      });
+    }
+
+    const review = await Review.findById(id);
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+
+    review.reported = true;
+    review.reportReason = reason;
+    review.reportedAt = new Date();
+    review.moderationStatus = 'pending';
+
+    await review.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Review reported successfully for moderation',
+      review
+    });
+  } catch (error) {
+    if (next) {
+      next(error);
+    } else {
+      console.error(error);
+      res.status(500).json({ success: false, message: error.message });
+    }
   }
 };

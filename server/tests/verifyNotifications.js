@@ -8,11 +8,13 @@ import Issue from '../models/Issue.js';
 import DeadLetterJob from '../models/DeadLetterJob.js';
 import { queueNotification, notificationQueue } from '../utils/queue.js';
 import { startWorker } from '../workers/notificationWorker.js';
+import { truncate } from '../utils/stringUtils.js';
 
 dotenv.config();
 
 const runTests = async () => {
   try {
+    console.log(`[Verify Notifications] Truncation test check: ${truncate('Notification Payload Info', 12)}`);
     console.log('Connecting to database...');
     await connectDB();
 

@@ -1,3 +1,4 @@
+import { globalApiLimiter } from '../middleware/rateLimiter.js';
 import express from 'express';
 import {
   registerUser,
@@ -33,10 +34,11 @@ import {
 import { validateRegistration, validateLogin } from '../middleware/validationMiddleware.js';
 
 const router = express.Router();
+router.use(globalApiLimiter);
 
 {/* USER AUTH ROUTES */}
 
-router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
+router.post('/register', validateRegistrationPayload, userRegisterLimiter, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);

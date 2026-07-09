@@ -13,6 +13,8 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 
+import api from "../services/apiClient";
+
 const WorkerDashboard = () => {
   const navigate = useNavigate();
   const [worker, setWorker] = useState(null);
@@ -26,33 +28,40 @@ const WorkerDashboard = () => {
   ]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("fixnearby_user");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setWorker(parsed);
-      }
-      const savedAvailability =localStorage.getItem("workerAvailability");
+    const fetchWorkerDashboardData = async () => {
+      try {
+        const raw = localStorage.getItem("fixnearby_user");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setWorker(parsed);
+        }
 
-      if (savedAvailability !== null) {
-        setIsAvailable(savedAvailability === "true");
-     }
-      const savedJobs = JSON.parse(localStorage.getItem("workerJobs")) || [];
-      setJobs(savedJobs);
-      const total = savedJobs.length;
-      const active = savedJobs.filter(
-        (j) => j.status === "Pending" || j.status === "In Progress"
-      ).length;
-      const completed = savedJobs.filter((j) => j.status === "Completed").length;
-      setStats([
-        { label: "Total Jobs", value: total.toString() },
-        { label: "Active Jobs", value: active.toString() },
-        { label: "Completed", value: completed.toString() },
-        { label: "Rating", value: total > 0 ? "4.8/5" : "5.0/5" },
-      ]);
-    } catch (err) {
-      console.error("Failed to load worker dashboard", err);
-    }
+        const savedAvailability = localStorage.getItem("workerAvailability");
+        if (savedAvailability !== null) {
+          setIsAvailable(savedAvailability === "true");
+        }
+
+        // Fetch dashboard stats from backend
+        const statsResponse = await api.get("/workers/dashboard/stats");
+        if (statsResponse.data?.success) {
+          const { totalJobs, activeJobs, completedJobs, rating } = statsResponse.data;
+          setStats([
+            { label: "Total Jobs", value: totalJobs.toString() },
+            { label: "Active Jobs", value: activeJobs.toString() },
+            { label: "Completed", value: completedJobs.toString() },
+            { label: "Rating", value: `${rating.toFixed(1)}/5` },
+          ]);
+        }
+
+        // Fetch jobs from backend bookings
+        const jobsResponse = await api.get("/bookings");
+        const list = jobsResponse.data.bookings || jobsResponse.data.data || [];
+        setJobs(list);
+      } catch (err) {
+        console.error("Failed to load worker dashboard stats", err);
+      }
+    };
+    fetchWorkerDashboardData();
   }, []);
 
   const handleLogout = () => {

@@ -1,9 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import LoadingSpinner from "../components/LoadingSpinner";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+import CenteredLoadingSpinner from "../components/CenteredLoadingSpinner";
 import StarRating from "../components/StarRating";
-import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle } from "lucide-react";
+import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
 import { useBookings } from "../hooks/useBookings";
+import api from "../services/apiClient";
+import useToast from "../hooks/useToast";
+import { showApiError } from "../utils/apiErrorHandler";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -182,6 +186,7 @@ const Bookings = () => {
     rescheduleBooking,
     refresh,
   } = useBookings();
+  const { showToast } = useToast();
 
   // Bookings come from the API in document form; normalize once for the UI.
   const bookings = useMemo(
@@ -194,8 +199,11 @@ const Bookings = () => {
   const [activeReview, setActiveReview] = useState(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [reviewImages, setReviewImages] = useState([]);
   const [cancelingId, setCancelingId] = useState(null);
   const [cancelError, setCancelError] = useState("");
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState(null);
 
   const [reschedulingId, setReschedulingId] = useState(null);
   const [newTime, setNewTime] = useState("");
@@ -216,14 +224,22 @@ const Bookings = () => {
   }, [bookings, search, statusFilter]);
 
   const handleCancel = async (id) => {
+    setCancelTargetId(id);
+    setCancelModalOpen(true);
+  };
+
+  const confirmCancel = async (reason) => {
     setCancelError("");
-    setCancelingId(id);
-    const ok = await cancelBooking(id);
+    setCancelingId(cancelTargetId);
+    const ok = await cancelBooking(cancelTargetId, reason);
     setCancelingId(null);
+    setCancelTargetId(null);
     if (!ok) {
       setCancelError(
         "Could not cancel this booking. It may already be completed."
       );
+    } else {
+      showToast("Booking cancelled successfully.", "success");
     }
   };
 
@@ -251,20 +267,51 @@ const Bookings = () => {
     }
   };
 
-  const handleReviewSubmit = (id) => {
+  const handleReviewSubmit = async (id) => {
     if (!rating) {
-      setCancelError("Please select a rating before submitting.");
+      showToast("Please select a rating before submitting.", "warning");
       return;
     }
 
-    // Reviews are submitted through the reviews API in a separate flow; here
-    // we simply close the form. The booking list refresh will reflect any
-    // server-side review linkage.
-    setActiveReview(null);
-    setRating(0);
-    setComment("");
-    refresh();
+    const formData = new FormData();
+    formData.append("rating", rating);
+    formData.append("reviewText", comment);
+    reviewImages.forEach((img) => {
+      formData.append("images", img);
+    });
+
+    try {
+      const response = await api.post(`/bookings/${id}/review`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+      if (response.data.success) {
+        showToast("Review submitted successfully!", "success");
+        setActiveReview(null);
+        setRating(0);
+        setComment("");
+        setReviewImages([]);
+        refresh();
+      }
+    } catch (err) {
+      console.error("Error submitting review:", err);
+      showApiError(err, showToast);
+    }
   };
+
+  const handleImageChange = (e) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setReviewImages(prev => [...prev, ...filesArray].slice(0, 5));
+    }
+  };
+
+  const handleRemoveImage = (idx) => {
+    setReviewImages(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  useDocumentTitle("My Bookings");
 
   const totalBookings = bookings.length;
   const completedBookings = bookings.filter((b) => b.status === "Completed").length;
@@ -322,7 +369,7 @@ const Bookings = () => {
         </div>
       </div>
 
-      {loading && <LoadingSpinner />}
+      {loading && <SkeletonLoader type="booking" count={3} />}
 
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
@@ -574,7 +621,38 @@ const Bookings = () => {
                         placeholder="Tell us about service quality, professionalism, punctuality..."
                         className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-700 min-h-[140px] resize-none outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
                       />
-                    </div>
+                     </div>
+
+                     {/* PHOTO UPLOADER */}
+                     <div className="mb-6">
+                       <label className="text-sm font-medium text-slate-700 block mb-2">
+                         Add Photos (Optional, max 5)
+                       </label>
+                       <input
+                         type="file"
+                         multiple
+                         accept="image/*"
+                         onChange={handleImageChange}
+                         className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                       />
+                       {reviewImages.length > 0 && (
+                         <div className="flex gap-2 flex-wrap mt-3">
+                           {reviewImages.map((img, idx) => (
+                             <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200">
+                               <img src={URL.createObjectURL(img)} alt="upload preview" className="w-full h-full object-cover" />
+                               <button
+                                 type="button"
+                                 onClick={() => handleRemoveImage(idx)}
+                                 className="absolute top-0.5 right-0.5 p-0.5 rounded-full bg-black/60 text-white hover:bg-black"
+                                 title="Remove photo"
+                               >
+                                 <X size={10} />
+                               </button>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                     </div>
 
                     {/* QUICK TAGS */}
                     <div className="mb-6">
@@ -641,6 +719,12 @@ const Bookings = () => {
           ))}
         </div>
       )}
+
+      <CancelBookingModal
+        isOpen={cancelModalOpen}
+        onClose={() => { setCancelModalOpen(false); setCancelTargetId(null); }}
+        onConfirm={confirmCancel}
+      />
     </div>
   );
 };

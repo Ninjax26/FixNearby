@@ -28,6 +28,30 @@ const reviewSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Worker',
     required: true
+  },
+  images: {
+    type: [String],
+    default: []
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  reported: {
+    type: Boolean,
+    default: false
+  },
+  reportReason: {
+    type: String,
+    default: ''
+  },
+  reportedAt: {
+    type: Date
+  },
+  moderationStatus: {
+    type: String,
+    enum: ['approved', 'pending', 'flagged'],
+    default: 'approved'
   }
 }, {
   timestamps: true

@@ -7,7 +7,10 @@ import {
   createIssue,
   upvoteIssue,
   getIssueById,
-  updateIssueStatus
+  updateIssueStatus,
+  createBookingDispute,
+  respondToDispute,
+  supportReviewDispute
 } from '../controllers/issueController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -64,6 +67,11 @@ router.post('/', upload.single('image'), createIssue);
 
 // POST /:id/upvote — requires authentication so each user can vote at most once
 router.post('/:id/upvote', protect, upvoteIssue);
+
+// Dispute routes
+router.post('/dispute', protect, createBookingDispute);
+router.post('/:id/respond', protect, respondToDispute);
+router.patch('/:id/dispute/status', protect, supportReviewDispute);
 
 // GET /:id
 router.get('/:id', getIssueById);

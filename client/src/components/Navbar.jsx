@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import LanguageToggle from "./LanguageToggle";
+import NavLanguageToggle from "./NavLanguageToggle";
+import ThemeToggle from "./ThemeToggle";
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from "react-i18next";
+
+// Navigation Bar Component. Handles routing layouts. (Ref: ReviewBadge)
 
 const WrenchIcon = () => (
   <svg
@@ -91,8 +94,8 @@ const Navbar = () => {
     `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150
      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600
      ${isActive(path)
-       ? 'bg-blue-50 text-[#0056D2] font-semibold'
-       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+       ? 'bg-blue-50 text-[#0056D2] font-semibold dark:bg-blue-900/30 dark:text-blue-400'
+       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
      }`;
 
   const handleLogout = () => {
@@ -116,8 +119,8 @@ const Navbar = () => {
       <nav
         className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80'
-            : 'bg-white'
+            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80'
+            : 'bg-white dark:bg-slate-900'
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -128,7 +131,7 @@ const Navbar = () => {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0056D2] group-hover:scale-105 transition-transform duration-200">
                 <WrenchIcon />
               </div>
-              <span className="text-lg font-extrabold tracking-tight text-slate-900">
+              <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Fix<span className="text-[#0056D2]">Nearby</span>
               </span>
             </Link>
@@ -149,7 +152,12 @@ const Navbar = () => {
                 {t("nav.services")}
               </Link>
 
-              <LanguageToggle />
+              <Link to="/civic-issues" className={desktopLinkCls('/civic-issues')}>
+                Civic Issues
+              </Link>
+
+              <ThemeToggle />
+              <NavLanguageToggle />
 
               {authenticated ? (
                 <>
@@ -294,7 +302,7 @@ const Navbar = () => {
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
-        className={`fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl md:hidden
+        className={`fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl md:hidden dark:bg-slate-900 dark:border-l dark:border-slate-700
           flex flex-col
           transition-transform duration-300 ease-in-out
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -305,7 +313,7 @@ const Navbar = () => {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0056D2]">
               <WrenchIcon />
             </div>
-            <span className="text-base font-extrabold tracking-tight text-slate-900">
+            <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
               Fix<span className="text-[#0056D2]">Nearby</span>
             </span>
           </Link>
@@ -322,12 +330,12 @@ const Navbar = () => {
 
         {/* User info strip (when authenticated) */}
         {authenticated && (
-          <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-100">
+          <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-100 dark:bg-slate-800 dark:border-slate-700">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0056D2] to-cyan-400 flex items-center justify-center text-white font-bold shrink-0">
               {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate dark:text-white">{user?.name}</p>
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
@@ -357,6 +365,17 @@ const Navbar = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
             </svg>
             {t("nav.services")}
+          </Link>
+
+          <Link
+            to="/civic-issues"
+            onClick={() => setMenuOpen(false)}
+            className={mobileLinkCls('/civic-issues')}
+          >
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Civic Issues
           </Link>
 
           {authenticated ? (
@@ -396,8 +415,9 @@ const Navbar = () => {
             </>
           ) : null}
 
-          <div className="px-3 py-2">
-            <LanguageToggle />
+          <div className="flex items-center gap-3 px-3 py-2">
+            <ThemeToggle />
+            <NavLanguageToggle />
           </div>
         </nav>
 

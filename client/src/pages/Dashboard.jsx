@@ -7,6 +7,9 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 
+import api from "../services/apiClient";
+import SkeletonLoader from "../components/SkeletonLoader";
+
 const Dashboard = () => {
   const [stats, setStats] = useState([
     {
@@ -39,56 +42,51 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedBookings =
-        JSON.parse(localStorage.getItem("bookings")) || [];
+    const fetchDashboardData = async () => {
+      try {
+        const response = await api.get("/bookings");
+        const list = response.data.bookings || response.data.data || [];
+        setBookings(list);
 
-      setBookings(savedBookings);
+        const total = list.length;
+        const active = list.filter(
+          (b) => b.status === "Pending" || b.status === "Confirmed" || b.status === "Accepted"
+        ).length;
+        const completed = list.filter((b) => b.status === "Completed").length;
 
-      const total = savedBookings.length;
-
-      const active = savedBookings.filter(
-        (b) => b.status === "Pending" || b.status === "Confirmed"
-      ).length;
-
-      const completed = savedBookings.filter(
-        (b) => b.status === "Completed"
-      ).length;
-
-      setStats([
-        {
-          label: "Total Bookings",
-          value: total.toString(),
-          icon: <FaCalendarCheck />,
-          color: "text-indigo-600 bg-indigo-50",
-        },
-        {
-          label: "Active Jobs",
-          value: active.toString(),
-          icon: <FaClipboardList />,
-          color: "text-amber-600 bg-amber-50",
-        },
-        {
-          label: "Completed",
-          value: completed.toString(),
-          icon: <FaCheckCircle />,
-          color: "text-emerald-600 bg-emerald-50",
-        },
-        {
-          label: "Rating",
-          value: total > 0 ? "4.9/5" : "5.0/5",
-          icon: <FaStar />,
-          color: "text-pink-600 bg-pink-50",
-        },
-      ]);
-    } catch (error) {
-      console.error("Failed to load dashboard stats", error);
-    } finally {
-      const timer = setTimeout(() => {
+        setStats([
+          {
+            label: "Total Bookings",
+            value: total.toString(),
+            icon: <FaCalendarCheck />,
+            color: "text-indigo-600 bg-indigo-50",
+          },
+          {
+            label: "Active Jobs",
+            value: active.toString(),
+            icon: <FaClipboardList />,
+            color: "text-amber-600 bg-amber-50",
+          },
+          {
+            label: "Completed",
+            value: completed.toString(),
+            icon: <FaCheckCircle />,
+            color: "text-emerald-600 bg-emerald-50",
+          },
+          {
+            label: "Rating",
+            value: total > 0 ? "4.9/5" : "5.0/5",
+            icon: <FaStar />,
+            color: "text-pink-600 bg-pink-50",
+          },
+        ]);
+      } catch (error) {
+        console.error("Failed to load dashboard stats", error);
+      } finally {
         setLoading(false);
-      }, 700);
-      return () => clearTimeout(timer);
-    }
+      }
+    };
+    fetchDashboardData();
   }, []);
 
   return (
@@ -154,18 +152,8 @@ const Dashboard = () => {
           </p>
 
           {loading ? (
-            <div className="mt-8 space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex animate-pulse items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="h-12 w-12 rounded-xl bg-slate-200" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-slate-200 rounded w-1/4" />
-                      <div className="h-3 bg-slate-200 rounded w-1/3" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-8">
+              <SkeletonLoader type="list" />
             </div>
           ) : bookings.length === 0 ? (
             <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">

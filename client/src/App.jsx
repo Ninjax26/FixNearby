@@ -1,14 +1,22 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 
 // ─── Layout Components (always loaded — tiny, needed immediately) ─────────────
-import Navbar          from './components/Navbar';
-import Footer          from './components/Footer';
-import Toast           from './components/Toast';
-import LocationBanner  from './components/LocationBanner';
-import BackToTop       from './components/BackToTop';
-import SOSButton       from './components/SOSButton';
-import useOfflineSync  from './hooks/useOfflineSync';
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Toast from "./components/Toast";
+import LocationBanner from "./components/LocationBanner";
+import BackToTop from "./components/BackToTop";
+import SOSButton from "./components/SOSButton";
+import useNetworkSync from "./hooks/useNetworkSync";
+import ErrorBoundary from "./components/ErrorBoundary";
+import SuspenseBoundary from "./components/SuspenseBoundary";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
@@ -31,6 +39,7 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
+const CivicIssues      = lazy(() => import('./pages/CivicIssues'));
 const NotFound         = lazy(() => import('./pages/NotFound'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
@@ -41,19 +50,35 @@ const ResetPasswordWorker = lazy(()=>import('./pages/ResetPasswordWorker'));
 
 // ─── Route Definitions ────────────────────────────────────────────────────────
 // Grouped for clarity and easy future additions
+// ---------------- Auth Guard ----------------
+// User-protected routes (client-side guard).
+// Backend still enforces authorization via JWT middleware.
+function RequireAuth({ children }) {
+  const { isAuthenticated, authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  return isAuthenticated ? children : <Login />;
+}
+
 const ROUTES = [
   // Core
-  { path: '/',                  element: <Home /> },
-  { path: '/login',             element: <Login /> },
-  { path: '/register',          element: <Register /> },
-  { path: '/dashboard',         element: <Dashboard /> },
+  { path: "/", element: <Home /> },
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/dashboard", element: <Dashboard /> },
 
   // auth - forgot and reset password routes
-  { path: '/forgot-password', element: <ForgotPasswordUser/>},
-  { path: '/reset-password/:token', element : <ResetPasswordUser/> },
-  { path: '/worker/forgot-password', element: <ForgotPasswordWorker/>},
-  { path: '/worker/reset-password/:token', element : <ResetPasswordWorker/> },
-
+  { path: "/forgot-password", element: <ForgotPasswordUser /> },
+  { path: "/reset-password/:token", element: <ResetPasswordUser /> },
+  { path: "/worker/forgot-password", element: <ForgotPasswordWorker /> },
+  { path: "/worker/reset-password/:token", element: <ResetPasswordWorker /> },
 
   // Workers & Services
   { path: '/services',          element: <Services /> },
@@ -63,22 +88,36 @@ const ROUTES = [
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
-
-  // User
-  { path: '/profile',           element: <Profile /> },
-  { path: '/bookings',          element: <Bookings /> },
+  { path: '/civic-issues',      element: <CivicIssues /> },
+  // User (protected)
+  {
+    path: "/profile",
+    element: (
+      <RequireAuth>
+        <Profile />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/bookings",
+    element: (
+      <RequireAuth>
+        <Bookings />
+      </RequireAuth>
+    ),
+  },
 
   // Info & Support
-  { path: '/help',              element: <HelpCenter /> },
-  { path: '/faq',               element: <FAQ /> },
-  { path: '/terms',             element: <TermsOfService /> },
-  { path: '/privacy',           element: <PrivacyPolicy /> },
-  { path: '/contact',           element: <Contact /> },
-  { path: '/community',         element: <Community /> },
-  { path: '/feedback',          element: <Feedback /> },
+  { path: "/help", element: <HelpCenter /> },
+  { path: "/faq", element: <FAQ /> },
+  { path: "/terms", element: <TermsOfService /> },
+  { path: "/privacy", element: <PrivacyPolicy /> },
+  { path: "/contact", element: <Contact /> },
+  { path: "/community", element: <Community /> },
+  { path: "/feedback", element: <Feedback /> },
 
   // Fallback
-  { path: '*',                  element: <NotFound /> },
+  { path: "*", element: <NotFound /> },
 ];
 
 // ─── Page Loader (shown while lazy chunks load) ───────────────────────────────
@@ -94,30 +133,35 @@ const PageLoader = () => (
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const location = useLocation();
-  useOfflineSync();
+  useNetworkSync();
 
   // Hide LocationBanner on Home — it has its own live-location section
-  const showLocationBanner = location.pathname !== '/';
+  const showLocationBanner = location.pathname !== "/";
 
   return (
     <div className="flex flex-col min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+      <AriaAnnouncer />
       <Navbar />
       {showLocationBanner && <LocationBanner />}
       <Toast />
 
-      <main className="flex-grow bg-gray-50">
-        {/* Suspense wraps all lazy routes — shows PageLoader during chunk fetch */}
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {ROUTES.map(({ path, element }) => (
-              <Route key={path} path={path} element={element} />
-            ))}
-          </Routes>
-        </Suspense>
+      <main id="main-content" className="flex-grow bg-gray-50 dark:bg-slate-900" tabIndex={-1}>
+        <ErrorBoundary>
+          <SuspenseBoundary>
+            <Routes>
+              {ROUTES.map(({ path, element }) => (
+                <Route key={path} path={path} element={element} />
+              ))}
+            </Routes>
+          </SuspenseBoundary>        </ErrorBoundary>
       </main>
-
       <BackToTop />
-      {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
       <Footer />
     </div>

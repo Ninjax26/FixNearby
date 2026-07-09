@@ -3,6 +3,11 @@ import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import Worker from './models/Worker.js';
 import Message from './models/Message.js';
+import allowedOrigins from './config/corsOrigins.js';
+import { verifySocketAuth } from './utils/verifySocketAuth.js';
+import { messageRetryService } from './services/messageRetryService.js';
+import { handleSendMessage, handleTyping } from './socketHandlers/chatHandler.js';
+import { handlePresenceUpdate } from './socketHandlers/presenceHandler.js';
 
 // Map to track active user socket mappings
 // Map format: userId -> Set of socket.ids
@@ -15,7 +20,7 @@ export const getIo = () => ioInstance;
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: '*',
+      origin: allowedOrigins,
       credentials: true
     }
   });
@@ -23,39 +28,7 @@ export const initSocket = (server) => {
   ioInstance = io;
 
   // Socket middleware for authentication
-  io.use(async (socket, next) => {
-    try {
-      // Find token in auth handshakes or authorization headers
-      let token = socket.handshake.auth?.token || socket.handshake.headers?.authorization;
-      if (token && token.startsWith('Bearer ')) {
-        token = token.split(' ')[1];
-      }
-
-      if (!token) {
-        return next(new Error('Authentication error: Token not provided'));
-      }
-
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      let user = await User.findById(decoded.id).select('-password');
-      let userType = 'User';
-
-      if (!user) {
-        user = await Worker.findById(decoded.id).select('-password');
-        userType = 'Worker';
-      }
-
-      if (!user) {
-        return next(new Error('Authentication error: User/Worker not found'));
-      }
-
-      socket.user = user;
-      socket.userType = userType;
-      next();
-    } catch (err) {
-      return next(new Error('Authentication error: Invalid token'));
-    }
-  });
+  io.use(verifySocketAuth);
 
   io.on('connection', async (socket) => {
     const userId = socket.user._id.toString();
@@ -84,56 +57,14 @@ export const initSocket = (server) => {
     }
 
     // Message transmission
-    socket.on('sendMessage', async (data, callback) => {
-      try {
-        const { receiverId, receiverModel, text } = data;
-        if (!receiverId || !receiverModel || !text) {
-          if (callback) callback({ success: false, error: 'Invalid message payload' });
-          return;
-        }
+    // Presence update from client
+    socket.on('presence_update', handlePresenceUpdate(io, socket, userId, userType));
 
-        if (!['User', 'Worker'].includes(receiverModel)) {
-          if (callback) callback({ success: false, error: 'Invalid receiver model' });
-          return;
-        }
-
-        // Persist message
-        const message = await Message.create({
-          senderId: userId,
-          senderModel: userType,
-          receiverId,
-          receiverModel,
-          text
-        });
-
-        const msgData = {
-          _id: message._id,
-          senderId: message.senderId,
-          senderModel: message.senderModel,
-          receiverId: message.receiverId,
-          receiverModel: message.receiverModel,
-          text: message.text,
-          createdAt: message.createdAt,
-          updatedAt: message.updatedAt
-        };
-
-        // Emit to target user's room and sender's room
-        io.to(receiverId).emit('receiveMessage', msgData);
-        io.to(userId).emit('receiveMessage', msgData);
-
-        if (callback) callback({ success: true, message: msgData });
-      } catch (err) {
-        if (callback) callback({ success: false, error: err.message });
-      }
-    });
+    // Message transmission with ordering & ack
+    socket.on('sendMessage', handleSendMessage(io, socket, userId, userType));
 
     // Typing indicators
-    socket.on('typing', (data) => {
-      const { receiverId } = data;
-      if (receiverId) {
-        io.to(receiverId).emit('typing', { senderId: userId });
-      }
-    });
+    socket.on('typing', handleTyping(io, io, userId));
 
     socket.on('stop_typing', (data) => {
       const { receiverId } = data;

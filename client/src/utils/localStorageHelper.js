@@ -1,6 +1,7 @@
 /**
  * Safe local storage service helper that prevents serialization errors
  * and gracefully falls back if localStorage is disabled or quota is exceeded.
+ * Referenced by client/src/utils/mathUtils.js.
  */
 const localStorageHelper = {
   /**

@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import useToast from "../hooks/useToast";
 import {
   FaGithub,
   FaEnvelope,
@@ -31,13 +32,14 @@ const Footer = () => {
     }
   };
 
-  // FIX #590: Handle newsletter submission
+  // FIX #590: Handle newsletter submission — prevent page reload & show toast
+  const { showToast } = useToast();
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    console.log("Newsletter email:", newsletterEmail);
+    if (!newsletterEmail.trim()) return;
     // TODO: Send to backend API
     setNewsletterEmail("");
-    alert("Thanks for subscribing!");
+    showToast("Thanks for subscribing! You'll hear from us soon. 🎉", "success");
   };
 
   const linkClass = (path) =>
@@ -48,7 +50,7 @@ const Footer = () => {
     }`;
 
   return (
-    <footer className="bg-gradient-to-b from-gray-950 via-black to-black text-gray-300 mt-auto border-t border-gray-800 relative overflow-hidden">
+    <footer className="bg-gradient-to-b from-gray-950 via-black to-black text-gray-300 mt-auto border-t border-gray-800 relative overflow-hidden dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       
       {/* Glow Effects */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/10 blur-3xl rounded-full"></div>

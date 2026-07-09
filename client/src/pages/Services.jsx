@@ -9,12 +9,15 @@ import {
   Scale,
   SprayCan,
   Heart,
+  Star,
 } from "lucide-react";
 
 
-import LoadingSpinner from "../components/LoadingSpinner";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+import SkeletonLoader from "../components/SkeletonLoader";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
+import ReviewBadge from "../components/ReviewBadge";
 import useSearch from "../hooks/useSearch";
 import { fetchWorkers } from "../services/workerService";
 import { getSearchSuggestions } from "../services/searchService";
@@ -287,9 +290,12 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
 };
 
 const Services = () => {
+  useDocumentTitle("Services");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { coords } = useLocation();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || ""
@@ -327,7 +333,7 @@ const Services = () => {
 
   const handleToggleFavorite = async (workerId) => {
     if (!isAuthenticated) {
-      alert("Please log in to save professionals to your favorites.");
+      showToast("Please log in to save professionals to your favorites.", "error");
       return;
     }
 
@@ -357,7 +363,7 @@ const Services = () => {
         }
         return copy;
       });
-      alert("Failed to update favorite. Please try again.");
+      showToast("Failed to update favorite. Please try again.", "error");
     }
   };
 
@@ -402,18 +408,45 @@ const Services = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const backendWorkers = await fetchWorkers();
-        // Merge backend workers and mock workers, preventing duplicate IDs
-        if (backendWorkers && backendWorkers.length > 0) {
-          const merged = new Map();
-          mockWorkers.forEach(w => merged.set(w.id, w));
-          backendWorkers.forEach(w => merged.set(w.id, w));
-          setWorkers(Array.from(merged.values()));
+        const queryParams = {
+          q: searchQuery,
+          category: categoryFilter,
+          minPrice: advancedFilters.minPrice,
+          maxPrice: advancedFilters.maxPrice,
+          minRating: advancedFilters.minRating,
+          maxDistance: advancedFilters.maxDistance,
+          availability: advancedFilters.availability,
+          sort: sortBy,
+          lat: coords?.latitude || null,
+          lon: coords?.longitude || null,
+        };
+        const searchResponse = await searchWorkers(queryParams);
+        const backendWorkers = searchResponse?.data || [];
+        // Map backend search result to client expectations
+        const mappedBackend = backendWorkers.map(w => ({
+          ...w,
+          id: w._id || w.id,
+          profession: w.category || w.profession,
+          price: w.price ? (w.price.toString().startsWith('$') ? w.price : `$${w.price}/hr`) : "$30/hr",
+          availability: w.availability || 
+            (w.availabilityStatus === "available" ? "Available today" : 
+             w.availabilityStatus === "busy" ? "Busy" : 
+             w.availabilityStatus === "offline" ? "Offline" : "Available today"),
+          responseTime: w.responseTime || "Replies in 15 min",
+          outcomeText: w.outcomeText || `Review past work and request a ${w.category?.toLowerCase() || 'service'} visit.`,
+          mockOffset: w.mockOffset || (w.coordinates ? { lat: w.coordinates.lat, lon: w.coordinates.lon } : null),
+          verified: w.verified ?? true,
+          rating: Number(w.rating) || 4.5,
+          completedJobs: w.completedJobs || 12,
+        }));
+
+        if (mappedBackend && mappedBackend.length > 0) {
+          setWorkers(mappedBackend);
         } else {
           setWorkers(mockWorkers);
         }
       } catch (err) {
-        console.error("Failed to fetch workers, falling back to mock data", err);
+        console.error("Failed to fetch search results from backend, falling back to mock data", err);
         setWorkers(mockWorkers);
       } finally {
         const storedRecent =
@@ -423,7 +456,7 @@ const Services = () => {
       }
     };
     loadData();
-  }, []);
+  }, [searchQuery, categoryFilter, sortBy, coords, advancedFilters]);
 
   // SYNC URL PARAMS TO STATE
   useEffect(() => {
@@ -624,14 +657,14 @@ const Services = () => {
       {/* SEARCH + SORT */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <input
-          className="w-full rounded-xl border px-4 py-3"
+          className="w-full rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
           placeholder="Search services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
         <select
-          className="rounded-xl border px-4 py-3"
+          className="rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -664,7 +697,7 @@ const Services = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="distance">📍 Nearest</option>
             <option value="rating">⭐ Top Rated</option>
@@ -675,7 +708,7 @@ const Services = () => {
             onClick={() => setUrgentFilter((prev) => !prev)}
             className={`rounded-xl border px-5 py-3 font-bold shadow-sm transition-all duration-300 flex items-center justify-center gap-2 ${urgentFilter
               ? "border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               }`}
           >
             <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
@@ -684,7 +717,7 @@ const Services = () => {
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden"
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             <SlidersHorizontal className="h-5 w-5" />
             <span>Advanced Filters</span>
@@ -804,116 +837,145 @@ const Services = () => {
           />
 
           {/* MAIN CONTENT */}
-          <div className="flex-1">
-            {/* WORKER CARDS */}
-            {loading ? (
-              <LoadingSpinner />
-            ) : filteredWorkers.length === 0 ? (
-              <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
-                <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
-                <p className="mx-auto mt-2 max-w-md text-gray-500">
-                  Try a broader search or reset the selected category.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleResetFilters}
-                  className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            ) : (
-              <>
-                <p className="mb-6 text-sm font-medium text-gray-500">
-                  Showing {filteredWorkers.length} services
-                </p>
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-                  {filteredWorkers.map((worker) => (
-                    <div
-                      key={worker.id}
-                      className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-100 hover:shadow-2xl relative"
-                    >
-                      {/* Favorite/Save Toggle Button */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleToggleFavorite(worker._id || worker.id);
-                        }}
-                        className="absolute top-4 right-4 p-2.5 rounded-full bg-white/95 hover:bg-white text-gray-400 hover:text-red-500 transition-all shadow-sm border border-gray-100/60 z-10 focus:outline-none"
-                        title={favoritedWorkerIds.has(worker._id || worker.id) ? "Remove from Saved" : "Save Professional"}
+          <div className="flex-grow lg:grid lg:grid-cols-12 lg:gap-8 items-start w-full">
+            {/* WORKER LIST (Left part of split) */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* WORKER CARDS */}
+              {loading ? (
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  {[...Array(4)].map((_, i) => (
+                    <SkeletonLoader key={i} type="card" />
+                  ))}
+                </div>
+              ) : filteredWorkers.length === 0 ? (
+                <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
+                  <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
+                  <p className="mx-auto mt-2 max-w-md text-gray-500">
+                    Try a broader search or reset the selected category.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="mt-6 rounded-xl bg-blue-600 px-8 py-3 font-bold text-white transition hover:bg-blue-700"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="mb-6 text-sm font-medium text-gray-500">
+                    Showing {filteredWorkers.length} services
+                  </p>
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    {filteredWorkers.map((worker) => (
+                      <div
+                        key={worker.id}
+                        id={`worker-card-${worker.id}`}
+                        className={`flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 relative ${
+                          selectedWorkerId === worker.id
+                            ? "border-blue-500 shadow-xl ring-2 ring-blue-100 scale-[1.01]"
+                            : "border-gray-100 hover:border-blue-100 hover:shadow-2xl"
+                        }`}
                       >
-                        <Heart
-                          className={`h-5 w-5 transition-transform active:scale-125 ${
-                            favoritedWorkerIds.has(worker._id || worker.id)
-                              ? "fill-red-500 text-red-500"
-                              : "text-gray-400 hover:text-red-500"
-                          }`}
-                        />
-                      </button>
+                        {/* Favorite/Save Toggle Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleFavorite(worker._id || worker.id);
+                          }}
+                          className="absolute top-4 right-4 p-2.5 rounded-full bg-white/95 hover:bg-white text-gray-400 hover:text-red-500 transition-all shadow-sm border border-gray-100/60 z-10 focus:outline-none"
+                          title={favoritedWorkerIds.has(worker._id || worker.id) ? "Remove from Saved" : "Save Professional"}
+                        >
+                          <Heart
+                            className={`h-5 w-5 transition-transform active:scale-125 ${
+                              favoritedWorkerIds.has(worker._id || worker.id)
+                                ? "fill-red-500 text-red-500"
+                                : "text-gray-400 hover:text-red-500"
+                            }`}
+                          />
+                        </button>
 
-                      <div className="flex-1 p-8">
-                        <div className="mb-6 flex items-start justify-between">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                            {(() => {
-                              const Icon = iconMap[worker.profession];
-                              if (!Icon) return <span aria-hidden="true">👷</span>;
-                              return <Icon className="h-8 w-8" aria-hidden="true" />;
-                            })()}
+                        {/* WORKER IMAGE & BADGES */}
+                        <div className="relative h-48 bg-slate-100">
+                          {/* Image placeholder or fallback */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-400 font-bold text-5xl">
+                            {worker.name.charAt(0)}
+                          </div>
+                          
+                          {/* Badges Overlay */}
+                          <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+                            <span className="rounded-lg bg-slate-900/80 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                              {worker.profession}
+                            </span>
+                            {worker.verified && (
+                              <span className="rounded-lg bg-emerald-500/80 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                                Verified
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* CONTENT */}
+                        <div className="flex flex-1 flex-col p-6">
+                          <div className="mb-2 flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">{worker.name}</h3>
+                              <div className="mt-1">
+                                <ReviewBadge rating={worker.rating} count={worker.completedJobs} />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm font-bold text-gray-700">{worker.rating}</span>
+                            </div>
                           </div>
 
-                          {worker.verified && (
-                            <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700">
-                              Verified
+                          <p className="mb-4 text-sm text-gray-500 line-clamp-2">
+                            {worker.bio || "Professional service provider available for local projects and consultations."}
+                          </p>
+
+                          <div className="mb-6 flex flex-wrap items-center gap-y-2 text-xs font-medium text-gray-500">
+                            <span className="mr-4 flex items-center gap-1">
+                              💵 ${worker.price || 40}/hr
                             </span>
-                          )}
-                        </div>
-
-                        <h3 className="mb-1 text-2xl font-bold text-gray-900">
-                          {worker.name}
-                        </h3>
-                        <p className="mb-4 font-bold text-blue-600">
-                          {worker.profession}
-                        </p>
-
-                        <div className="mb-4">
-                          <WorkerSlots
-                            workerId={worker.id}
-                            mockAvailability={worker.availability}
-                            mockResponseTime={worker.responseTime}
-                          />
-                        </div>
-
-                        <div className="mb-6 flex flex-wrap items-center gap-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-                          <span className="font-bold text-gray-900">
-                            Rating {worker.rating}
-                          </span>
-                          <span className="font-bold text-gray-900">
-                            ${worker.price}/hr
-                          </span>
-                          {worker.distanceKm !== null && (
-                            <span className="font-bold text-gray-900">
-                              {formatDistance(worker.distanceKm)}
+                            <span className="mr-4 flex items-center gap-1">
+                              ⚡ {worker.responseTime || "Replies fast"}
                             </span>
-                          )}
-                        </div>
+                            <span className="flex items-center gap-1">
+                              📅 {worker.availability || "Flexible schedule"}
+                            </span>
+                          </div>
 
-                        <p className="text-sm leading-6 text-slate-600">
-                          {worker.outcomeText}
-                        </p>
-                      </div>
-
-                      <div className="p-8 pt-0 space-y-3">
-                        <a
-                          title="Get Directions"
-                          href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
-                        >
-                          📍 Open in Google Maps
-                        </a>
+                          {/* Trust & Policies Disclosure */}
+                          <div className="mt-2 mb-4 pt-4 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => setExpandedTrustId(expandedTrustId === worker.id ? null : worker.id)}
+                              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 focus:ring-2 focus:ring-blue-500 focus:outline-none rounded transition"
+                              aria-expanded={expandedTrustId === worker.id}
+                              aria-label={`Show SLA policies and trust badges for ${worker.name}`}
+                            >
+                              🛡️ Trust Layer & SLA Policies {expandedTrustId === worker.id ? '▲' : '▼'}
+                            </button>
+                            {expandedTrustId === worker.id && (
+                              <div className="mt-2.5 bg-slate-50 border border-slate-100 rounded-xl p-3 text-[11px] text-slate-600 space-y-2 animate-fadeIn">
+                                <div>
+                                  <span className="font-bold text-slate-800">⚡ Response SLA:</span> Guarantees replies within {worker.slaResponseMins || 30} minutes.
+                                </div>
+                                <div>
+                                  <span className="font-bold text-slate-800">📍 Coverage:</span> {worker.serviceCoverage ? worker.serviceCoverage.join(', ') : 'Local Metro Area (15km radius)'}.
+                                </div>
+                                <div>
+                                  <span className="font-bold text-slate-800">Cancellation:</span> {worker.cancellationPolicy || 'Free cancellation up to 24 hours prior.'}
+                                </div>
+                                <div>
+                                  <span className="font-bold text-slate-800">Refund Policy:</span> {worker.refundPolicy || 'Full refund guaranteed if response SLA is missed.'}
+                                </div>
+                              </div>
+                            )}
+                          </div>
 
                         {getEstimatorConfig(worker.profession) !== null && (
                           <button
@@ -933,11 +995,20 @@ const Services = () => {
                           View Profile and Book
                         </Link>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* MAP CONTAINER (Right part of split, sticky) */}
+            <div className="hidden lg:block lg:col-span-5 sticky top-24 h-[calc(100vh-140px)] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
+              <MapView
+                workers={filteredWorkers}
+                selectedWorkerId={selectedWorkerId}
+                onMarkerClick={handleMarkerClick}
+              />
+            </div>
           </div>
         </div>
       </div>

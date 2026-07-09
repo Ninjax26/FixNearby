@@ -29,6 +29,49 @@ paths:
       responses:
         '200':
           description: Successful profile retrieval
+  /api/availability/status:
+    put:
+      summary: Update authenticated worker availability status
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - availabilityStatus
+              properties:
+                availabilityStatus:
+                  type: string
+                  enum:
+                    - available
+                    - busy
+                    - offline
+      responses:
+        '200':
+          description: Availability status updated successfully
+        '400':
+          description: Invalid availability status
+        '401':
+          description: Worker authentication is required
+  /api/availability/status/{workerId}:
+    get:
+      summary: Get a worker's public availability status
+      parameters:
+        - name: workerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Worker availability status returned successfully
+        '400':
+          description: Invalid worker ID
+        '404':
+          description: Worker not found
   /api/issues/nearby:
     get:
       summary: Get Nearby Issues

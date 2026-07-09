@@ -17,7 +17,7 @@ const issueSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['Traffic Light', 'Pothole', 'Street Light', 'Sidewalk', 'Drainage', 'Graffiti', 'Litter', 'Other']
+    enum: ['Traffic Light', 'Pothole', 'Street Light', 'Sidewalk', 'Drainage', 'Graffiti', 'Litter', 'Other', 'Booking Dispute']
   },
   location: {
     type: {
@@ -56,9 +56,16 @@ const issueSchema = new mongoose.Schema({
     default: 0,
     min: [0, 'Upvotes cannot be negative']
   },
+  bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', required: false },
+  workerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker', required: false },
   upvotedBy: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  }],
+  responses: [{
+    responder: { type: mongoose.Schema.Types.ObjectId, ref: 'Worker' },
+    message: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
   }],
   reportedBy: {
     type: mongoose.Schema.Types.ObjectId,

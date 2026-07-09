@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 import { motion } from 'framer-motion';
 import { useTranslation } from "react-i18next";
 import { useLocation } from "../context/LocationContext";
@@ -187,7 +188,7 @@ const Home = () => {
   const { coords, loading: geoLoading, error: geoError } = useLocation();
   const { t } = useTranslation();
 
-  // Recommendation state
+  useDocumentTitle("Home");
   const [recLoading, setRecLoading]         = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [minRating, setMinRating]           = useState(0);

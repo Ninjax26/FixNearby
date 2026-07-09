@@ -6,11 +6,13 @@ import { validatePassword } from "../utils/validatePassword.js";
 import Booking from "../models/Booking.js";
 import Review from "../models/Review.js";
 
+const WORKER_AVAILABILITY_STATUSES = ["available", "busy", "offline"];
+
 const generateToken = (id) => {
   return jwt.sign(
     { id },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "30d" }
   );
 };
 
@@ -115,6 +117,12 @@ export const loginWorker = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide an email and password",
+      });
+    }
     const normalizedEmail = email.toLowerCase().trim();
 
     const emailRegex =
@@ -169,7 +177,7 @@ export const getWorkers = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const workers = await Worker.find()
-      .select("name email category experience location contact availabilityStatus profilePicture lastActive averageRating")
+      .select("name email category experience location contact availabilityStatus profilePicture lastActive averageRating reviewCount")
       .limit(limit)
       .skip(skip)
       .lean();
@@ -239,6 +247,86 @@ export const getWorkerProfile = async (req, res) => {
     success: true,
     worker: req.worker,
   });
+};
+
+export const updateWorkerAvailabilityStatus = async (req, res) => {
+  try {
+    const { availabilityStatus } = req.body;
+
+    if (!WORKER_AVAILABILITY_STATUSES.includes(availabilityStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Availability status must be available, busy, or offline",
+      });
+    }
+
+    const worker = await Worker.findByIdAndUpdate(
+      req.worker._id,
+      {
+        availabilityStatus,
+        lastActive: new Date(),
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("availabilityStatus lastActive");
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      availabilityStatus: worker.availabilityStatus,
+      lastActive: worker.lastActive,
+    });
+  } catch (error) {
+    console.error("Error updating worker availability status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+export const getWorkerAvailabilityStatus = async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(workerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid worker ID",
+      });
+    }
+
+    const worker = await Worker.findById(workerId)
+      .select("availabilityStatus lastActive")
+      .lean();
+
+    if (!worker) {
+      return res.status(404).json({
+        success: false,
+        message: "Worker not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      availabilityStatus: worker.availabilityStatus,
+      lastActive: worker.lastActive,
+    });
+  } catch (error) {
+    console.error("Error fetching worker availability status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
 };
 
 export const getNearbyWorkers = async (req, res) => {
@@ -521,6 +609,29 @@ export const getWorkerReviews = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error: " + error.message
+    });
+  }
+};
+
+export const getWorkerDashboardStats = async (req, res) => {
+  try {
+    const workerId = req.worker._id;
+    const totalJobs = await Booking.countDocuments({ workerId });
+    const activeJobs = await Booking.countDocuments({ workerId, status: { $in: ['Pending', 'Confirmed', 'Accepted', 'In-Progress'] } });
+    const completedJobs = await Booking.countDocuments({ workerId, status: 'Completed' });
+    
+    res.status(200).json({
+      success: true,
+      totalJobs,
+      activeJobs,
+      completedJobs,
+      rating: req.worker.averageRating || 5.0
+    });
+  } catch (error) {
+    console.error("Error fetching worker dashboard stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
     });
   }
 };

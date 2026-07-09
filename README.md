@@ -85,7 +85,7 @@ We rely on the open-source community to bring this platform to life! If you are 
 
 ## 🛠️ Getting Started
 
-Want to run the project locally? Follow these steps.
+Want to run the project locally? Please refer to our comprehensive [**Developer Guide**](./docs/DEVELOPER_GUIDE.md) for full setup instructions, or follow these quick steps:
 
 ### 📌 Prerequisites
 
@@ -144,7 +144,7 @@ If you run into issues, try the following:
 
 We welcome contributions from everyone—whether you are a beginner looking for your first PR, or a senior dev wanting to design system architecture.
 
-Please read our [**CONTRIBUTING.md**](./CONTRIBUTING.md) for detailed instructions on how to fork the repo, create a branch, and submit a Pull Request.
+Please read our [**CONTRIBUTING.md**](./docs/CONTRIBUTING.md) for detailed instructions on how to fork the repo, create a branch, and submit a Pull Request.
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 

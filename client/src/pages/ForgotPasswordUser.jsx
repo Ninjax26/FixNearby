@@ -13,6 +13,14 @@ const ForgotPasswordUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      return showToast("Please enter your email.", "error");
+    }
+    if (!emailRegex.test(email)) {
+      return showToast("Please enter a valid email address.", "error");
+    }
+
     setLoading(true);
 
     try {
@@ -48,6 +56,7 @@ const ForgotPasswordUser = () => {
               onChange={(e) =>
                 setEmail(e.target.value)
               }
+              required
               className="input-base pl-12"
             />
           </div>

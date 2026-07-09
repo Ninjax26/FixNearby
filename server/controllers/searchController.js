@@ -57,80 +57,126 @@ export const searchWorkers = async (req, res) => {
       searchQuery.availabilityStatus = availability;
     }
 
-    // Execute query
-    let workers = await Worker.find(searchQuery);
+    // Execute query (real filtering/sorting based on stored fields)
+    // Worker schema fields used:
+    // - category: string
+    // - availabilityStatus: available|busy|offline
+    // - averageRating: number
+    // - location.coordinates: GeoJSON Point => [longitude, latitude]
 
-    // Apply filters that require post-processing
-    // Note: In production, price and rating should be fields in the Worker model
-    // For now, we'll add mock data for demonstration
+    const hasGeo = lat !== undefined && lon !== undefined && lat !== '' && lon !== '';
+    const latNum = hasGeo ? Number(lat) : null;
+    const lonNum = hasGeo ? Number(lon) : null;
 
-    // Add mock data for filtering (in production, these should come from the database)
-    workers = workers.map(worker => ({
-      ...worker.toObject(),
-      price: Math.floor(Math.random() * 80) + 20, // Mock price $20-$100
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Mock rating 3.5-5.0
-    }));
+    // Normalize numeric filters
+    const minRatingNum = minRating !== undefined && minRating !== '' ? Number(minRating) : 0;
+    const maxDistanceKm = maxDistance !== undefined && maxDistance !== '' ? Number(maxDistance) : null;
 
-    // Price filter
-    if (minPrice || maxPrice) {
-      workers = workers.filter(
-        worker => worker.price >= Number(minPrice) && worker.price <= Number(maxPrice)
+
+    // Build base workers list
+    let workers = [];
+
+    // Real distance using $geoNear when geo coords available
+    if (hasGeo) {
+      const pipeline = [
+        {
+          $geoNear: {
+            near: { type: 'Point', coordinates: [lonNum, latNum] },
+            distanceField: 'distanceKm',
+            spherical: true,
+            query: searchQuery,
+            distanceMultiplier: 0.001, // meters -> km
+            ...(maxDistanceKm ? { maxDistance: maxDistanceKm * 1000 } : {}),
+          },
+        },
+      ];
+
+      // Sorting handled by pipeline when possible
+      if (sort === 'rating') {
+        pipeline.push({ $sort: { averageRating: -1 } });
+      } else if (sort === 'availability') {
+        // Convert enum to order via aggregation is possible, but keep simple for now.
+        // We'll do a post-sort below.
+      } else if (sort === 'distance') {
+        // $geoNear sorts by distance asc by default.
+      } else if (sort === 'price') {
+        // price not present in Worker schema. Post-sort remains no-op.
+      }
+
+      // Keep shape stable
+      pipeline.push({
+        $project: {
+          name: 1,
+          category: 1,
+          availabilityStatus: 1,
+          bio: 1,
+          profilePicture: 1,
+          averageRating: 1,
+          slaResponseMins: 1,
+          serviceCoverage: 1,
+          cancellationPolicy: 1,
+          refundPolicy: 1,
+          contact: 1,
+          responsiveness: 1,
+          karmaScore: 1,
+          experience: 1,
+          portfolio: 1,
+          certifications: 1,
+          faqs: 1,
+          location: 1,
+          distanceKm: 1,
+        },
+      });
+
+      workers = await Worker.aggregate(pipeline);
+    } else {
+      workers = await Worker.find(searchQuery).lean();
+    }
+
+    // Rating filter (server-side)
+    if (minRatingNum && minRatingNum > 0) {
+      workers = workers.filter(w => Number(w.averageRating || 0) >= minRatingNum);
+    }
+
+    // Price filter: Worker schema currently has no price.
+    // Keep as no-op to avoid incorrect results.
+
+    // Normalize output to match client expectations
+    workers = workers.map(w => {
+      const coords = w.location?.coordinates;
+      const workerLat = Array.isArray(coords) && coords.length === 2 ? coords[1] : null;
+      const workerLon = Array.isArray(coords) && coords.length === 2 ? coords[0] : null;
+
+      return {
+        ...w,
+        id: w._id,
+        profession: w.category,
+        rating: Number(w.averageRating || 0) || 0,
+        distanceKm: w.distanceKm !== undefined ? Number(w.distanceKm) : undefined,
+        mockOffset: workerLat !== null && workerLon !== null ? { lat: workerLat, lon: workerLon } : null,
+        coordinates: workerLat !== null && workerLon !== null ? { lat: workerLat, lon: workerLon } : undefined,
+      };
+    });
+
+    // Availability sort post-processing (since aggregation order-by via enum is not added above)
+    if (sort === 'availability') {
+      const availabilityOrder = { available: 0, busy: 1, offline: 2 };
+      workers.sort((a, b) =>
+        availabilityOrder[a.availabilityStatus] - availabilityOrder[b.availabilityStatus]
       );
     }
 
-    // Rating filter
-    if (minRating) {
-      workers = workers.filter(worker => Number(worker.rating) >= Number(minRating));
+    // Distance sort (when no geoNear sorting happened)
+    if (sort === 'distance' && !hasGeo) {
+      // No distance computed without geo coords; keep DB order.
     }
 
-    // Distance calculation and filter
-    if (lat && lon) {
-      workers = workers.map(worker => {
-        // Mock coordinates based on location (in production, store actual coordinates)
-        const workerLat = Number(lat) + (Math.random() - 0.5) * 0.1;
-        const workerLon = Number(lon) + (Math.random() - 0.5) * 0.1;
-        
-        const distance = calculateDistance(
-          Number(lat),
-          Number(lon),
-          workerLat,
-          workerLon
-        );
-        
-        return {
-          ...worker,
-          distance: distance.toFixed(2),
-          coordinates: { lat: workerLat, lon: workerLon },
-        };
-      });
-
-      // Filter by max distance
-      if (maxDistance) {
-        workers = workers.filter(worker => Number(worker.distance) <= Number(maxDistance));
-      }
+    // Rating sort (when no $geoNear sort happened)
+    if (sort === 'rating' && !hasGeo) {
+      workers.sort((a, b) => Number(b.rating) - Number(a.rating));
     }
 
-    // Sorting
-    switch (sort) {
-      case 'rating':
-        workers.sort((a, b) => Number(b.rating) - Number(a.rating));
-        break;
-      case 'price':
-        workers.sort((a, b) => Number(a.price) - Number(b.price));
-        break;
-      case 'availability':
-        const availabilityOrder = { available: 0, busy: 1, offline: 2 };
-        workers.sort((a, b) => 
-          availabilityOrder[a.availabilityStatus] - availabilityOrder[b.availabilityStatus]
-        );
-        break;
-      case 'distance':
-      default:
-        if (lat && lon) {
-          workers.sort((a, b) => Number(a.distance) - Number(b.distance));
-        }
-        break;
-    }
+    // Price sort: no-op (no Worker.price in schema)
 
     // Pagination
     const startIndex = (Number(page) - 1) * Number(limit);
@@ -145,6 +191,9 @@ export const searchWorkers = async (req, res) => {
       totalPages: Math.ceil(workers.length / Number(limit)),
       data: paginatedWorkers,
     });
+
+    return;
+
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({
