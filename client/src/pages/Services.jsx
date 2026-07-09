@@ -22,6 +22,8 @@ import { useLocation } from "../context/LocationContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { useAuth } from "../context/AuthContext";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
+import { getEstimatorConfig } from "../utils/estimatorConfig";
+import EstimateWizard from "../components/EstimateWizard";
 
 const mockWorkers = [
   {
@@ -303,6 +305,7 @@ const Services = () => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
+  const [selectedWorkerForWizard, setSelectedWorkerForWizard] = useState(null);
 
   // Fetch favorited worker IDs
   useEffect(() => {
@@ -912,6 +915,16 @@ const Services = () => {
                           📍 Open in Google Maps
                         </a>
 
+                        {getEstimatorConfig(worker.profession) !== null && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedWorkerForWizard(worker)}
+                            className="block w-full rounded-xl border border-emerald-600 bg-emerald-50 text-center font-bold text-emerald-700 py-4 hover:bg-emerald-100/50 transition-all text-sm focus:outline-none"
+                          >
+                            🧮 Calculate Smart Estimate
+                          </button>
+                        )}
+
                         <Link
                           to={`/worker/${worker.id}`}
                           onClick={() => handleRecentlyViewed(worker)}
@@ -928,6 +941,13 @@ const Services = () => {
           </div>
         </div>
       </div>
+      {selectedWorkerForWizard && (
+        <EstimateWizard
+          isOpen={!!selectedWorkerForWizard}
+          onClose={() => setSelectedWorkerForWizard(null)}
+          worker={selectedWorkerForWizard}
+        />
+      )}
     </div>
   );
 };

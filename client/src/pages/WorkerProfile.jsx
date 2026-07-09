@@ -24,6 +24,7 @@ import {
 
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
+import EstimateWizard from "../components/EstimateWizard";
 import { createBooking } from "../services/bookingService";
 import { useAuth } from "../context/AuthContext";
 import { getWorkerAvailability } from "../services/availabilityService";
@@ -269,6 +270,7 @@ const WorkerProfile = () => {
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [showWizardModal, setShowWizardModal] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && id) {
@@ -827,13 +829,15 @@ const WorkerProfile = () => {
                   >
                     Quick Book
                   </button>
-                  <button
-                    onClick={() => setActiveTab("estimator")}
-                    className="bg-white/20 hover:bg-white/30 text-white font-semibold px-6 py-3 rounded-2xl transition flex items-center gap-2"
-                  >
-                    <Calculator size={16} />
-                    Estimate First
-                  </button>
+                  {hasEstimator && (
+                    <button
+                      onClick={() => setShowWizardModal(true)}
+                      className="bg-white/20 hover:bg-white/30 text-white font-semibold px-6 py-3 rounded-2xl transition flex items-center gap-2"
+                    >
+                      <Calculator size={16} />
+                      Estimate First
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -924,6 +928,13 @@ const WorkerProfile = () => {
             </div>
           )}
 
+      {showWizardModal && worker && (
+        <EstimateWizard
+          isOpen={showWizardModal}
+          onClose={() => setShowWizardModal(false)}
+          worker={worker}
+        />
+      )}
         </div>
       </div>
     </div>
