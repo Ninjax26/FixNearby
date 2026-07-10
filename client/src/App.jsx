@@ -17,6 +17,7 @@ import SOSButton from "./components/SOSButton";
 import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SuspenseBoundary from "./components/SuspenseBoundary";
+import AriaAnnouncer from "./components/AriaAnnouncer";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
