@@ -27,6 +27,7 @@ import SkeletonLoader from "../components/SkeletonLoader";
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
 import EstimateWizard from "../components/EstimateWizard";
+import ImageGallery from "../components/ImageGallery";
 import { createBooking } from "../services/bookingService";
 import WorkerBookingCalendar from "../components/WorkerBookingCalendar";
 import { useAuth } from "../context/AuthContext";
@@ -898,49 +899,19 @@ const WorkerProfile = () => {
 
           {/* ── PORTFOLIO TAB ── */}
           {activeTab === "portfolio" && worker.portfolio && worker.portfolio.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold mb-2">Previous Works</h2>
-              <p className="text-gray-500 mb-6">
-                A snapshot of completed projects by this professional.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {worker.portfolio.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
-                  >
-                    <div className="relative h-44 overflow-hidden bg-gray-100">
-                      <img
-                        src={item.image}
-                        alt={item.description}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      />
-                    </div>
-
-                    <div className="p-5">
-                      <p className="font-semibold text-gray-900 text-sm leading-snug mb-2">
-                        {item.description}
-                      </p>
-
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-                        <CalendarCheck size={13} />
-                        <span>{item.completionDate}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 mb-2">
-                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-bold text-gray-800">
-                          {item.customerRating}
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-gray-500 italic leading-relaxed">
-                        "{item.review}"
-                      </p>
-                    </div>
-                  </div>
-                ))}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 dark:bg-slate-800">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800 dark:text-white">Previous Works</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    A snapshot of completed projects
+                  </p>
+                </div>
+                <span className="text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+                  {worker.portfolio.length} projects
+                </span>
               </div>
+              <ImageGallery images={worker.portfolio} columns={3} />
             </div>
           )}
 
