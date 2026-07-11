@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Droplet,
   Hammer,
@@ -10,6 +10,8 @@ import {
   SprayCan,
   Heart,
   Star,
+  GitCompareArrows,
+  X,
 } from "lucide-react";
 
 
@@ -313,6 +315,8 @@ const Services = () => {
   const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
   const [selectedWorkerForWizard, setSelectedWorkerForWizard] = useState(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [compareIds, setCompareIds] = useState([]);
+  const navigate = useNavigate();
 
   const handleMarkerClick = (workerId) => {
     setSelectedWorkerId(workerId);
@@ -590,6 +594,33 @@ const Services = () => {
 
     return result;
   }, [workers, searchQuery, categoryFilter, sortBy, coords, advancedFilters, urgentFilter]);
+
+  const toggleCompare = (workerId) => {
+    setCompareIds(prev => {
+      if (prev.includes(workerId)) {
+        return prev.filter(id => id !== workerId);
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, workerId];
+    });
+  };
+
+  const removeCompare = (workerId) => {
+    setCompareIds(prev => prev.filter(id => id !== workerId));
+  };
+
+  const goToCompare = () => {
+    if (compareIds.length >= 2) {
+      navigate(`/compare-workers?ids=${compareIds.join(',')}`);
+    }
+  };
+
+  const getCompareWorkerNames = () => {
+    return compareIds.map(id => {
+      const w = filteredWorkers.find(worker => (worker._id || worker.id) === id);
+      return w ? w.name : id;
+    });
+  };
 
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
@@ -902,6 +933,24 @@ const Services = () => {
                           />
                         </button>
 
+                        {/* Compare Checkbox */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleCompare(worker._id || worker.id);
+                          }}
+                          className={`absolute top-4 left-4 p-2.5 rounded-full transition-all shadow-sm border z-10 focus:outline-none ${
+                            compareIds.includes(worker._id || worker.id)
+                              ? "bg-blue-600 border-blue-600 text-white"
+                              : "bg-white/95 hover:bg-white border-gray-100/60 text-gray-400 hover:text-blue-500"
+                          }`}
+                          title={compareIds.includes(worker._id || worker.id) ? "Remove from comparison" : "Add to comparison"}
+                        >
+                          <GitCompareArrows className="h-5 w-5" />
+                        </button>
+
                         {/* WORKER IMAGE & BADGES */}
                         <div className="relative h-48 bg-slate-100">
                           {/* Image placeholder or fallback */}
@@ -997,6 +1046,40 @@ const Services = () => {
           </div>
         </div>
       </div>
+      {/* Floating Compare Bar */}
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 px-5 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-4">
+          <span className="text-sm font-bold text-gray-700">
+            Compare ({compareIds.length}/3)
+          </span>
+          <div className="flex gap-2">
+            {getCompareWorkerNames().map((name, idx) => (
+              <span key={idx} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                {name}
+                <button
+                  type="button"
+                  onClick={() => removeCompare(compareIds[idx])}
+                  className="hover:text-red-500 transition"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={goToCompare}
+            disabled={compareIds.length < 2}
+            className={`rounded-xl px-5 py-2 text-sm font-bold transition ${
+              compareIds.length >= 2
+                ? "bg-slate-900 text-white hover:bg-blue-600"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Compare Now
+          </button>
+        </div>
+      )}
       {selectedWorkerForWizard && (
         <EstimateWizard
           isOpen={!!selectedWorkerForWizard}

@@ -28,6 +28,11 @@ export const workerLogin = async (data) => {
   }
 };
 
+export const getWorkersByIds = async (ids) => {
+  const res = await api.post('/workers/batch', { ids });
+  return res.data;
+};
+
 export const fetchWorkers = async () => {
   try {
     const res = await api.get("/workers");

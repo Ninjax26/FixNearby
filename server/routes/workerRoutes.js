@@ -1,12 +1,13 @@
 // Worker route schema validations enabled
 import express from 'express';
-import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews, getWorkerDashboardStats } from '../controllers/workerController.js';
+import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews, getWorkerDashboardStats, getWorkersBatch } from '../controllers/workerController.js';
 import { protectWorker } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 import { validateGeoCoordinates } from '../middleware/geoValidator.js';
 
 const router = express.Router();
 
+router.post('/batch', getWorkersBatch);
 router.post('/register', upload.single('profilePicture'), validateGeoCoordinates, registerWorker);
 router.post('/login', loginWorker);
 router.get('/profile', protectWorker, getWorkerProfile);
