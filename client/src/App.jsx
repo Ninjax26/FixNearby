@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { lazyWithRetry } from "./utils/performance";
 
 // ─── Layout Components (always loaded — tiny, needed immediately) ─────────────
 import Navbar from "./components/Navbar";
@@ -17,17 +18,18 @@ import SOSButton from "./components/SOSButton";
 import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SuspenseBoundary from "./components/SuspenseBoundary";
+import AriaAnnouncer from "./components/AriaAnnouncer";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
 const Login            = lazy(() => import('./pages/Login'));
 const Register         = lazy(() => import('./pages/Register'));
 const Dashboard        = lazy(() => import('./pages/Dashboard'));
-const Services         = lazy(() => import('./pages/Services'));
-const WorkerProfile    = lazy(() => import('./pages/WorkerProfile'));
-const WorkerDashboard  = lazy(() => import('./pages/WorkerDashboard'));
-const Profile          = lazy(() => import('./pages/Profile'));
-const Bookings         = lazy(() => import('./pages/Bookings'));
+const Services         = lazy(() => lazyWithRetry(() => import('./pages/Services')));
+const WorkerProfile    = lazy(() => lazyWithRetry(() => import('./pages/WorkerProfile')));
+const WorkerDashboard  = lazy(() => lazyWithRetry(() => import('./pages/WorkerDashboard')));
+const Profile          = lazy(() => lazyWithRetry(() => import('./pages/Profile')));
+const Bookings         = lazy(() => lazyWithRetry(() => import('./pages/Bookings')));
 const WorkerRegister   = lazy(() => import('./pages/WorkerRegister'));
 const WorkerLogin      = lazy(() => import('./pages/WorkerLogin'));
 const HelpCenter       = lazy(() => import('./pages/HelpCenter'));
@@ -39,8 +41,11 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
-const CivicIssues      = lazy(() => import('./pages/CivicIssues'));
-const NotFound         = lazy(() => import('./pages/NotFound'));
+const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
+const NotFound            = lazy(() => import('./pages/NotFound'));
+
+const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
@@ -88,7 +93,9 @@ const ROUTES = [
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
-  { path: '/civic-issues',      element: <CivicIssues /> },
+  { path: '/civic-issues',     element: <CivicIssues /> },
+  { path: '/admin',            element: <AdminDashboard /> },
+  { path: '/admin/users',      element: <AdminUsers /> },
   // User (protected)
   {
     path: "/profile",

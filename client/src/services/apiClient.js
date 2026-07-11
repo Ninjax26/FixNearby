@@ -15,15 +15,41 @@ const api = axios.create({
     withCredentials: true,
 });
 
-// Response interceptor for standardized error handling
+const TIMING_THRESHOLD_SLOW = 3000;
+
+api.interceptors.request.use(
+  (config) => {
+    config.metadata = { startTime: performance.now() };
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => {
     if (response.headers["x-csrf-token"]) {
       sessionStorage.setItem("csrf_token", response.headers["x-csrf-token"]);
+    const startTime = response.config?.metadata?.startTime;
+    if (startTime) {
+      const duration = performance.now() - startTime;
+      const method = (response.config.method || 'GET').toUpperCase();
+      const url = response.config.url || '';
+      if (duration > TIMING_THRESHOLD_SLOW) {
+        console.warn(`[API SLOW] ${method} ${url} took ${duration.toFixed(0)}ms`);
+      } else if (process.env.NODE_ENV !== 'production') {
+        console.debug(`[API] ${method} ${url} ${duration.toFixed(0)}ms`);
+      }
     }
     return response;
   },
   (error) => {
+    const startTime = error.config?.metadata?.startTime;
+    if (startTime) {
+      const duration = performance.now() - startTime;
+      const method = (error.config.method || 'GET').toUpperCase();
+      const url = error.config.url || '';
+      console.error(`[API ERROR] ${method} ${url} failed after ${duration.toFixed(0)}ms`);
+    }
     if (error.response?.status === 401) {
       const raw = localStorage.getItem("fixnearby_user");
       if (raw) {
@@ -43,7 +69,6 @@ api.interceptors.response.use(
   }
 );
 
-// Request interceptor to automatically add the Authorization header
 api.interceptors.request.use(
   async (config) => {
     if (typeof config.url === "string") {

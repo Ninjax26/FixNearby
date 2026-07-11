@@ -55,6 +55,11 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Indexes for common access patterns
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ role: 1, status: 1 });
+userSchema.index({ resetPasswordToken: 1 });
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

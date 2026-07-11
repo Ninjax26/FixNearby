@@ -1,4 +1,5 @@
 import healthRoutes from './routes/healthRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -29,8 +30,6 @@ import { startWorker } from './workers/notificationWorker.js';
 import { startBookingReminderScheduler } from './workers/bookingReminderWorker.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import estimateRoutes from './routes/estimateRoutes.js';
-import availabilityRoutes from './routes/availabilityRoutes.js';
-import auditLogRoutes from './routes/auditLogRoutes.js';
 
 dotenv.config();
 
@@ -63,10 +62,19 @@ app.use(
   })
 );
 
+const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000;
+const RATE_LIMIT_MAX = parseInt(process.env.RATE_LIMIT_MAX, 10) || 100;
+
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later."
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again later.",
+    retryAfter: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000)
+  }
 });
 app.use(limiter);
 
@@ -114,6 +122,7 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/estimates', estimateRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start Booking Expiry Check Scheduler
 startBookingExpiryScheduler();
