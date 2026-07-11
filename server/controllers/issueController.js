@@ -99,6 +99,10 @@ export const createIssue = async (req, res) => {
     const parsedLat = parseFloat(latitude);
     const parsedLng = parseFloat(longitude);
 
+    const thumbnailUrl = req.file
+      ? `/uploads/${req.file.filename}`
+      : null;
+
     // Concurrency Check: Verify no existing open issue is registered within close coordinates
     const query = {
       category,
@@ -131,6 +135,7 @@ export const createIssue = async (req, res) => {
       category,
       latitude: parsedLat,
       longitude: parsedLng,
+      thumbnailUrl,
       reportedBy: req.user ? req.user._id : undefined
     });
 
