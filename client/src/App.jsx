@@ -49,6 +49,7 @@ const NotFound            = lazy(() => import('./pages/NotFound'));
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+const EarningsDashboard   = lazy(() => import('./pages/worker/EarningsDashboard'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
@@ -93,6 +94,7 @@ const ROUTES = [
   { path: '/worker/register',   element: <WorkerRegister /> },
   { path: '/worker/login',      element: <WorkerLogin /> },
   { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
+  { path: '/worker/earnings',      element: <EarningsDashboard /> },
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
