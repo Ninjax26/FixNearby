@@ -613,6 +613,97 @@ export const getWorkerReviews = async (req, res) => {
   }
 };
 
+export const getWorkersByBounds = async (req, res) => {
+  try {
+    const { north, south, east, west, category, availabilityStatus, minRating, maxPrice } = req.query;
+
+    if (!north || !south || !east || !west) {
+      return res.status(400).json({ success: false, message: 'Please provide bounding box coordinates (north, south, east, west)' });
+    }
+
+    const query = {
+      'location.coordinates': {
+        $geoWithin: {
+          $box: [
+            [parseFloat(west), parseFloat(south)],
+            [parseFloat(east), parseFloat(north)]
+          ]
+        }
+      }
+    };
+
+    if (category) query.category = category;
+    if (availabilityStatus) query.availabilityStatus = availabilityStatus;
+    if (minRating) query.averageRating = { $gte: parseFloat(minRating) };
+
+    const workers = await Worker.find(query)
+      .select('name category experience location averageRating availabilityStatus profilePicture price bio')
+      .limit(100)
+      .lean();
+
+    res.json({ success: true, count: workers.length, workers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getWorkerClusters = async (req, res) => {
+  try {
+    const { north, south, east, west } = req.query;
+
+    if (!north || !south || !east || !west) {
+      return res.status(400).json({ success: false, message: 'Please provide bounding box coordinates' });
+    }
+
+    const workers = await Worker.find({
+      'location.coordinates': {
+        $geoWithin: {
+          $box: [
+            [parseFloat(west), parseFloat(south)],
+            [parseFloat(east), parseFloat(north)]
+          ]
+        }
+      }
+    })
+    .select('name category location availabilityStatus averageRating')
+    .lean();
+
+    const clusterSize = 0.01;
+    const clusters = {};
+
+    workers.forEach(w => {
+      if (w.location && w.location.coordinates) {
+        const lat = w.location.coordinates[1];
+        const lng = w.location.coordinates[0];
+        const key = `${Math.round(lat / clusterSize)},${Math.round(lng / clusterSize)}`;
+
+        if (!clusters[key]) {
+          clusters[key] = {
+            lat: Math.round(lat / clusterSize) * clusterSize,
+            lng: Math.round(lng / clusterSize) * clusterSize,
+            count: 0,
+            avgRating: 0,
+            categories: new Set()
+          };
+        }
+        clusters[key].count++;
+        clusters[key].avgRating += w.averageRating || 0;
+        clusters[key].categories.add(w.category);
+      }
+    });
+
+    const result = Object.values(clusters).map(c => ({
+      ...c,
+      avgRating: c.count > 0 ? Math.round((c.avgRating / c.count) * 10) / 10 : 0,
+      categories: Array.from(c.categories)
+    }));
+
+    res.json({ success: true, clusters: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const getWorkerDashboardStats = async (req, res) => {
   try {
     const workerId = req.worker._id;
