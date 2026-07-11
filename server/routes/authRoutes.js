@@ -34,12 +34,27 @@ import {
   logoutLimiter
 } from '../middleware/authRateLimiter.js';
 import { validateRegistration, validateLogin } from '../middleware/validationMiddleware.js';
+import { generateCsrfToken } from '../utils/csrfHelper.js';
 
 const router = express.Router();
 router.use(globalApiLimiter);
 
+// CSRF token endpoint — used by the client to recover from expired tokens
+router.get('/csrf-token', (req, res) => {
+  const token = generateCsrfToken();
+  res.cookie('csrf-token', token, {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    httpOnly: false,
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000,
+  });
+  res.json({ token });
+});
+
 {/* USER AUTH ROUTES */}
 
+router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
 router.post('/register', userRegisterLimiter, validateRegistrationPayload, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);

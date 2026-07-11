@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getCsrfToken } from "./csrfService";
+import { getCsrfToken, fetchCsrfToken } from "./csrfService";
 
 const normalizeApiBaseURL = (value) => {
   const baseURL = (value || "http://localhost:5000/api").replace(/\/+$/, "");
@@ -11,8 +11,9 @@ const api = axios.create({
     headers:{
         "Content-Type":"application/json"
     },
-    timeout:10000
-})
+    timeout:15000,
+    withCredentials: true,
+});
 
 const TIMING_THRESHOLD_SLOW = 3000;
 
@@ -26,6 +27,8 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
+    if (response.headers["x-csrf-token"]) {
+      sessionStorage.setItem("csrf_token", response.headers["x-csrf-token"]);
     const startTime = response.config?.metadata?.startTime;
     if (startTime) {
       const duration = performance.now() - startTime;
@@ -59,12 +62,15 @@ api.interceptors.response.use(
         } catch {}
       }
     }
+    if (error.response?.status === 403 && error.response?.data?.message?.includes("CSRF")) {
+      fetchCsrfToken();
+    }
     return Promise.reject(error);
   }
 );
 
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     if (typeof config.url === "string") {
       config.url = config.url.replace(/^\/api(?=\/)/, "");
     }
@@ -78,7 +84,7 @@ api.interceptors.request.use(
         }
       }
     } catch (error) {
-      console.error("Error reading token from localStorage in apiClient", error);
+      console.error("Error reading token from localStorage", error);
     }
 
     const method = config.method?.toUpperCase();
