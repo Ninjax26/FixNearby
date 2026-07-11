@@ -29,7 +29,9 @@ import {
   userRegisterLimiter,
   workerLoginLimiter,
   workerRegisterLimiter,
-  passwordResetLimiter
+  passwordResetLimiter,
+  profileUpdateLimiter,
+  logoutLimiter
 } from '../middleware/authRateLimiter.js';
 import { validateRegistration, validateLogin } from '../middleware/validationMiddleware.js';
 
@@ -38,11 +40,11 @@ router.use(globalApiLimiter);
 
 {/* USER AUTH ROUTES */}
 
-router.post('/register', validateRegistrationPayload, userRegisterLimiter, validateRegistration, registerUser);
+router.post('/register', userRegisterLimiter, validateRegistrationPayload, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
-router.put('/profile', protect, updateUserProfile);
-router.post('/logout', protect, logoutUser);
+router.put('/profile', protect, profileUpdateLimiter, updateUserProfile);
+router.post('/logout', protect, logoutLimiter, logoutUser);
 
 {/* WORKER AUTH ROUTES */}
 
