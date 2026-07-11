@@ -1,4 +1,5 @@
 import healthRoutes from './routes/healthRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -112,6 +113,9 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/estimates', estimateRoutes);
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start Booking Expiry Check Scheduler
 startBookingExpiryScheduler();

@@ -40,9 +40,11 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
-const CivicIssues      = lazy(() => import('./pages/CivicIssues'));
-const NotFound         = lazy(() => import('./pages/NotFound'));
-const ChatPage         = lazy(() => import('./pages/ChatPage'));
+const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
+const NotFound            = lazy(() => import('./pages/NotFound'));
+
+const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
@@ -90,15 +92,9 @@ const ROUTES = [
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
-  { path: '/civic-issues',      element: <CivicIssues /> },
-  {
-    path: '/chat',
-    element: (
-      <RequireAuth>
-        <ChatPage />
-      </RequireAuth>
-    ),
-  },
+  { path: '/civic-issues',     element: <CivicIssues /> },
+  { path: '/admin',            element: <AdminDashboard /> },
+  { path: '/admin/users',      element: <AdminUsers /> },
   // User (protected)
   {
     path: "/profile",
