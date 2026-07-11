@@ -98,6 +98,14 @@ const workerSchema = new mongoose.Schema(
       type: Number,
       default: 100,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationBadge: {
+      type: String,
+      default: '',
+    },
     notificationPreferences: {
       email: { type: Boolean, default: true },
       sms: { type: Boolean, default: true },
