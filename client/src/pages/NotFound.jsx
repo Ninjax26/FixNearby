@@ -1,20 +1,21 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const NotFound = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
-  // Trigger entrance animations after mount
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
 
   const quickLinks = [
-    { label: "Browse Services", to: "/services", icon: "🛠️" },
-    { label: "My Bookings",    to: "/bookings",  icon: "📅" },
-    { label: "Help & FAQ",     to: "/faq",       icon: "❓" },
+    { label: t("nav.services"), to: "/services", icon: "🛠️" },
+    { label: t("nav.myBookings"), to: "/bookings", icon: "📅" },
+    { label: t("footer.faq"), to: "/faq", icon: "❓" },
   ];
 
   return (
@@ -62,11 +63,10 @@ const NotFound = () => {
         }`}
       >
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mt-2">
-          Page not found
+          {t("errors.pageNotFound")}
         </h2>
         <p className="mt-3 text-slate-500 max-w-md mx-auto text-base leading-relaxed">
-          Looks like this page went on a service call and never came back.
-          Let's get you somewhere useful.
+          {t("errors.pageNotFoundDesc")}
         </p>
       </div>
 
@@ -83,7 +83,7 @@ const NotFound = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
-          Back to Home
+          {t("errors.backHome")}
         </button>
       </div>
 
@@ -94,7 +94,7 @@ const NotFound = () => {
         }`}
       >
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">
-          Or explore
+          {t("notFound.orExplore")}
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           {quickLinks.map(({ label, to, icon }) => (

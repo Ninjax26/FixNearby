@@ -39,7 +39,12 @@ export const getNearbyIssues = async (req, res) => {
             key: 'location'
           }
         },
-        { $match: { status: { $nin: ['resolved', 'closed'] } } },
+        { 
+          $match: { 
+            status: { $nin: ['resolved', 'closed'] },
+            ...(category ? { category } : {})
+          } 
+        },
         {
           $group: {
             _id: {
@@ -55,8 +60,7 @@ export const getNearbyIssues = async (req, res) => {
     }
 
     // Project fields: performance optimization
-    const issues = await Issue.find({
-      category,
+    let query = {
       status: { $nin: ['resolved', 'closed'] },
       location: {
         $near: {
@@ -64,7 +68,12 @@ export const getNearbyIssues = async (req, res) => {
           $maxDistance: maxDistanceMeters
         }
       }
-    }).select("title description category location latitude longitude status upvotes reportedAt").limit(100);
+    };
+    if (category) {
+      query.category = category;
+    }
+
+    const issues = await Issue.find(query).select("title description category location latitude longitude status upvotes reportedAt").limit(100);
 
     return res.status(200).json({ type: 'list', data: issues });
   } catch (err) {
@@ -89,6 +98,10 @@ export const createIssue = async (req, res) => {
 
     const parsedLat = parseFloat(latitude);
     const parsedLng = parseFloat(longitude);
+
+    const thumbnailUrl = req.file
+      ? `/uploads/${req.file.filename}`
+      : null;
 
     // Concurrency Check: Verify no existing open issue is registered within close coordinates
     const query = {
@@ -122,6 +135,7 @@ export const createIssue = async (req, res) => {
       category,
       latitude: parsedLat,
       longitude: parsedLng,
+      thumbnailUrl,
       reportedBy: req.user ? req.user._id : undefined
     });
 

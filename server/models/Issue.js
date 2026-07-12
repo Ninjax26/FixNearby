@@ -101,6 +101,12 @@ issueSchema.index({ location: '2dsphere' });
 // Create compound index for efficient queries
 issueSchema.index({ location: '2dsphere', category: 1, status: 1 });
 
+// Index for quick status-based lookups
+issueSchema.index({ status: 1, reportedAt: -1 });
+
+// Index for user-specific queries
+issueSchema.index({ reportedBy: 1, reportedAt: -1 });
+
 // Pre-save middleware to set location.coordinates from latitude/longitude
 issueSchema.pre('save', function(next) {
   if (this.isModified('latitude') || this.isModified('longitude')) {

@@ -100,3 +100,19 @@ export async function getIssueById(issueId) {
     );
   }
 }
+
+/**
+ * Fetch all issues
+ * @returns {Promise<Array<Object>>} - Array of all issues
+ */
+export async function getAllIssues() {
+  try {
+    const response = await api.get('/issues');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching issues:', error);
+    throw new Error(
+      error.response?.data?.message || 'Failed to fetch issues'
+    );
+  }
+}

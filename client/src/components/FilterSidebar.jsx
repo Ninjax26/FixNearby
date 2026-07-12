@@ -83,14 +83,14 @@ const FilterSidebar = ({
         role="dialog"
         aria-label="Filter options"
         aria-modal={isOpen ? "true" : "false"}
-        className={`fixed inset-y-0 left-0 z-50 w-80 transform overflow-y-auto bg-white shadow-xl transition-transform duration-300 lg:relative lg:z-0 lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 w-80 transform overflow-y-auto bg-white shadow-xl transition-transform duration-300 lg:relative lg:z-0 lg:translate-x-0 lg:shadow-none dark:bg-slate-900 dark:border-r dark:border-slate-700 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } ${className}`}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+            <SlidersHorizontal className="h-5 w-5 text-gray-600 dark:text-slate-400" />
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h2>
           </div>
           <div className="flex items-center gap-2">
             {hasActiveFilters && (

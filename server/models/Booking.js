@@ -68,6 +68,8 @@ const bookingSchema = new mongoose.Schema({
 bookingSchema.index({ userId: 1, createdAt: -1 });
 bookingSchema.index({ workerId: 1, createdAt: -1 });
 bookingSchema.index({ workerId: 1, status: 1 });
+bookingSchema.index({ status: 1, scheduledTime: 1 });
+bookingSchema.index({ reminderSent: 1, status: 1, scheduledTime: 1 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
 export default Booking;

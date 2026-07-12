@@ -74,6 +74,53 @@ We have classified our feature wishlist into three categories:
 
 ---
 
+## 🗺️ Q3 2026 Feature Roadmap
+
+### July 2026 — Foundation & Security
+- [ ] Complete Socket.IO chat integration with typing indicators
+- [ ] Deploy rate limiting tiers for all API endpoints
+- [ ] Add structured error monitoring with centralized logging
+- [ ] Implement CSRF protection across all mutation requests
+- [ ] Set up automated dependency vulnerability scanning in CI
+
+### August 2026 — User Experience
+- [ ] Replace localStorage booking flow with full API integration
+- [ ] Add real-time booking status updates via WebSocket
+- [ ] Implement worker search with server-side geospatial filtering
+- [ ] Build interactive map view for worker discovery
+- [ ] Add pagination and caching to booking list views
+
+### September 2026 — Platform Growth
+- [ ] Launch civic issues portal with map-based reporting
+- [ ] Implement review system with photo uploads and sentiment analysis
+- [ ] Add multi-language support (i18n) for all user-facing pages
+- [ ] Build admin dashboard with analytics and user management
+- [ ] Migrate booking expiry to BullMQ repeating jobs
+- [ ] Performance optimization: code splitting, lazy loading, caching
+
+### Q4 2026 — Enterprise & Scale
+- [ ] Stripe/PayPal payment gateway integration
+- [ ] Two-factor authentication (TOTP)
+- [ ] Mobile app (React Native) proof of concept
+- [ ] Webhook system for third-party integrations
+- [ ] Load testing and horizontal scaling preparation
+
+---
+
+## 🎯 Current Sprint Priorities
+
+| Priority | Feature | Owner | Status |
+|----------|---------|-------|--------|
+| P0 | Socket.IO chat frontend | Open | 🔵 In Progress |
+| P0 | Booking system UI enhancement | Open | 🔵 In Progress |
+| P1 | Error monitoring enhancement | Open | 🟡 Planned |
+| P1 | API rate limiting tiers | Open | 🟡 Planned |
+| P2 | Documentation & security policy | Open | 🟢 Ready |
+| P2 | Automated CI documentation checks | Open | 🟢 Ready |
+| P3 | Admin dashboard monitoring | Open | ⚪ Backlog |
+
+---
+
 ## 🤝 4. Code Standards & Pull Request Guidelines
 
 To ensure code quality and consistency, contributors must adhere to these rules:

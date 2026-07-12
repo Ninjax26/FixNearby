@@ -85,10 +85,7 @@ const workerSchema = new mongoose.Schema(
     resetPasswordExpire: {
       type: Date,
     },
-    averageRating: {
-      type: Number,
-      default: 0,
-    },
+
     reviewCount: {
       type: Number,
       default: 0,
@@ -178,12 +175,13 @@ workerSchema.methods.matchPassword =
     );
   };
 
-// FIX #571: Add indexes for database query optimization
 workerSchema.index({ location: "2dsphere" });
 workerSchema.index({ category: 1, availabilityStatus: 1 });
 workerSchema.index({ category: 1, location: 1 });
 workerSchema.index({ location: 1, averageRating: -1 });
 workerSchema.index({ availabilityStatus: 1, averageRating: -1 });
+workerSchema.index({ email: 1 }, { unique: true });
+workerSchema.index({ karmaScore: -1 });
 
 const Worker = mongoose.model(
   "Worker",

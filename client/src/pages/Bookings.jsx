@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import LoadingSpinner from "../components/LoadingSpinner";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+import CenteredLoadingSpinner from "../components/CenteredLoadingSpinner";
 import StarRating from "../components/StarRating";
 import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
+import { showApiError } from "../utils/apiErrorHandler";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -200,6 +202,8 @@ const Bookings = () => {
   const [reviewImages, setReviewImages] = useState([]);
   const [cancelingId, setCancelingId] = useState(null);
   const [cancelError, setCancelError] = useState("");
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState(null);
 
   const [reschedulingId, setReschedulingId] = useState(null);
   const [newTime, setNewTime] = useState("");
@@ -220,10 +224,16 @@ const Bookings = () => {
   }, [bookings, search, statusFilter]);
 
   const handleCancel = async (id) => {
+    setCancelTargetId(id);
+    setCancelModalOpen(true);
+  };
+
+  const confirmCancel = async (reason) => {
     setCancelError("");
-    setCancelingId(id);
-    const ok = await cancelBooking(id);
+    setCancelingId(cancelTargetId);
+    const ok = await cancelBooking(cancelTargetId, reason);
     setCancelingId(null);
+    setCancelTargetId(null);
     if (!ok) {
       setCancelError(
         "Could not cancel this booking. It may already be completed."
@@ -286,7 +296,7 @@ const Bookings = () => {
       }
     } catch (err) {
       console.error("Error submitting review:", err);
-      showToast(err.response?.data?.message || "Failed to submit review.", "error");
+      showApiError(err, showToast);
     }
   };
 
@@ -300,6 +310,8 @@ const Bookings = () => {
   const handleRemoveImage = (idx) => {
     setReviewImages(prev => prev.filter((_, i) => i !== idx));
   };
+
+  useDocumentTitle("My Bookings");
 
   const totalBookings = bookings.length;
   const completedBookings = bookings.filter((b) => b.status === "Completed").length;
@@ -357,7 +369,7 @@ const Bookings = () => {
         </div>
       </div>
 
-      {loading && <LoadingSpinner />}
+      {loading && <SkeletonLoader type="booking" count={3} />}
 
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
@@ -707,6 +719,12 @@ const Bookings = () => {
           ))}
         </div>
       )}
+
+      <CancelBookingModal
+        isOpen={cancelModalOpen}
+        onClose={() => { setCancelModalOpen(false); setCancelTargetId(null); }}
+        onConfirm={confirmCancel}
+      />
     </div>
   );
 };
