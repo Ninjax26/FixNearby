@@ -104,11 +104,16 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // 1. Check fields
-    if (!email || !password) {
+    if (
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !email.trim() ||
+      !password
+    ) {
       return res.status(400).json({ message: "Please provide email and password" });
     }
 
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email.toLowerCase().trim();
 
     // 2. Find user
     const user = await User.findOne({ email: normalizedEmail });
