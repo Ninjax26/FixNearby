@@ -1,57 +1,165 @@
 {
-  "heroTitle": "Trusted Home Services Near You",
-  "heroDesc": "Book verified electricians, plumbers, cleaners, painters and more instantly.",
-
-  "findWorkers": "Find Workers",
-  "becomeWorker": "Become a Worker",
-
-  "featuredTitle": "Featured Professionals",
-  "featuredDesc": "Trusted experts ready to help you.",
-  "viewAll": "View All →",
-
-  "available": "Available",
-  "busy": "Busy",
-  "bookNow": "Book Now",
-
-  "howItWorks": "How It Works",
-
-  "step1Title": "Search Services",
-  "step1Desc": "Find trusted professionals near you.",
-
-  "step2Title": "Book Instantly",
-  "step2Desc": "Choose your preferred date and time.",
-
-  "step3Title": "Get It Done",
-  "step3Desc": "Relax while experts complete the work.",
-
-  "ctaTitle": "Need Help Today?",
-  "ctaDesc": "Hire trusted professionals in minutes.",
-  "exploreServices": "Explore Services",
-
-  "statsCustomers": "Happy Customers",
-  "statsWorkers": "Verified Workers",
-  "statsSupport": "Support",
-  "statsRating": "Average Rating",
-
-  "electrician": "Electrician",
-  "plumber": "Plumber",
-  "painter": "Painter",
-  "acTechnician": "AC Technician",
-
-  "navbarHome": "Home",
-  "navbarServices": "Services",
-  "navbarWorkers": "Workers",
-  "navbarContact": "Contact",
-
-  "footerAbout": "About Us",
-  "footerPrivacy": "Privacy Policy",
-  "footerTerms": "Terms & Conditions",
-
-  "searchPlaceholder": "Search services...",
-  "loading": "Loading...",
-  "noWorkers": "No workers found",
-
-  "login": "Login",
-  "signup": "Sign Up",
-  "logout": "Logout"
+  "nav": {
+    "home": "হোম",
+    "services": "সেবা",
+    "about": "আমাদের সম্পর্কে",
+    "howItWorks": "এটি কীভাবে কাজ করে",
+    "bookings": "বুকিং",
+    "profile": "প্রোফাইল",
+    "myBookings": "আমার বুকিং",
+    "messages": "বার্তা",
+    "logout": "লগ আউট",
+    "joinAsPro": "প্রো হিসেবে যোগ দিন",
+    "getStarted": "শুরু করুন"
+  },
+  "hero": {
+    "headline": "নির্ভরযোগ্য গৃহস্থালী সেবা, যখনই আপনার প্রয়োজন",
+    "subtext": "দ্রুত বুকিং এবং স্বচ্ছ মূল্যের সাথে আপনার কাছের যাচাইকৃত পেশাদারদের খুঁজুন।",
+    "findPro": "পেশাদার খুঁজুন",
+    "becomePro": "পেশাদার হন"
+  },
+  "stats": {
+    "customers": "সন্তুষ্ট গ্রাহক",
+    "pros": "যাচাইকৃত পেশাদার",
+    "support": "সহায়তা",
+    "rating": "রেটিং"
+  },
+  "howItWorks": {
+    "title": "এটি কীভাবে কাজ করে",
+    "subtext": "কাজ সম্পন্ন করার তিনটি সহজ ধাপ।",
+    "step1": "অনুসন্ধান এবং নির্বাচন",
+    "step1desc": "প্রোফাইল ব্রাউজ করুন এবং পর্যালোচনা পড়ুন।",
+    "step2": "সরাসরি বুক করুন",
+    "step2desc": "তাৎক্ষণিকভাবে অ্যাপয়েন্টমেন্ট নির্ধারণ করুন।",
+    "step3": "আরাম করুন এবং উপভোগ করুন",
+    "step3desc": "বিশেষজ্ঞকে কাজটি পরিচালনা করতে দিন।"
+  },
+  "cta": {
+    "title": "আজই সাহায্য দরকার?",
+    "subtext": "মিনিটের মধ্যে বিশ্বস্ত পেশাদারদের বুক করুন।",
+    "findPro": "পেশাদার খুঁজুন",
+    "becomePro": "পেশাদার হন"
+  },
+  "auth": {
+    "login": {
+      "title": "ফিরে আসায় স্বাগতম",
+      "subtitle": "আপনার অ্যাকাউন্টে চালিয়ে যেতে সাইন ইন করুন",
+      "emailLabel": "ইমেইল ঠিকানা",
+      "emailPlaceholder": "আপনার ইমেইল লিখুন",
+      "passwordLabel": "পাসওয়ার্ড",
+      "passwordPlaceholder": "আপনার পাসওয়ার্ড লিখুন",
+      "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+      "submit": "সাইন ইন",
+      "submitting": "সাইন ইন হচ্ছে...",
+      "noAccount": "অ্যাকাউন্ট নেই?",
+      "createAccount": "অ্যাকাউন্ট তৈরি করুন",
+      "errorInvalid": "ভুল ইমেইল বা পাসওয়ার্ড"
+    },
+    "register": {
+      "title": "অ্যাকাউন্ট তৈরি করুন",
+      "subtitle": "FixNearby-তে গ্রাহক হিসেবে যোগ দিন",
+      "nameLabel": "পুরো নাম",
+      "namePlaceholder": "জন ডো",
+      "emailLabel": "ইমেইল",
+      "emailPlaceholder": "john@example.com",
+      "passwordLabel": "পাসওয়ার্ড",
+      "passwordPlaceholder": "অন্তত ৮ অক্ষর",
+      "phoneLabel": "ফোন নম্বর",
+      "phonePlaceholder": "+১ (৫৫৫) ১২৩-৪৫৬৭",
+      "submit": "অ্যাকাউন্ট তৈরি করুন",
+      "submitting": "অ্যাকাউন্ট তৈরি হচ্ছে...",
+      "hasAccount": "ইতিমধ্যে অ্যাকাউন্ট আছে?",
+      "signIn": "সাইন ইন"
+    }
+  },
+  "worker": {
+    "register": {
+      "title": "পেশাদার হন",
+      "subtitle": "FixNearby-তে যোগ দিন এবং আপনার সেবা প্রদান শুরু করুন",
+      "submit": "পেশাদার হিসেবে নিবন্ধন করুন",
+      "submitting": "নিবন্ধন হচ্ছে..."
+    },
+    "profile": {
+      "about": "আমাদের সম্পর্কে",
+      "services": "সেবা",
+      "reviews": "পর্যালোচনা",
+      "portfolio": "পোর্টফোলিও",
+      "booking": "এখনই বুক করুন",
+      "call": "কল",
+      "chat": "চ্যাট",
+      "completedJobs": "সম্পন্ন কাজ",
+      "experience": "অভিজ্ঞতা",
+      "hourlyRate": "হার"
+    }
+  },
+  "services": {
+    "title": "আপনার কাছের সেবা খুঁজুন",
+    "searchPlaceholder": "সেবা, বিভাগ বা অবস্থান দ্বারা অনুসন্ধান...",
+    "filter": "ফিল্টার",
+    "sortBy": "সাজান",
+    "noResults": "কোনো কর্মী পাওয়া যায়নি",
+    "noResultsHint": "আপনার অনুসন্ধান বা ফিল্টার সামঞ্জস্য করুন",
+    "loadMore": "আরও কর্মী লোড করুন",
+    "loading": "কর্মীদের খুঁজছি...",
+    "nearby": "কাছাকাছি",
+    "rating": "রেটিং",
+    "price": "মূল্য",
+    "availability": "প্রাপ্যতা",
+    "allCategories": "সব বিভাগ"
+  },
+  "bookings": {
+    "title": "আমার বুকিং",
+    "empty": "এখনও কোনো বুকিং নেই",
+    "emptyHint": "শুরু করতে একটি সেবা বুক করুন",
+    "pending": "বিচারাধীন",
+    "accepted": "গৃহীত",
+    "inProgress": "প্রক্রিয়াধীন",
+    "completed": "সম্পন্ন",
+    "cancelled": "বাতিল",
+    "expired": "মেয়াদোত্তীর্ণ",
+    "cancel": "বুকিং বাতিল করুন",
+    "reschedule": "পুনর্নির্ধারণ",
+    "details": "বুকিং বিবরণ"
+  },
+  "notFound": {
+    "orExplore": "অথবা খুঁজুন"
+  },
+  "common": {
+    "loading": "লোড হচ্ছে...",
+    "error": "কিছু ভুল হয়েছে",
+    "retry": "পুনরায় চেষ্টা করুন",
+    "save": "সংরক্ষণ",
+    "cancel": "বাতিল",
+    "confirm": "নিশ্চিত",
+    "delete": "মুছুন",
+    "edit": "সম্পাদনা",
+    "close": "বন্ধ",
+    "search": "অনুসন্ধান",
+    "noData": "কোনো তথ্য উপলব্ধ নেই",
+    "viewAll": "সব দেখুন",
+    "learnMore": "আরও জানুন",
+    "back": "পেছনে",
+    "next": "পরবর্তী",
+    "submit": "জমা দিন"
+  },
+  "footer": {
+    "description": "স্থানীয় সেবা পেশাদারদের খুঁজে পাওয়ার জন্য আপনার বিশ্বস্ত প্ল্যাটফর্ম।",
+    "quickLinks": "দ্রুত লিংক",
+    "services": "সেবা",
+    "about": "আমাদের সম্পর্কে",
+    "contact": "যোগাযোগ",
+    "faq": "সাধারণ জিজ্ঞাসা",
+    "support": "সাহায্য কেন্দ্র",
+    "legal": "আইনি",
+    "privacy": "গোপনীয়তা নীতি",
+    "terms": "সেবার শর্তাবলী",
+    "community": "সম্প্রদায়",
+    "rights": "সর্বস্বত্ব সংরক্ষিত।"
+  },
+  "errors": {
+    "pageNotFound": "পেজ পাওয়া যায়নি",
+    "pageNotFoundDesc": "আপনি যে পেজটি খুঁজছেন তা বিদ্যমান নেই বা স্থানান্তরিত হয়েছে।",
+    "backHome": "হোমে ফিরে যান",
+    "networkError": "নেটওয়ার্ক ত্রুটি। আপনার সংযোগ পরীক্ষা করুন।"
+  }
 }

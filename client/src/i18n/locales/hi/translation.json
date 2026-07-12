@@ -7,6 +7,7 @@
     "bookings": "बुकिंग",
     "profile": "प्रोफ़ाइल",
     "myBookings": "मेरी बुकिंग",
+    "messages": "संदेश",
     "logout": "लॉग आउट",
     "joinAsPro": "विशेषज्ञ बनें",
     "getStarted": "शुरू करें"
@@ -38,5 +39,127 @@
     "subtext": "मिनटों में विश्वसनीय पेशेवरों को बुक करें।",
     "findPro": "विशेषज्ञ खोजें",
     "becomePro": "विशेषज्ञ बनें"
+  },
+  "auth": {
+    "login": {
+      "title": "वापसी पर स्वागत है",
+      "subtitle": "अपने खाते में जारी रखने के लिए साइन इन करें",
+      "emailLabel": "ईमेल पता",
+      "emailPlaceholder": "अपना ईमेल दर्ज करें",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "submit": "साइन इन",
+      "submitting": "साइन इन हो रहा है...",
+      "noAccount": "खाता नहीं है?",
+      "createAccount": "खाता बनाएं",
+      "errorInvalid": "गलत ईमेल या पासवर्ड"
+    },
+    "register": {
+      "title": "खाता बनाएं",
+      "subtitle": "FixNearby में एक ग्राहक के रूप में शामिल हों",
+      "nameLabel": "पूरा नाम",
+      "namePlaceholder": "जॉन डो",
+      "emailLabel": "ईमेल",
+      "emailPlaceholder": "john@example.com",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "कम से कम 8 अक्षर",
+      "phoneLabel": "फ़ोन नंबर",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "submit": "खाता बनाएं",
+      "submitting": "खाता बनाया जा रहा है...",
+      "hasAccount": "पहले से खाता है?",
+      "signIn": "साइन इन"
+    }
+  },
+  "worker": {
+    "register": {
+      "title": "विशेषज्ञ बनें",
+      "subtitle": "FixNearby में शामिल हों और अपनी सेवाएं प्रदान करें",
+      "submit": "विशेषज्ञ के रूप में पंजीकरण करें",
+      "submitting": "पंजीकरण हो रहा है..."
+    },
+    "profile": {
+      "about": "हमारे बारे में",
+      "services": "सेवाएं",
+      "reviews": "समीक्षाएं",
+      "portfolio": "पोर्टफोलियो",
+      "booking": "अभी बुक करें",
+      "call": "कॉल",
+      "chat": "चैट",
+      "completedJobs": "पूर्ण किए गए कार्य",
+      "experience": "अनुभव",
+      "hourlyRate": "दर"
+    }
+  },
+  "services": {
+    "title": "अपने पास सेवाएं खोजें",
+    "searchPlaceholder": "सेवा, श्रेणी या स्थान द्वारा खोजें...",
+    "filter": "फ़िल्टर",
+    "sortBy": "क्रमबद्ध करें",
+    "noResults": "कोई कर्मचारी नहीं मिला",
+    "noResultsHint": "अपनी खोज या फ़िल्टर समायोजित करें",
+    "loadMore": "और कर्मचारी लोड करें",
+    "loading": "कर्मचारियों की खोज हो रही है...",
+    "nearby": "पास में",
+    "rating": "रेटिंग",
+    "price": "मूल्य",
+    "availability": "उपलब्धता",
+    "allCategories": "सभी श्रेणियां"
+  },
+  "bookings": {
+    "title": "मेरी बुकिंग",
+    "empty": "अभी तक कोई बुकिंग नहीं",
+    "emptyHint": "शुरू करने के लिए एक सेवा बुक करें",
+    "pending": "लंबित",
+    "accepted": "स्वीकृत",
+    "inProgress": "प्रगति पर",
+    "completed": "पूर्ण",
+    "cancelled": "रद्द",
+    "expired": "समाप्त",
+    "cancel": "बुकिंग रद्द करें",
+    "reschedule": "पुनर्निर्धारित",
+    "details": "बुकिंग विवरण"
+  },
+  "notFound": {
+    "orExplore": "या खोजें"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गलत हो गया",
+    "retry": "पुनः प्रयास करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "noData": "कोई डेटा उपलब्ध नहीं",
+    "viewAll": "सभी देखें",
+    "learnMore": "और जानें",
+    "back": "वापस",
+    "next": "अगला",
+    "submit": "जमा करें"
+  },
+  "footer": {
+    "description": "स्थानीय सेवा पेशेवरों को खोजने के लिए आपका विश्वसनीय प्लेटफॉर्म।",
+    "quickLinks": "त्वरित लिंक",
+    "services": "सेवाएं",
+    "about": "हमारे बारे में",
+    "contact": "संपर्क",
+    "faq": "सामान्य प्रश्न",
+    "support": "सहायता केंद्र",
+    "legal": "कानूनी",
+    "privacy": "गोपनीयता नीति",
+    "terms": "सेवा की शर्तें",
+    "community": "समुदाय",
+    "rights": "सर्वाधिकार सुरक्षित।"
+  },
+  "errors": {
+    "pageNotFound": "पेज नहीं मिला",
+    "pageNotFoundDesc": "आप जिस पेज की तलाश कर रहे हैं वह मौजूद नहीं है या स्थानांतरित हो गया है।",
+    "backHome": "होम पर वापस जाएं",
+    "networkError": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।"
   }
 }

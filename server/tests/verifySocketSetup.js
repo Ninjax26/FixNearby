@@ -9,7 +9,7 @@ import User from '../models/User.js';
 import Worker from '../models/Worker.js';
 import Message from '../models/Message.js';
 import errorHandler from '../middleware/errorHandler.js';
-import { capitalize } from '../utils/stringHelper.js';
+import { capitalize } from '../utils/stringUtils.js';
 
 dotenv.config();
 

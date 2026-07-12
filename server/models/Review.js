@@ -83,6 +83,12 @@ reviewSchema.statics.calculateAverageRating = async function(workerId) {
   }
 };
 
+// Indexes for common review query patterns
+reviewSchema.index({ worker: 1, createdAt: -1 });
+reviewSchema.index({ user: 1, createdAt: -1 });
+reviewSchema.index({ moderationStatus: 1, createdAt: -1 });
+reviewSchema.index({ worker: 1, moderationStatus: 1, createdAt: -1 });
+
 reviewSchema.post('save', async function() {
   await this.constructor.calculateAverageRating(this.worker);
 });

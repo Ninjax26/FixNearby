@@ -1,7 +1,7 @@
 /* fixed to bottom right so it's always visible on every page */
 .sos-wrapper {
   position: fixed;
-  bottom: 32px;
+  bottom: 100px;   /* was 32px — raised so it clears the scroll-to-top button */
   right: 32px;
   z-index: 9999;
   display: flex;
@@ -9,6 +9,7 @@
   align-items: flex-end;
   gap: 12px;
 }
+
 .sos-btn {
   position: relative;
   width: 72px;
@@ -138,7 +139,7 @@
   }
 
   .sos-wrapper {
-    bottom: 20px;
+    bottom: 80px;   /* was 20px — same fix for small screens */
     right: 20px;
   }
 }

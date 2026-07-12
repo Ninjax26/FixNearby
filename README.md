@@ -1,14 +1,22 @@
-<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 <div align="center">
   <h1 align="center">FixNearby 🛠️</h1>
   <p align="center">
-  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
     <strong>An open-source hyperlocal service platform connecting users with nearby workers.</strong>
   </p>
   <p align="center">
     <a href="https://github.com/souma9830/FixNearby/issues"><img alt="Issues" src="https://img.shields.io/github/issues/souma9830/FixNearby?color=blue&style=flat-square" /></a>
     <a href="https://github.com/souma9830/FixNearby/pulls"><img alt="Pull Requests" src="https://img.shields.io/github/issues-pr/souma9830/FixNearby?color=green&style=flat-square" /></a>
     <a href="https://github.com/souma9830/FixNearby/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" /></a>
+    <a href="https://github.com/souma9830/FixNearby/actions"><img alt="CI Status" src="https://img.shields.io/github/actions/workflow/status/souma9830/FixNearby/ci-quality.yml?branch=master&style=flat-square" /></a>
+    <a href="https://github.com/souma9830/FixNearby/commits/master"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/souma9830/FixNearby?style=flat-square" /></a>
+    <a href="https://github.com/souma9830/FixNearby"><img alt="Repo Size" src="https://img.shields.io/github/repo-size/souma9830/FixNearby?style=flat-square" /></a>
+  </p>
+  <p align="center">
+    <a href="#-features">Features</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-getting-started">Getting Started</a> •
+    <a href="#-how-to-contribute">Contributing</a> •
+    <a href="#-license">License</a>
   </p>
 </div>
 
@@ -85,7 +93,7 @@ We rely on the open-source community to bring this platform to life! If you are 
 
 ## 🛠️ Getting Started
 
-Want to run the project locally? Follow these steps.
+Want to run the project locally? Please refer to our comprehensive [**Developer Guide**](./docs/DEVELOPER_GUIDE.md) for full setup instructions, or follow these quick steps:
 
 ### 📌 Prerequisites
 

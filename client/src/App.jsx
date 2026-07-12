@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { lazyWithRetry } from "./utils/performance";
 
 // ─── Layout Components (always loaded — tiny, needed immediately) ─────────────
 import Navbar from "./components/Navbar";
@@ -14,19 +15,21 @@ import Toast from "./components/Toast";
 import LocationBanner from "./components/LocationBanner";
 import BackToTop from "./components/BackToTop";
 import SOSButton from "./components/SOSButton";
-import useOfflineSync from "./hooks/useOfflineSync";
+import useNetworkSync from "./hooks/useNetworkSync";
 import ErrorBoundary from "./components/ErrorBoundary";
+import SuspenseBoundary from "./components/SuspenseBoundary";
+import AriaAnnouncer from "./components/AriaAnnouncer";
 
 // ─── Lazy-loaded Pages (loaded only when the route is visited) ────────────────
 const Home             = lazy(() => import('./pages/Home'));
 const Login            = lazy(() => import('./pages/Login'));
 const Register         = lazy(() => import('./pages/Register'));
 const Dashboard        = lazy(() => import('./pages/Dashboard'));
-const Services         = lazy(() => import('./pages/Services'));
-const WorkerProfile    = lazy(() => import('./pages/WorkerProfile'));
-const WorkerDashboard  = lazy(() => import('./pages/WorkerDashboard'));
-const Profile          = lazy(() => import('./pages/Profile'));
-const Bookings         = lazy(() => import('./pages/Bookings'));
+const Services         = lazy(() => lazyWithRetry(() => import('./pages/Services')));
+const WorkerProfile    = lazy(() => lazyWithRetry(() => import('./pages/WorkerProfile')));
+const WorkerDashboard  = lazy(() => lazyWithRetry(() => import('./pages/WorkerDashboard')));
+const Profile          = lazy(() => lazyWithRetry(() => import('./pages/Profile')));
+const Bookings         = lazy(() => lazyWithRetry(() => import('./pages/Bookings')));
 const WorkerRegister   = lazy(() => import('./pages/WorkerRegister'));
 const WorkerLogin      = lazy(() => import('./pages/WorkerLogin'));
 const HelpCenter       = lazy(() => import('./pages/HelpCenter'));
@@ -38,13 +41,20 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
-const CivicIssues      = lazy(() => import('./pages/CivicIssues'));
-const NotFound         = lazy(() => import('./pages/NotFound'));
+const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
+const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'));
+const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
+const NotFound            = lazy(() => import('./pages/NotFound'));
+const NotFound            = lazy(() => import('./pages/NotFound'));
+
+const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
 const ForgotPasswordWorker = lazy(()=>import('./pages/ForgotPasswordWorker'));
 const ResetPasswordWorker = lazy(()=>import('./pages/ResetPasswordWorker'));
+
 
 // ─── Route Definitions ────────────────────────────────────────────────────────
 // Grouped for clarity and easy future additions
@@ -86,7 +96,11 @@ const ROUTES = [
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
-  { path: '/civic-issues',      element: <CivicIssues /> },
+  { path: '/civic-issues',           element: <CivicIssues /> },
+  { path: '/civic-issues/report',    element: <ReportIssue /> },
+  { path: '/civic-issues',     element: <CivicIssues /> },
+  { path: '/admin',            element: <AdminDashboard /> },
+  { path: '/admin/users',      element: <AdminUsers /> },
   // User (protected)
   {
     path: "/profile",
@@ -131,31 +145,35 @@ const PageLoader = () => (
 // ─── App Content ──────────────────────────────────────────────────────────────
 function AppContent() {
   const location = useLocation();
-  useOfflineSync();
+  useNetworkSync();
 
   // Hide LocationBanner on Home — it has its own live-location section
   const showLocationBanner = location.pathname !== "/";
 
   return (
     <div className="flex flex-col min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+      <AriaAnnouncer />
       <Navbar />
       {showLocationBanner && <LocationBanner />}
       <Toast />
 
-      <main className="flex-grow bg-gray-50">
-        {/* Suspense wraps all lazy routes — shows PageLoader during chunk fetch */}
+      <main id="main-content" className="flex-grow bg-gray-50 dark:bg-slate-900" tabIndex={-1}>
         <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
+          <SuspenseBoundary>
             <Routes>
               {ROUTES.map(({ path, element }) => (
                 <Route key={path} path={path} element={element} />
               ))}
             </Routes>
-          </Suspense>
-        </ErrorBoundary>
+          </SuspenseBoundary>        </ErrorBoundary>
       </main>
       <BackToTop />
-      {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
       <Footer />
     </div>

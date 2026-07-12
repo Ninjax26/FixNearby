@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 
-import LoadingSpinner from "../components/LoadingSpinner";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 import SkeletonLoader from "../components/SkeletonLoader";
 import SearchBar from "../components/SearchBar";
 import FilterSidebar from "../components/FilterSidebar";
@@ -25,10 +25,8 @@ import { useLocation } from "../context/LocationContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { useAuth } from "../context/AuthContext";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
-import useToast from "../hooks/useToast";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import EstimateWizard from "../components/EstimateWizard";
-import MapView from "../components/MapView";
 
 const mockWorkers = [
   {
@@ -292,6 +290,8 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
 };
 
 const Services = () => {
+  useDocumentTitle("Services");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { coords } = useLocation();
   const { isAuthenticated } = useAuth();
@@ -313,7 +313,6 @@ const Services = () => {
   const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
   const [selectedWorkerForWizard, setSelectedWorkerForWizard] = useState(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
-  const [expandedTrustId, setExpandedTrustId] = useState(null);
 
   const handleMarkerClick = (workerId) => {
     setSelectedWorkerId(workerId);
@@ -667,14 +666,14 @@ const Services = () => {
       {/* SEARCH + SORT */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row">
         <input
-          className="w-full rounded-xl border px-4 py-3"
+          className="w-full rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
           placeholder="Search services..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
 
         <select
-          className="rounded-xl border px-4 py-3"
+          className="rounded-xl border px-4 py-3 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -707,7 +706,7 @@ const Services = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+            className="rounded-xl border border-gray-300 px-4 py-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
           >
             <option value="distance">📍 Nearest</option>
             <option value="rating">⭐ Top Rated</option>
@@ -718,7 +717,7 @@ const Services = () => {
             onClick={() => setUrgentFilter((prev) => !prev)}
             className={`rounded-xl border px-5 py-3 font-bold shadow-sm transition-all duration-300 flex items-center justify-center gap-2 ${urgentFilter
               ? "border-red-600 bg-red-600 text-white shadow-md hover:bg-red-700"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               }`}
           >
             <span className={urgentFilter ? "animate-pulse" : ""}>🚨</span>
@@ -727,7 +726,7 @@ const Services = () => {
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden"
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 lg:hidden dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             <SlidersHorizontal className="h-5 w-5" />
             <span>Advanced Filters</span>
@@ -852,11 +851,7 @@ const Services = () => {
             <div className="lg:col-span-7 space-y-6">
               {/* WORKER CARDS */}
               {loading ? (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  {[...Array(4)].map((_, i) => (
-                    <SkeletonLoader key={i} type="card" />
-                  ))}
-                </div>
+                <LoadingSpinner />
               ) : filteredWorkers.length === 0 ? (
                 <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
                   <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
@@ -930,12 +925,7 @@ const Services = () => {
                         {/* CONTENT */}
                         <div className="flex flex-1 flex-col p-6">
                           <div className="mb-2 flex items-center justify-between">
-                            <div>
-                              <h3 className="text-lg font-bold text-gray-900">{worker.name}</h3>
-                              <div className="mt-1">
-                                <ReviewBadge rating={worker.rating} count={worker.completedJobs} />
-                              </div>
-                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">{worker.name}</h3>
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm font-bold text-gray-700">{worker.rating}</span>
@@ -958,43 +948,13 @@ const Services = () => {
                             </span>
                           </div>
 
-                          {/* Trust & Policies Disclosure */}
-                          <div className="mt-2 mb-4 pt-4 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => setExpandedTrustId(expandedTrustId === worker.id ? null : worker.id)}
-                              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 focus:ring-2 focus:ring-blue-500 focus:outline-none rounded transition"
-                              aria-expanded={expandedTrustId === worker.id}
-                              aria-label={`Show SLA policies and trust badges for ${worker.name}`}
-                            >
-                              🛡️ Trust Layer & SLA Policies {expandedTrustId === worker.id ? '▲' : '▼'}
-                            </button>
-                            {expandedTrustId === worker.id && (
-                              <div className="mt-2.5 bg-slate-50 border border-slate-100 rounded-xl p-3 text-[11px] text-slate-600 space-y-2 animate-fadeIn">
-                                <div>
-                                  <span className="font-bold text-slate-800">⚡ Response SLA:</span> Guarantees replies within {worker.slaResponseMins || 30} minutes.
-                                </div>
-                                <div>
-                                  <span className="font-bold text-slate-800">📍 Coverage:</span> {worker.serviceCoverage ? worker.serviceCoverage.join(', ') : 'Local Metro Area (15km radius)'}.
-                                </div>
-                                <div>
-                                  <span className="font-bold text-slate-800">Cancellation:</span> {worker.cancellationPolicy || 'Free cancellation up to 24 hours prior.'}
-                                </div>
-                                <div>
-                                  <span className="font-bold text-slate-800">Refund Policy:</span> {worker.refundPolicy || 'Full refund guaranteed if response SLA is missed.'}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
                           <div className="mt-auto space-y-3">
                             {worker.mockOffset && (
                               <a
                                 href={`https://www.google.com/maps?q=${worker.mockOffset.lat},${worker.mockOffset.lon}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                aria-label={`Open google maps location for ${worker.name}`}
+                                className="block w-full rounded-xl border border-blue-600 bg-white py-4 text-center font-bold text-blue-600 transition hover:bg-blue-50"
                               >
                                 📍 Open in Google Maps
                               </a>
@@ -1004,8 +964,7 @@ const Services = () => {
                               <button
                                 type="button"
                                 onClick={() => setSelectedWorkerForWizard(worker)}
-                                className="block w-full rounded-xl border border-emerald-600 bg-emerald-50 text-center font-bold text-emerald-700 py-4 hover:bg-emerald-100/50 transition-all text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                                aria-label={`Calculate smart estimate for ${worker.name}`}
+                                className="block w-full rounded-xl border border-emerald-600 bg-emerald-50 text-center font-bold text-emerald-700 py-4 hover:bg-emerald-100/50 transition-all text-sm focus:outline-none"
                               >
                                 🧮 Calculate Smart Estimate
                               </button>
@@ -1014,8 +973,7 @@ const Services = () => {
                             <Link
                               to={`/worker/${worker.id}`}
                               onClick={() => handleRecentlyViewed(worker)}
-                              className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                              aria-label={`View profile and book ${worker.name}`}
+                              className="block w-full rounded-xl bg-slate-900 py-4 text-center font-bold text-white transition hover:bg-blue-600"
                             >
                               View Profile and Book
                             </Link>

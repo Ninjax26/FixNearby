@@ -1,8 +1,10 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import {
+  getIssues,
   getNearbyIssues,
   createIssue,
   upvoteIssue,
@@ -12,22 +14,17 @@ import {
   respondToDispute,
   supportReviewDispute
 } from '../controllers/issueController.js';
-
-// Existing routes remain unchanged
-
-// Dispute routes
-router.post('/dispute', protect, createBookingDispute);
-router.post('/:id/respond', protect, respondToDispute);
-router.patch('/:id/dispute/status', protect, supportReviewDispute);
-
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Setup multer storage
+// Guarantee upload directory exists
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Allowed image extensions and MIME types for issue thumbnails.
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
@@ -49,8 +46,6 @@ const storage = multer.diskStorage({
 });
 
 // Reject uploads whose extension or MIME type is not in the allowlist.
-// Checking both prevents bypasses where an attacker supplies a benign
-// extension with a dangerous MIME type (or vice versa).
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   if (!ALLOWED_EXTENSIONS.has(ext) || !ALLOWED_MIME_TYPES.has(file.mimetype)) {
@@ -63,22 +58,31 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB per file
+    fileSize: 5 * 1024 * 1024,
   },
 });
+
+// GET / — list all issues
+router.get('/', getIssues);
 
 // GET /nearby
 router.get('/nearby', getNearbyIssues);
 
-// POST / (create issue) - supports optional image
+// POST / (create issue) — supports optional image
 router.post('/', upload.single('image'), createIssue);
 
 // POST /:id/upvote — requires authentication so each user can vote at most once
 router.post('/:id/upvote', protect, upvoteIssue);
 
-// GET /:id
+// Dispute routes
+router.post('/dispute', protect, createBookingDispute);
+router.post('/:id/respond', protect, respondToDispute);
+router.patch('/:id/dispute/status', protect, supportReviewDispute);
+
+// GET /:id — issue detail
 router.get('/:id', getIssueById);
 
+// PATCH /:id/status
 router.patch('/:id/status', updateIssueStatus);
 
 export default router;

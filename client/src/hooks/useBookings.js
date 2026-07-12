@@ -4,6 +4,7 @@ import {
   updateBookingStatus,
   rescheduleBooking as rescheduleBookingService,
 } from "../services/bookingService";
+import api from "../services/apiClient";
 
 /**
  * useBookings — fetches the authenticated principal's bookings from the API
@@ -43,16 +44,21 @@ export const useBookings = (initialParams = {}) => {
    * Cancel a booking via the API with an optimistic local update that rolls
    * back on failure so the UI never lies about server state.
    */
-  const cancelBooking = useCallback(async (id) => {
+  const cancelBooking = useCallback(async (id, reason) => {
     const previous = bookings;
     setBookings((current) =>
       current.map((b) => (b._id === id ? { ...b, status: "Cancelled" } : b))
     );
     try {
       await updateBookingStatus(id, "Cancelled");
+      if (reason) {
+        try {
+          await api.patch(`/bookings/${id}/cancel-reason`, { reason });
+        } catch {}
+      }
       return true;
     } catch (err) {
-      setBookings(previous); // roll back optimistic update
+      setBookings(previous);
       setError(err.message || "Failed to cancel booking");
       return false;
     }
