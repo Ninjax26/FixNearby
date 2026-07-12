@@ -46,20 +46,6 @@ const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
 const ForgotPasswordWorker = lazy(()=>import('./pages/ForgotPasswordWorker'));
 const ResetPasswordWorker = lazy(()=>import('./pages/ResetPasswordWorker'));
 
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const Contact = lazy(() => import("./components/Contact"));
-const Community = lazy(() => import("./pages/Community"));
-const Feedback = lazy(() => import("./pages/Feedback"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const SavedWorkers = lazy(() => import("./pages/SavedWorkers"));
-const Recommendations = lazy(() => import("./pages/Recommendations")); // ✨ NEW
-const NotFound = lazy(() => import("./pages/NotFound"));
-
-const ForgotPasswordUser = lazy(() => import("./pages/ForgotPasswordUser"));
-const ResetPasswordUser = lazy(() => import("./pages/ResetPasswordUser"));
-const ForgotPasswordWorker = lazy(() => import("./pages/ForgotPasswordWorker"));
-const ResetPasswordWorker = lazy(() => import("./pages/ResetPasswordWorker"));
-
 // ─── Route Definitions ────────────────────────────────────────────────────────
 // Grouped for clarity and easy future additions
 // ---------------- Auth Guard ----------------
@@ -101,14 +87,6 @@ const ROUTES = [
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
   { path: '/civic-issues',      element: <CivicIssues /> },
-  { path: "/services", element: <Services /> },
-  { path: "/worker/register", element: <WorkerRegister /> },
-  { path: "/worker/login", element: <WorkerLogin /> },
-  { path: "/worker/dashboard", element: <WorkerDashboard /> },
-  { path: "/worker/:id", element: <WorkerProfile /> },
-  { path: "/saved-workers", element: <SavedWorkers /> },
-  { path: "/recommendations", element: <Recommendations /> }, // ✨ NEW
-
   // User (protected)
   {
     path: "/profile",
@@ -176,7 +154,6 @@ function AppContent() {
           </Suspense>
         </ErrorBoundary>
       </main>
-git push origin fix/error-boundary-app
       <BackToTop />
       {/* SOS stays fixed on every page for emergency bookings */}
       <SOSButton />
