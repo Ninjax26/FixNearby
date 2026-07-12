@@ -79,6 +79,6 @@ router.post('/:id/upvote', protect, upvoteIssue);
 // GET /:id
 router.get('/:id', getIssueById);
 
-router.patch('/:id/status', updateIssueStatus);
+router.patch('/:id/status', protect, updateIssueStatus);
 
 export default router;
