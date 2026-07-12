@@ -15,3 +15,6 @@ const connectDB = async () => {
 };
 
 export default connectDB;
+
+// Export helper for health checker
+export const getDbStatusDetails = () => mongoose.connection.readyState;

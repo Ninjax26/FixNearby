@@ -23,15 +23,19 @@ import {
   Heart,
 } from "lucide-react";
 
+import SkeletonLoader from "../components/SkeletonLoader";
 import BookingConfirmationModal from "../components/BookingConfirmationModal";
 import SmartEstimator from "../components/SmartEstimator";
 import EstimateWizard from "../components/EstimateWizard";
+import ImageGallery from "../components/ImageGallery";
 import { createBooking } from "../services/bookingService";
+import WorkerBookingCalendar from "../components/WorkerBookingCalendar";
 import { useAuth } from "../context/AuthContext";
 import { getWorkerAvailability } from "../services/availabilityService";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import useToast from "../hooks/useToast";
 import ReviewBadge from "../components/ReviewBadge";
+import ReviewList from "../components/ReviewList";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -277,76 +281,6 @@ const WorkerProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showWizardModal, setShowWizardModal] = useState(false);
-  const [reviews, setReviews] = useState([]);
-
-  // Fetch reviews for this worker
-  useEffect(() => {
-    if (id) {
-      const fetchReviews = async () => {
-        try {
-          const res = await api.get(`/reviews?workerId=${id}`);
-          const reviewList = res.data.reviews || res.data.data || [];
-          if (res.data.success && reviewList.length > 0) {
-            const formatted = reviewList.map(r => ({
-              id: r._id,
-              name: r.user?.name || "Anonymous",
-              rating: r.rating,
-              text: r.reviewText,
-              images: r.images || [],
-              isVerified: r.isVerified || false,
-              reported: r.reported || false
-            }));
-            setReviews(formatted);
-          } else {
-            // Fallback to mock reviews
-            const formattedMock = REVIEWS.map((r, idx) => ({
-              id: `mock-${idx}`,
-              name: r.name,
-              rating: r.rating,
-              text: r.text,
-              images: [],
-              isVerified: true,
-              reported: false
-            }));
-            setReviews(formattedMock);
-          }
-        } catch (err) {
-          console.error("Failed to fetch reviews:", err);
-          const formattedMock = REVIEWS.map((r, idx) => ({
-            id: `mock-${idx}`,
-            name: r.name,
-            rating: r.rating,
-            text: r.text,
-            images: [],
-            isVerified: true,
-            reported: false
-          }));
-          setReviews(formattedMock);
-        }
-      };
-      fetchReviews();
-    }
-  }, [id]);
-
-  const handleReportReview = async (reviewId) => {
-    if (String(reviewId).startsWith('mock-')) {
-      alert("Mock reviews cannot be reported.");
-      return;
-    }
-    const reason = prompt("Please enter the reason for reporting this review:");
-    if (!reason) return;
-
-    try {
-      const res = await api.post(`/reviews/${reviewId}/report`, { reason });
-      if (res.data.success) {
-        alert("Review has been reported for moderation.");
-        setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reported: true } : r));
-      }
-    } catch (err) {
-      console.error("Failed to report review:", err);
-      alert(err.response?.data?.message || "Failed to report review.");
-    }
-  };
 
   useEffect(() => {
     if (isAuthenticated && id) {
@@ -623,9 +557,8 @@ const WorkerProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 mt-4">Loading profile...</p>
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <SkeletonLoader type="profile" />
       </div>
     );
   }
@@ -950,113 +883,35 @@ const WorkerProfile = () => {
 
           {/* ── REVIEWS TAB ── */}
           {activeTab === "reviews" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Customer Reviews</h2>
-                <div className="flex items-center gap-1 text-yellow-500 font-semibold">
-                  <Star size={18} className="fill-yellow-400" />
-                  {worker.rating}
-                </div>
-              </div>
-
-              <div className="space-y-5">
-                {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{review.name}</h3>
-                        {review.isVerified && (
-                          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                            ✓ Verified
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-yellow-500 text-sm font-medium">★ {review.rating}</span>
-                        {!review.reported ? (
-                          <button
-                            type="button"
-                            onClick={() => handleReportReview(review.id)}
-                            className="text-[11px] font-semibold text-slate-400 hover:text-red-500 transition ml-2 border border-slate-100 rounded-lg px-2 py-0.5 hover:bg-red-50 hover:border-red-100"
-                          >
-                            Report
-                          </button>
-                        ) : (
-                          <span className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 rounded-full px-2 py-0.5 ml-2 animate-pulse">
-                            🚨 Flagged
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 mt-2 leading-7">{review.text}</p>
-                    
-                    {/* Optional Images Grid */}
-                    {review.images && review.images.length > 0 && (
-                      <div className="flex gap-2 flex-wrap mt-3">
-                        {review.images.map((img, imgIdx) => (
-                          <img
-                            key={imgIdx}
-                            src={img}
-                            alt="Review detail"
-                            className="w-20 h-20 rounded-xl object-cover border border-slate-200"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+              <h2 className="mb-6 text-2xl font-bold dark:text-white">Customer Reviews</h2>
+              <ReviewList reviews={reviews.map(r => ({
+                _id: r.id,
+                rating: r.rating,
+                reviewText: r.text,
+                createdAt: r.createdAt,
+                isVerified: r.isVerified,
+                images: r.images,
+                user: { name: r.name }
+              }))} />
             </div>
           )}
 
           {/* ── PORTFOLIO TAB ── */}
           {activeTab === "portfolio" && worker.portfolio && worker.portfolio.length > 0 && (
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-              <h2 className="text-2xl font-bold mb-2">Previous Works</h2>
-              <p className="text-gray-500 mb-6">
-                A snapshot of completed projects by this professional.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {worker.portfolio.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
-                  >
-                    <div className="relative h-44 overflow-hidden bg-gray-100">
-                      <img
-                        src={item.image}
-                        alt={item.description}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                      />
-                    </div>
-
-                    <div className="p-5">
-                      <p className="font-semibold text-gray-900 text-sm leading-snug mb-2">
-                        {item.description}
-                      </p>
-
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-                        <CalendarCheck size={13} />
-                        <span>{item.completionDate}</span>
-                      </div>
-
-                      <div className="flex items-center gap-1 mb-2">
-                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-bold text-gray-800">
-                          {item.customerRating}
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-gray-500 italic leading-relaxed">
-                        "{item.review}"
-                      </p>
-                    </div>
-                  </div>
-                ))}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 dark:bg-slate-800">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800 dark:text-white">Previous Works</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    A snapshot of completed projects
+                  </p>
+                </div>
+                <span className="text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+                  {worker.portfolio.length} projects
+                </span>
               </div>
+              <ImageGallery images={worker.portfolio} columns={3} />
             </div>
           )}
 

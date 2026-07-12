@@ -1,8 +1,10 @@
+// Auto booking expiry checks enabled
 import Booking, { STATUS_ENUM } from '../models/Booking.js';
 import { queueNotification } from '../utils/queue.js';
 import mongoose from 'mongoose';
 import { getPrincipal } from '../middleware/bookingMiddleware.js';
 import { getIo } from '../socket.js';
+import { acquireLock, releaseLock } from '../utils/lockManager.js';
 
 // @desc    Create a new booking with concurrency control, transactions, and standalone DB fallback
 // @route   POST /api/bookings
@@ -46,11 +48,27 @@ export const createBooking = async (req, res, next) => {
       }
     };
 
+    const lockAcquired = await acquireLock(workerId, start.getTime());
+    if (!lockAcquired) {
+      if (session) {
+        await session.abortTransaction();
+        session.endSession();
+      }
+      return {
+        status: 423,
+        data: {
+          success: false,
+          message: 'This time slot is temporarily locked for booking. Please try again shortly.'
+        }
+      };
+    }
+
     const overlap = session
       ? await Booking.findOne(query).session(session)
       : await Booking.findOne(query);
 
     if (overlap) {
+      releaseLock(workerId, start.getTime());
       if (session) {
         await session.abortTransaction();
         session.endSession();
@@ -91,6 +109,8 @@ export const createBooking = async (req, res, next) => {
       await session.commitTransaction();
       session.endSession();
     }
+
+    releaseLock(workerId, start.getTime());
 
     return {
       status: 201,

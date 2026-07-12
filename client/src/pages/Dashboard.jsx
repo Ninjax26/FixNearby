@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 
 import api from "../services/apiClient";
+import SkeletonLoader from "../components/SkeletonLoader";
 
 const Dashboard = () => {
   const [stats, setStats] = useState([
@@ -151,18 +152,8 @@ const Dashboard = () => {
           </p>
 
           {loading ? (
-            <div className="mt-8 space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="flex animate-pulse items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="h-12 w-12 rounded-xl bg-slate-200" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-slate-200 rounded w-1/4" />
-                      <div className="h-3 bg-slate-200 rounded w-1/3" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="mt-8">
+              <SkeletonLoader type="list" />
             </div>
           ) : bookings.length === 0 ? (
             <div className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">

@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-card: #ffffff;
+    --color-text: #0f172a;
+    --color-muted: #64748b;
+    --color-border: #e2e8f0;
+  }
+
+  .dark {
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-card: #1e293b;
+    --color-text: #f1f5f9;
+    --color-muted: #94a3b8;
+    --color-border: #334155;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -12,6 +38,9 @@
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
 }
 
 /* Fix mobile drawer viewport shifts */
@@ -45,24 +74,4 @@
 .leaflet-container {
   font-family: inherit;
   z-index: 10;
-}
-
-/* Accessibility support for prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Accessible focus outlines for interactive elements */
-button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #2563eb !important;
-  outline-offset: 2px !important;
 }

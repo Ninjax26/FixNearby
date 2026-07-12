@@ -8,7 +8,7 @@ import Issue from '../models/Issue.js';
 import DeadLetterJob from '../models/DeadLetterJob.js';
 import { queueNotification, notificationQueue } from '../utils/queue.js';
 import { startWorker } from '../workers/notificationWorker.js';
-import { truncate } from '../utils/stringHelper.js';
+import { truncate } from '../utils/stringUtils.js';
 
 dotenv.config();
 

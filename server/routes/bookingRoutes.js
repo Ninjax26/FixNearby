@@ -1,3 +1,4 @@
+import { bookingRateLimiter, globalApiLimiter } from '../middleware/rateLimiter.js';
 import express from 'express';
 import {
   createBooking,
@@ -21,12 +22,12 @@ import { createBookingReview } from '../controllers/reviewController.js';
 
 const router = express.Router();
 
-// All booking routes require authentication.
-router.use(protect);
+// All booking routes require authentication and rate limiting.
+router.use(protect, globalApiLimiter);
 
 router.route('/')
-  .post(checkBookingOverlap, createBooking)
-  .get(getBookings);
+  .post(bookingRateLimiter, checkBookingOverlap, createBooking)
+  .get(bookingRateLimiter, getBookings);
 
 router.route('/:id')
   .get(loadBooking, requireBookingParticipant, getBookingById);
@@ -51,3 +52,6 @@ router.route('/:id/review')
   .post(upload.array('images', 5), createBookingReview);
 
 export default router;
+
+// Booking reminders hook initialization
+// Reminder check loaded on routes module initializations

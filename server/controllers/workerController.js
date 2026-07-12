@@ -12,7 +12,7 @@ const generateToken = (id) => {
   return jwt.sign(
     { id },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "30d" }
   );
 };
 
@@ -117,6 +117,12 @@ export const loginWorker = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide an email and password",
+      });
+    }
     const normalizedEmail = email.toLowerCase().trim();
 
     const emailRegex =

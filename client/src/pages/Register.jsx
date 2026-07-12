@@ -3,8 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { signupUser } from "../services/authService";
 import useToast from "../hooks/useToast";
+import { parseApiError } from "../utils/apiErrorHandler";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-
+import { validateName, validateEmail, validatePassword, validatePhone } from "../utils/clientValidation";
+import FormErrorField from "../components/FormErrorField";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -23,44 +25,16 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // ---------------- VALIDATION ----------------
+  const VALIDATORS = {
+    name: validateName,
+    email: validateEmail,
+    password: validatePassword,
+    phone: validatePhone,
+  };
 
   const validateFields = (name, value) => {
-    // FIX #588: Updated email regex to accept subdomains & multi-part TLDs
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    switch (name) {
-      case "name":
-        if (!value.trim()) return "Username is required";
-        break;
-
-      case "email":
-        if (!value || !emailRegex.test(value)) {
-          return "Invalid email address";
-        }
-        break;
-
-      case "password":
-        if (value.length < 6) {
-          return "Password must be at least 6 characters";
-        }
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
-        if (!passwordRegex.test(value)) {
-          return "Password must contain uppercase, lowercase and a number";
-        }
-        break;
-
-      case "phone":
-        if (value && !/^[0-9]{10}$/.test(value.trim())) {
-          return "Enter a valid phone number";
-        }
-        break;
-
-      default:
-        return "";
-    }
-
-    return "";
+    const fn = VALIDATORS[name];
+    return fn ? fn(value) : "";
   };
 
   // ---------------- HANDLE CHANGE ----------------
@@ -152,7 +126,7 @@ const Register = () => {
       setFormData({ name: "", email: "", phone: "", password: "" });
       navigate("/dashboard");
     } catch(error) {
-      setApiError(error.message || "Registration failed. Please try again.");
+      setApiError(parseApiError(error).message);
     } finally {
       setLoading(false);
     }
@@ -206,11 +180,7 @@ const Register = () => {
               placeholder="Full Name"
               className={inputStyles("name")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.name && errors.name && (
-                <span className="text-red-600">{errors.name}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.name && errors.name} />
           </div>
 
           {/* Email */}
@@ -226,11 +196,7 @@ const Register = () => {
               placeholder="Email Address"
               className={inputStyles("email")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.email && errors.email && (
-                <span className="text-red-600">{errors.email}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.email && errors.email} />
           </div>
 
           {/* Phone */}
@@ -245,11 +211,7 @@ const Register = () => {
               placeholder="Phone Number"
               className={inputStyles("phone")}
             />
-            <div className="min-h-[22px] mt-1 text-sm">
-              {interacted.phone && errors.phone && (
-                <span className="text-red-600">{errors.phone}</span>
-              )}
-            </div>
+            <FormErrorField error={interacted.phone && errors.phone} />
           </div>
 
           {/* Password */}
@@ -276,13 +238,13 @@ const Register = () => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
-            <div className="min-h-[22px] mt-1 text-xs text-gray-500">
-              {interacted.password && errors.password ? (
-                <span className="text-red-600 font-semibold">{errors.password}</span>
-              ) : (
+            {interacted.password && errors.password ? (
+              <FormErrorField error={errors.password} />
+            ) : (
+              <div className="min-h-[22px] mt-1 text-xs text-gray-500">
                 <span>Must contain at least 6 characters, including 1 uppercase, 1 lowercase and 1 number.</span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}

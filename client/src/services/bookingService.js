@@ -74,7 +74,13 @@ export const updateBookingStatus = async (id, status) => {
 };
 
 /** Convenience wrapper around updateBookingStatus for the common cancel flow. */
-export const cancelBooking = (id) => updateBookingStatus(id, "Cancelled");
+export const cancelBooking = (id, reason) => updateBookingStatus(id, "Cancelled")
+  .then((res) => {
+    if (reason && res.booking) {
+      api.patch(`/bookings/${id}/cancel-reason`, { reason }).catch(() => {});
+    }
+    return res;
+  });
 
 /**
  * Reschedule a pending booking.

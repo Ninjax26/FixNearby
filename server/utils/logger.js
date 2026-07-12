@@ -81,8 +81,6 @@ try {
 
   logger = pino({
     level,
-    // Pretty-print in development for readability; raw JSON in production for
-    // compatibility with log aggregation pipelines.
     ...(isDev && {
       transport: {
         target: 'pino-pretty',
@@ -94,10 +92,16 @@ try {
       },
     }),
 
-    // Serialise Error objects properly (pino does not do this by default).
     serializers: {
       err: pino.stdSerializers.err,
       error: pino.stdSerializers.err,
+      req: pino.stdSerializers.req,
+      res: pino.stdSerializers.res,
+    },
+
+    redact: {
+      paths: ['req.headers.authorization', 'req.headers.cookie', 'body.password', 'body.token', 'body.secret'],
+      censor: '[REDACTED]'
     },
   });
 } catch {

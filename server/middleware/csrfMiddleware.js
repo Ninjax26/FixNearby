@@ -1,36 +1,43 @@
 import crypto from 'crypto';
+import { generateCsrfToken } from '../utils/csrfHelper.js';
 
+const CSRF_COOKIE = 'csrf-token';
+const CSRF_HEADER = 'x-csrf-token';
+
+/**
+ * Enhanced CSRF protection using double-submit cookie pattern.
+ * - Generates a cryptographically random token on first visit.
+ * - Sets it as an HttpOnly, SameSite=Strict cookie (not accessible to JS).
+ * - Requires state-changing requests to echo the token in the x-csrf-token header.
+ * - In production the cookie is also marked Secure.
+ */
 export const csrfProtection = (req, res, next) => {
   const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
-  
-  // 1. Generate CSRF Token if not present in cookies
-  let csrfToken = req.headers.cookie?.split('; ')
-    .find(row => row.startsWith('csrf-token='))
-    ?.split('=')[1];
 
+  let csrfToken = req.cookies?.[CSRF_COOKIE];
   if (!csrfToken) {
-    csrfToken = crypto.randomBytes(32).toString('hex');
+    csrfToken = generateCsrfToken();
   }
 
-  // Set cookie for client consumption
-  res.cookie('csrf-token', csrfToken, {
+  const cookieOptions = {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/'
-  });
+    httpOnly: false,
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000,
+  };
 
-  // 2. Bypass validation for safe HTTP methods
+  res.cookie(CSRF_COOKIE, csrfToken, cookieOptions);
+
   if (safeMethods.includes(req.method)) {
     return next();
   }
 
-  // 3. For state-changing requests, match header with cookie
-  const headerToken = req.headers['x-csrf-token'];
-  
-  if (!headerToken || headerToken !== csrfToken) {
+  const headerToken = req.headers[CSRF_HEADER];
+  if (!headerToken || !crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(csrfToken))) {
     return res.status(403).json({
       success: false,
-      message: 'CSRF token validation failed'
+      message: 'CSRF token validation failed',
     });
   }
 

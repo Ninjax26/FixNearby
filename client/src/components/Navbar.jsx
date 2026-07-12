@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import LanguageToggle from "./LanguageToggle";
+import NavLanguageToggle from "./NavLanguageToggle";
+import ThemeToggle from "./ThemeToggle";
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from "react-i18next";
 
@@ -93,8 +94,8 @@ const Navbar = () => {
     `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150
      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600
      ${isActive(path)
-       ? 'bg-blue-50 text-[#0056D2] font-semibold'
-       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+       ? 'bg-blue-50 text-[#0056D2] font-semibold dark:bg-blue-900/30 dark:text-blue-400'
+       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
      }`;
 
   const handleLogout = () => {
@@ -118,8 +119,8 @@ const Navbar = () => {
       <nav
         className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80'
-            : 'bg-white'
+            ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80'
+            : 'bg-white dark:bg-slate-900'
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -130,7 +131,7 @@ const Navbar = () => {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0056D2] group-hover:scale-105 transition-transform duration-200">
                 <WrenchIcon />
               </div>
-              <span className="text-lg font-extrabold tracking-tight text-slate-900">
+              <span className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">
                 Fix<span className="text-[#0056D2]">Nearby</span>
               </span>
             </Link>
@@ -155,7 +156,8 @@ const Navbar = () => {
                 Civic Issues
               </Link>
 
-              <LanguageToggle />
+              <ThemeToggle />
+              <NavLanguageToggle />
 
               {authenticated ? (
                 <>
@@ -300,7 +302,7 @@ const Navbar = () => {
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
-        className={`fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl md:hidden
+        className={`fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl md:hidden dark:bg-slate-900 dark:border-l dark:border-slate-700
           flex flex-col
           transition-transform duration-300 ease-in-out
           ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}
@@ -311,7 +313,7 @@ const Navbar = () => {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0056D2]">
               <WrenchIcon />
             </div>
-            <span className="text-base font-extrabold tracking-tight text-slate-900">
+            <span className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
               Fix<span className="text-[#0056D2]">Nearby</span>
             </span>
           </Link>
@@ -328,12 +330,12 @@ const Navbar = () => {
 
         {/* User info strip (when authenticated) */}
         {authenticated && (
-          <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-100">
+          <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-100 dark:bg-slate-800 dark:border-slate-700">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0056D2] to-cyan-400 flex items-center justify-center text-white font-bold shrink-0">
               {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate dark:text-white">{user?.name}</p>
               <p className="text-xs text-slate-400 truncate">{user?.email}</p>
             </div>
           </div>
@@ -413,8 +415,9 @@ const Navbar = () => {
             </>
           ) : null}
 
-          <div className="px-3 py-2">
-            <LanguageToggle />
+          <div className="flex items-center gap-3 px-3 py-2">
+            <ThemeToggle />
+            <NavLanguageToggle />
           </div>
         </nav>
 
