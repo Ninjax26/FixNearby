@@ -1,6 +1,8 @@
 import Favorite from '../models/Favorite.js';
 import Worker from '../models/Worker.js';
 
+export const normalizeWorkerRating = (rating) => rating ?? 0;
+
 // @desc    Add a worker to favorites
 // @route   POST /api/favorites/:workerId
 // @access  Private (User only)
@@ -89,7 +91,7 @@ export const getFavorites = async (req, res, next) => {
           name: fav.workerId.name,
           category: fav.workerId.category,
           skill: fav.workerId.category, // fallback for skill Badge
-          rating: fav.workerId.averageRating || 5.0,
+          rating: normalizeWorkerRating(fav.workerId.averageRating),
           experience: fav.workerId.experience ? parseInt(fav.workerId.experience) || 0 : 0,
           location: fav.workerId.locationName || 'Nearby',
           profilePic: fav.workerId.profilePicture || null, // Map from profilePicture in Worker Model
