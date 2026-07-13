@@ -205,12 +205,20 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
 const formatDistance = (d) =>
   d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
 
+import { useRef } from "react";
+import { getSocket } from "../utils/socketClient";
+
 const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [isSocketFallback, setIsSocketFallback] = useState(false);
+  const socketRef = useRef(null);
+
   useEffect(() => {
     let active = true;
+    let didReceiveSocketUpdate = false;
+
     const fetchSlots = async () => {
       try {
         const res = await getWorkerAvailability(workerId);
@@ -224,15 +232,70 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
       }
     };
 
+    // Always fetch once to render immediately.
     fetchSlots();
 
-    const interval = setInterval(fetchSlots, 10000);
+    // Subscribe to worker availability updates over WebSockets.
+    const socket = getSocket();
+    socketRef.current = socket;
+
+    const handleAvailabilityUpdate = (payload) => {
+      if (!payload) return;
+      const updatedWorkerId = payload.workerId;
+      if (!updatedWorkerId || updatedWorkerId.toString() !== workerId.toString()) return;
+
+      if (payload.availableSlots && Array.isArray(payload.availableSlots)) {
+        didReceiveSocketUpdate = true;
+        setIsSocketFallback(false);
+        setSlots(payload.availableSlots);
+        setLoading(false);
+      }
+    };
+
+    const startPollingFallback = () => {
+      setIsSocketFallback(true);
+      const interval = setInterval(() => {
+        if (!active) return;
+        if (didReceiveSocketUpdate) {
+          clearInterval(interval);
+          return;
+        }
+        fetchSlots();
+      }, 10000);
+
+      return interval;
+    };
+
+    let pollingInterval = null;
+
+    // Attempt socket connect; if it fails quickly, enable polling.
+    // Socket.IO will also retry, but this keeps UI fresh when backend/socket isn't reachable.
+    const timeoutMs = 4000;
+    let timeoutHandle = setTimeout(() => {
+      if (!didReceiveSocketUpdate) {
+        pollingInterval = startPollingFallback();
+      }
+    }, timeoutMs);
+
+    socket.on("availability:update", handleAvailabilityUpdate);
+
+    // Back-end is expected to emit updates; joining a room/subscription is optional depending on implementation.
+    // We still emit a subscribe hint if the server supports it.
+    socket.emit("availability:subscribe", { workerId });
+
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     return () => {
       active = false;
-      clearInterval(interval);
+      clearTimeout(timeoutHandle);
+      if (pollingInterval) clearInterval(pollingInterval);
+      socket.off("availability:update", handleAvailabilityUpdate);
+      socket.emit("availability:unsubscribe", { workerId });
     };
   }, [workerId]);
+
 
   if (loading) {
     return (
