@@ -10,6 +10,8 @@ import {
   SprayCan,
   Heart,
   Star,
+  Map,
+  List,
 } from "lucide-react";
 
 
@@ -27,6 +29,7 @@ import { useAuth } from "../context/AuthContext";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import EstimateWizard from "../components/EstimateWizard";
+import WorkerMap from "../components/WorkerMap";
 
 const mockWorkers = [
   {
@@ -205,12 +208,20 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
 const formatDistance = (d) =>
   d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
 
+import { useRef } from "react";
+import { getSocket } from "../utils/socketClient";
+
 const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [isSocketFallback, setIsSocketFallback] = useState(false);
+  const socketRef = useRef(null);
+
   useEffect(() => {
     let active = true;
+    let didReceiveSocketUpdate = false;
+
     const fetchSlots = async () => {
       try {
         const res = await getWorkerAvailability(workerId);
@@ -224,15 +235,70 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
       }
     };
 
+    // Always fetch once to render immediately.
     fetchSlots();
 
-    const interval = setInterval(fetchSlots, 10000);
+    // Subscribe to worker availability updates over WebSockets.
+    const socket = getSocket();
+    socketRef.current = socket;
+
+    const handleAvailabilityUpdate = (payload) => {
+      if (!payload) return;
+      const updatedWorkerId = payload.workerId;
+      if (!updatedWorkerId || updatedWorkerId.toString() !== workerId.toString()) return;
+
+      if (payload.availableSlots && Array.isArray(payload.availableSlots)) {
+        didReceiveSocketUpdate = true;
+        setIsSocketFallback(false);
+        setSlots(payload.availableSlots);
+        setLoading(false);
+      }
+    };
+
+    const startPollingFallback = () => {
+      setIsSocketFallback(true);
+      const interval = setInterval(() => {
+        if (!active) return;
+        if (didReceiveSocketUpdate) {
+          clearInterval(interval);
+          return;
+        }
+        fetchSlots();
+      }, 10000);
+
+      return interval;
+    };
+
+    let pollingInterval = null;
+
+    // Attempt socket connect; if it fails quickly, enable polling.
+    // Socket.IO will also retry, but this keeps UI fresh when backend/socket isn't reachable.
+    const timeoutMs = 4000;
+    let timeoutHandle = setTimeout(() => {
+      if (!didReceiveSocketUpdate) {
+        pollingInterval = startPollingFallback();
+      }
+    }, timeoutMs);
+
+    socket.on("availability:update", handleAvailabilityUpdate);
+
+    // Back-end is expected to emit updates; joining a room/subscription is optional depending on implementation.
+    // We still emit a subscribe hint if the server supports it.
+    socket.emit("availability:subscribe", { workerId });
+
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     return () => {
       active = false;
-      clearInterval(interval);
+      clearTimeout(timeoutHandle);
+      if (pollingInterval) clearInterval(pollingInterval);
+      socket.off("availability:update", handleAvailabilityUpdate);
+      socket.emit("availability:unsubscribe", { workerId });
     };
   }, [workerId]);
+
 
   if (loading) {
     return (
@@ -313,6 +379,7 @@ const Services = () => {
   const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
   const [selectedWorkerForWizard, setSelectedWorkerForWizard] = useState(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
 
   const handleMarkerClick = (workerId) => {
     setSelectedWorkerId(workerId);
@@ -736,6 +803,23 @@ const Services = () => {
               </span>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            {viewMode === 'list' ? (
+              <>
+                <Map className="h-5 w-5" />
+                <span>Map View</span>
+              </>
+            ) : (
+              <>
+                <List className="h-5 w-5" />
+                <span>List View</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* CATEGORY CHIPS (FULL FIX) */}
@@ -847,7 +931,21 @@ const Services = () => {
 
           {/* MAIN CONTENT */}
           <div className="flex-grow lg:grid lg:grid-cols-12 lg:gap-8 items-start w-full">
-            {/* WORKER LIST (Left part of split) */}
+            {/* MAP VIEW */}
+            {viewMode === 'map' ? (
+              <div className="lg:col-span-12 h-[600px]">
+                <WorkerMap
+                  workers={filteredWorkers}
+                  center={coords ? { lat: coords.latitude, lng: coords.longitude } : { lat: 17.385, lng: 78.4867 }}
+                  zoom={1.2}
+                  onWorkerClick={(id) => {
+                    const el = document.getElementById(`worker-card-${id}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                />
+              </div>
+            ) : (
+            /* WORKER LIST (Left part of split) */
             <div className="lg:col-span-7 space-y-6">
               {/* WORKER CARDS */}
               {loading ? (
@@ -985,8 +1083,10 @@ const Services = () => {
                 </>
               )}
             </div>
+            )}
 
-            {/* MAP CONTAINER (Right part of split, sticky) */}
+            {/* MAP CONTAINER (Right part of split, sticky) - hidden when in map view */}
+            {viewMode !== 'map' && (
             <div className="hidden lg:block lg:col-span-5 sticky top-24 h-[calc(100vh-140px)] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
               <MapView
                 workers={filteredWorkers}
@@ -994,6 +1094,7 @@ const Services = () => {
                 onMarkerClick={handleMarkerClick}
               />
             </div>
+            )}
           </div>
         </div>
       </div>
