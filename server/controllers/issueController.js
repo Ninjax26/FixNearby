@@ -246,6 +246,21 @@ export const updateIssueStatus = async (req, res) => {
     const { id } = req.params;
     const { status, note } = req.body;
 
+    if (req.user?.role !== 'support') {
+      return res.status(403).json({
+        success: false,
+        message: 'Support role required'
+      });
+    }
+
+    const validStatuses = ['open', 'in-progress', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
     const issue = await Issue.findById(id);
     if (!issue) {
       return res.status(404).json({ success: false, message: 'Issue not found' });
@@ -368,4 +383,3 @@ export const supportReviewDispute = async (req, res) => {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
-
