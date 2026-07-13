@@ -25,7 +25,7 @@ const isValidEmail = (email) => {
 
 // Follows same rules as already existing login controller
 const isValidPassword = (password) => {
-  if (!password || password.length < 6) {
+  if (typeof password !== 'string' || password.length < 6) {
     return false;
   }
 
@@ -173,6 +173,12 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
+    if (req.body.password && !isValidPassword(req.body.password)) {
+      return res.status(400).json({
+        message: "Password must contain uppercase, lowercase and a number and be at least 6 characters long",
+      });
+    }
+
     const user = await User.findById(req.user._id);
 
     if (user) {
