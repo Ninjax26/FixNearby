@@ -46,9 +46,13 @@ const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'
 const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
 const NotFound            = lazy(() => import('./pages/NotFound'));
 const NotFound            = lazy(() => import('./pages/NotFound'));
+const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notifications')));
+
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+
+const VerificationPage = lazy(() => lazyWithRetry(() => import('./pages/worker/VerificationPage')));
 
 const ForgotPasswordUser = lazy(()=>import('./pages/ForgotPasswordUser'));
 const ResetPasswordUser = lazy(()=>import('./pages/ResetPasswordUser'));
@@ -92,7 +96,8 @@ const ROUTES = [
   { path: '/services',          element: <Services /> },
   { path: '/worker/register',   element: <WorkerRegister /> },
   { path: '/worker/login',      element: <WorkerLogin /> },
-  { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
+  { path: '/worker/dashboard',    element: <WorkerDashboard /> },
+  { path: '/worker/verification', element: <VerificationPage /> },
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
@@ -115,6 +120,14 @@ const ROUTES = [
     element: (
       <RequireAuth>
         <Bookings />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/notifications",
+    element: (
+      <RequireAuth>
+        <Notifications />
       </RequireAuth>
     ),
   },

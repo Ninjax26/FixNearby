@@ -1,6 +1,6 @@
 // Worker route schema validations enabled
 import express from 'express';
-import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews, getWorkerDashboardStats } from '../controllers/workerController.js';
+import { registerWorker, loginWorker, getWorkers, getWorkerById, getWorkerProfile, getNearbyWorkers, recalculateKarmaScoresController, getWorkerAvailability, getWorkerReviews, getWorkerDashboardStats, getWorkersByBounds, getWorkerClusters } from '../controllers/workerController.js';
 import { protectWorker } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 import { validateGeoCoordinates } from '../middleware/geoValidator.js';
@@ -11,6 +11,8 @@ router.post('/register', upload.single('profilePicture'), validateGeoCoordinates
 router.post('/login', loginWorker);
 router.get('/profile', protectWorker, getWorkerProfile);
 router.get('/nearby', getNearbyWorkers);
+router.get('/map-bounds', getWorkersByBounds);
+router.get('/clusters', getWorkerClusters);
 router.get('/dashboard/stats', protectWorker, getWorkerDashboardStats);
 router.post('/recalculate-karma', protectWorker, recalculateKarmaScoresController);
 router.get('/', getWorkers);
