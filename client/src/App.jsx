@@ -52,6 +52,7 @@ const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notif
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+const EarningsDashboard   = lazy(() => import('./pages/worker/EarningsDashboard'));
 const ModerationPanel     = lazy(() => import('./pages/admin/ModerationPanel'));
 const ScheduleManager     = lazy(() => import('./pages/worker/ScheduleManager'));
 
@@ -100,6 +101,7 @@ const ROUTES = [
   { path: '/worker/register',   element: <WorkerRegister /> },
   { path: '/worker/login',      element: <WorkerLogin /> },
   { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
+  { path: '/worker/earnings',      element: <EarningsDashboard /> },
   { path: '/worker/schedule',     element: <ScheduleManager /> },
   { path: '/worker/dashboard',    element: <WorkerDashboard /> },
   { path: '/worker/verification', element: <VerificationPage /> },
