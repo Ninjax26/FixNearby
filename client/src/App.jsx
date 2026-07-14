@@ -52,6 +52,7 @@ const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notif
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+const ModerationPanel     = lazy(() => import('./pages/admin/ModerationPanel'));
 const ScheduleManager     = lazy(() => import('./pages/worker/ScheduleManager'));
 
 const VerificationPage = lazy(() => lazyWithRetry(() => import('./pages/worker/VerificationPage')));
@@ -111,6 +112,7 @@ const ROUTES = [
   { path: '/civic-issues',     element: <CivicIssues /> },
   { path: '/admin',            element: <AdminDashboard /> },
   { path: '/admin/users',      element: <AdminUsers /> },
+  { path: '/admin/moderation', element: <ModerationPanel /> },
   // User (protected)
   {
     path: "/profile",
