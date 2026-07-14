@@ -55,6 +55,12 @@ router.route('/:id/timeline')
 router.route('/:id/review')
   .post(upload.array('images', 5), createBookingReview);
 
+router.route('/:id/payment')
+  .post(loadBooking, requireBookingParticipant, async (req, res, next) => {
+    const { createPaymentIntent } = await import('../controllers/paymentController.js');
+    return createPaymentIntent(req, res, next);
+  });
+
 export default router;
 
 // Booking reminders hook initialization

@@ -41,7 +41,7 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
-const RequestService      = lazy(() => import('./pages/RequestService'));
+const PaymentCheckout     = lazy(() => import('./pages/PaymentCheckout'));
 const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
 const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'));
 const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
@@ -126,6 +126,10 @@ const ROUTES = [
     ),
   },
   {
+    path: "/payment/checkout",
+    element: (
+      <RequireAuth>
+        <PaymentCheckout />
     path: "/notifications",
     element: (
       <RequireAuth>
