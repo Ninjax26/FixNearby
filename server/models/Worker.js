@@ -145,7 +145,35 @@ const workerSchema = new mongoose.Schema(
     refundPolicy: {
       type: String,
       default: 'Full refund guaranteed if response SLA is missed.'
-    }
+    },
+    recurringAvailability: [{
+      dayOfWeek: {
+        type: Number,
+        min: 0,
+        max: 6
+      },
+      startTime: {
+        type: String
+      },
+      endTime: {
+        type: String
+      }
+    }],
+    blockedSlots: [{
+      date: {
+        type: Date
+      },
+      startTime: {
+        type: String
+      },
+      endTime: {
+        type: String
+      },
+      reason: {
+        type: String,
+        default: ''
+      }
+    }]
   },
   {
     timestamps: true,

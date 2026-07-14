@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import CenteredLoadingSpinner from "../components/CenteredLoadingSpinner";
 import StarRating from "../components/StarRating";
-import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
+import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X, History } from "lucide-react";
+import BookingTimeline from "../components/BookingTimeline";
+import useBookingTimeline from "../hooks/useBookingTimeline";
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
@@ -307,6 +309,23 @@ const EstimateBreakdown = ({ specs }) => {
   );
 };
 
+const BookingTimelineInline = ({ bookingId, currentStatus }) => {
+  const { steps, loading, error } = useBookingTimeline(bookingId);
+
+  return (
+    <BookingTimeline
+      statusHistory={steps.map((s) => ({
+        status: s.status,
+        changedAt: s.timestamp,
+        changedBy: { name: s.actor },
+        note: s.note,
+      }))}
+      currentStatus={currentStatus}
+      loading={loading}
+    />
+  );
+};
+
 const Bookings = () => {
   const {
     bookings: rawBookings,
@@ -339,6 +358,9 @@ const Bookings = () => {
   const [newTime, setNewTime] = useState("");
   const [rescheduleError, setRescheduleError] = useState("");
   const [submittingReschedule, setSubmittingReschedule] = useState(null);
+
+  // Timeline toggle state
+  const [expandedTimelineId, setExpandedTimelineId] = useState(null);
 
   const filteredBookings = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -617,6 +639,20 @@ const Bookings = () => {
                     Rated {booking.review.rating}/5
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedTimelineId(
+                      expandedTimelineId === booking.id ? null : booking.id
+                    )
+                  }
+                  className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-800 transition"
+                >
+                  <History size={14} />
+                  {expandedTimelineId === booking.id
+                    ? "Hide Timeline"
+                    : "View Timeline"}
+                </button>
               </div>
 
               {/* RESCHEDULE BOX */}
@@ -661,6 +697,12 @@ const Bookings = () => {
                 </div>
               )}
 
+              {/* STATUS TIMELINE */}
+              {expandedTimelineId === booking.id && (
+                <div className="mt-4">
+                  <BookingTimelineInline bookingId={booking.id} currentStatus={booking.status} />
+                </div>
+              )}
               {/* BOOKING TIMELINE */}
               <BookingTimeline booking={booking} />
 

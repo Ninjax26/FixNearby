@@ -618,6 +618,23 @@ export const getWorkerReviews = async (req, res) => {
   }
 };
 
+export const getWorkersBatch = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please provide an array of worker IDs' });
+    }
+    if (ids.length > 10) {
+      return res.status(400).json({ success: false, message: 'Maximum 10 workers per batch request' });
+    }
+
+    const workers = await Worker.find({ _id: { $in: ids } })
+      .select('-password')
+      .lean();
+
+    const ordered = ids.map(id => workers.find(w => w._id.toString() === id)).filter(Boolean);
+
+    res.json({ success: true, workers: ordered });
 export const getWorkersByBounds = async (req, res) => {
   try {
     const { north, south, east, west, category, availabilityStatus, minRating, maxPrice } = req.query;

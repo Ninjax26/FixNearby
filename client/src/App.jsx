@@ -41,6 +41,7 @@ const Feedback         = lazy(() => import('./pages/Feedback'));
 const FAQ              = lazy(() => import('./pages/FAQ'));
 const SavedWorkers     = lazy(() => import('./pages/SavedWorkers'));
 const Recommendations  = lazy(() => import('./pages/Recommendations')); // ✨ NEW
+const PaymentCheckout     = lazy(() => import('./pages/PaymentCheckout'));
 const CivicIssues         = lazy(() => import('./pages/CivicIssues'));
 const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'));
 const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
@@ -52,6 +53,9 @@ const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notif
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminUsers          = lazy(() => import('./pages/admin/AdminUsers'));
+const EarningsDashboard   = lazy(() => import('./pages/worker/EarningsDashboard'));
+const ModerationPanel     = lazy(() => import('./pages/admin/ModerationPanel'));
+const ScheduleManager     = lazy(() => import('./pages/worker/ScheduleManager'));
 
 const VerificationPage = lazy(() => lazyWithRetry(() => import('./pages/worker/VerificationPage')));
 
@@ -97,16 +101,21 @@ const ROUTES = [
   { path: '/services',          element: <Services /> },
   { path: '/worker/register',   element: <WorkerRegister /> },
   { path: '/worker/login',      element: <WorkerLogin /> },
+  { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
+  { path: '/worker/earnings',      element: <EarningsDashboard /> },
+  { path: '/worker/schedule',     element: <ScheduleManager /> },
   { path: '/worker/dashboard',    element: <WorkerDashboard /> },
   { path: '/worker/verification', element: <VerificationPage /> },
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
   { path: '/recommendations',   element: <Recommendations /> }, // ✨ NEW
+  { path: '/request-service',   element: <RequestService /> },
   { path: '/civic-issues',           element: <CivicIssues /> },
   { path: '/civic-issues/report',    element: <ReportIssue /> },
   { path: '/civic-issues',     element: <CivicIssues /> },
   { path: '/admin',            element: <AdminDashboard /> },
   { path: '/admin/users',      element: <AdminUsers /> },
+  { path: '/admin/moderation', element: <ModerationPanel /> },
   // User (protected)
   {
     path: "/profile",
@@ -125,6 +134,10 @@ const ROUTES = [
     ),
   },
   {
+    path: "/payment/checkout",
+    element: (
+      <RequireAuth>
+        <PaymentCheckout />
     path: "/notifications",
     element: (
       <RequireAuth>
