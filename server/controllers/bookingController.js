@@ -565,3 +565,45 @@ export const updateBookingStatusController = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get the status change timeline for a booking
+// @route   GET /api/bookings/:id/timeline
+// @access  Private (Participant)
+export const getBookingTimeline = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .select('status statusHistory updatedAt createdAt')
+      .populate('statusHistory.changedBy', 'name');
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    const steps = booking.statusHistory.map((h) => ({
+      status: h.status,
+      label: h.status,
+      timestamp: h.changedAt,
+      actor: h.changedBy?.name || 'System',
+      note: h.note || '',
+    }));
+
+    // Make sure the current status is represented as a step
+    const hasCurrent = steps.some((s) => s.status === booking.status);
+    if (!hasCurrent) {
+      steps.push({
+        status: booking.status,
+        label: booking.status,
+        timestamp: booking.updatedAt || booking.createdAt,
+        actor: 'Current',
+        note: 'Current status',
+      });
+    }
+
+    // Sort chronologically
+    steps.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    res.json({ success: true, steps });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
