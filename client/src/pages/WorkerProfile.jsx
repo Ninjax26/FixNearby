@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 
 import api from "../services/apiClient";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
@@ -262,12 +262,210 @@ const parsePriceToNumber = (price) => {
   return match ? Number(match[0]) : 0;
 };
 
+const ReviewList = ({ reviews, isOwnProfile, workerName, onReplyAdded }) => {
+  const { showToast } = useToast();
+  const [replyingToId, setReplyingToId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  const handleSubmitReply = async (reviewId) => {
+    if (!replyText.trim()) return;
+    setSubmittingReply(true);
+    try {
+      const res = await api.post(`/reviews/${reviewId}/response`, { responseText: replyText });
+      if (res.data?.success) {
+        showToast("Response posted successfully!", "success");
+        setReplyText("");
+        setReplyingToId(null);
+        if (onReplyAdded) onReplyAdded();
+      }
+    } catch (err) {
+      console.error("Failed to post reply:", err);
+      showToast(err.response?.data?.message || "Failed to post reply.", "error");
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0
+    ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / totalReviews).toFixed(1)
+    : 0;
+
+  const distribution = [0, 0, 0, 0, 0];
+  reviews.forEach(r => {
+    const star = Math.min(5, Math.max(1, Math.round(r.rating || 0)));
+    distribution[star - 1]++;
+  });
+
+  return (
+    <div className="space-y-8">
+      {totalReviews > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-700">
+          <div className="text-center">
+            <p className="text-5xl font-black text-blue-600 dark:text-blue-400">{averageRating}</p>
+            <div className="flex justify-center gap-1 my-2 text-yellow-400 text-lg">
+              {"★".repeat(Math.round(averageRating)) + "☆".repeat(5 - Math.round(averageRating))}
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Based on {totalReviews} reviews</p>
+          </div>
+          
+          <div className="md:col-span-2 space-y-2">
+            {[5, 4, 3, 2, 1].map(stars => {
+              const count = distribution[stars - 1];
+              const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
+              return (
+                <div key={stars} className="flex items-center gap-3 text-sm">
+                  <span className="w-12 font-medium text-slate-600 dark:text-slate-400">{stars} Star</span>
+                  <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="w-8 text-right font-medium text-slate-600 dark:text-slate-400">{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No reviews yet for this professional.</p>
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {reviews.map(review => (
+          <div key={review._id || review.id} className="border border-slate-150 dark:border-slate-700 rounded-3xl p-6 bg-white dark:bg-slate-800 shadow-sm space-y-4">
+            <div className="flex justify-between items-start gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-slate-800 dark:text-white">{review.user?.name || "Verified Customer"}</h4>
+                  {review.isVerified && (
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                      ✓ Verified Hire
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex text-yellow-400 text-sm">
+                    {"★".repeat(Math.round(review.rating || 0)) + "☆".repeat(5 - Math.round(review.rating || 0))}
+                  </div>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    {new Date(review.createdAt).toLocaleDateString([], { dateStyle: 'medium' })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">{review.reviewText}</p>
+
+            {review.images && review.images.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {review.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedPhoto(img.startsWith('http') || img.startsWith('/') ? img : `${api.defaults.baseURL || 'http://localhost:5000'}${img}`)}
+                    className="w-16 h-16 rounded-xl overflow-hidden border border-slate-200 hover:border-blue-500 transition active:scale-95"
+                  >
+                    <img
+                      src={img.startsWith('http') || img.startsWith('/') ? img : `${api.defaults.baseURL || 'http://localhost:5000'}${img}`}
+                      alt="Review attachment"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {review.replyText ? (
+              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-850 rounded-2xl p-4 ml-4 sm:ml-8 mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Response from {workerName}
+                  </h5>
+                  <span className="text-[10px] text-slate-400">
+                    {new Date(review.repliedAt).toLocaleDateString([], { dateStyle: 'medium' })}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-450 leading-relaxed">
+                  {review.replyText}
+                </p>
+              </div>
+            ) : (
+              isOwnProfile && (
+                <div className="pt-2">
+                  {replyingToId === (review._id || review.id) ? (
+                    <div className="space-y-3 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Respond as {workerName}
+                      </h5>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Type your response to this customer review..."
+                        maxLength={1000}
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-blue-500 resize-none min-h-[100px]"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReplyingToId(null);
+                            setReplyText("");
+                          }}
+                          className="px-3.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-white dark:hover:bg-slate-700 transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          disabled={submittingReply || !replyText.trim()}
+                          onClick={() => handleSubmitReply(review._id || review.id)}
+                          className="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white transition disabled:opacity-50"
+                        >
+                          {submittingReply ? "Posting..." : "Post Response"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReplyingToId(review._id || review.id);
+                        setReplyText("");
+                      }}
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                    >
+                      💬 Respond to Review
+                    </button>
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        ))}
+      </div>
+
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 cursor-zoom-out"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl">
+            <img src={selectedPhoto} alt="Review attachment full resolution" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const WorkerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab]          = useState("overview");
@@ -281,6 +479,30 @@ const WorkerProfile = () => {
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showWizardModal, setShowWizardModal] = useState(false);
+
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const res = await api.get(`/workers/${id}/reviews`);
+      if (res.data?.success) {
+        setReviews(res.data.reviews || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch worker reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
+
+  const isOwnProfile = isAuthenticated && user && String(user._id || user.id) === String(id);
 
   useEffect(() => {
     if (isAuthenticated && id) {
@@ -885,15 +1107,12 @@ const WorkerProfile = () => {
           {activeTab === "reviews" && (
             <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
               <h2 className="mb-6 text-2xl font-bold dark:text-white">Customer Reviews</h2>
-              <ReviewList reviews={reviews.map(r => ({
-                _id: r.id,
-                rating: r.rating,
-                reviewText: r.text,
-                createdAt: r.createdAt,
-                isVerified: r.isVerified,
-                images: r.images,
-                user: { name: r.name }
-              }))} />
+              <ReviewList
+                reviews={reviews}
+                isOwnProfile={isOwnProfile}
+                workerName={worker?.name || "Professional"}
+                onReplyAdded={fetchReviews}
+              />
             </div>
           )}
 

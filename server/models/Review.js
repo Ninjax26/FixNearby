@@ -52,6 +52,14 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     enum: ['approved', 'pending', 'flagged'],
     default: 'approved'
+  },
+  replyText: {
+    type: String,
+    trim: true,
+    maxlength: [1000, 'Reply text must be less than 1000 characters']
+  },
+  repliedAt: {
+    type: Date
   }
 }, {
   timestamps: true
