@@ -19,11 +19,12 @@ import {
 } from '../middleware/bookingMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 import { createBookingReview } from '../controllers/reviewController.js';
+import { useIdempotency } from '../middleware/idempotencyMiddleware.js';
 
 const router = express.Router();
 
-// All booking routes require authentication and rate limiting.
-router.use(protect, globalApiLimiter);
+// All booking routes require authentication, rate limiting, and idempotency checks.
+router.use(protect, globalApiLimiter, useIdempotency);
 
 router.route('/')
   .post(bookingRateLimiter, checkBookingOverlap, createBooking)
