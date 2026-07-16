@@ -36,6 +36,15 @@ export const getProfile = async () => {
   }
 };
 
+export const exportProfileData = async () => {
+  try {
+    const response = await api.get('/auth/profile/export');
+    return response.data;
+  } catch (error) {
+    throw createServiceError(error, 'Failed to export account data');
+  }
+};
+
 export const updateProfile = async (data) => {
   try {
     const response = await api.put("/auth/profile", data);
@@ -99,4 +108,3 @@ export const resetWorkerPassword = async (token, password) => {
     throw createServiceError(error, "Failed to reset password");
   }
 };
-

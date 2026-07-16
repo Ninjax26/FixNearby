@@ -4,6 +4,7 @@ import {
   registerUser,
   loginUser,
   getUserProfile,
+  exportUserData,
   updateUserProfile,
   forgotUserPassword,
   resetUserPassword,
@@ -57,6 +58,7 @@ router.get('/csrf-token', (req, res) => {
 router.post('/register', userRegisterLimiter, validateRegistration, registerUser);
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
+router.get('/profile/export', protect, exportUserData);
 router.put('/profile', protect, profileUpdateLimiter, updateUserProfile);
 router.post('/logout', protect, logoutLimiter, logoutUser);
 

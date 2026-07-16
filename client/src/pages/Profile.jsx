@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile } from "../services/authService";
+import { exportProfileData, updateProfile } from "../services/authService";
 import useToast from "../hooks/useToast";
+import { downloadJson } from "../utils/downloadJson";
 
 const Profile = () => {
   const { user, login } = useAuth();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -36,6 +38,22 @@ const Profile = () => {
       showToast(error.message || "Failed to update profile", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const data = await exportProfileData();
+      downloadJson({
+        data,
+        filename: `fixnearby-account-${new Date().toISOString().slice(0, 10)}.json`,
+      });
+      showToast('Account data downloaded successfully!', 'success');
+    } catch (error) {
+      showToast(error.message || 'Failed to export account data', 'error');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -113,6 +131,21 @@ const Profile = () => {
           </div>
         </form>
       </div>
+
+      <section className="mt-6 rounded-lg bg-white p-6 shadow" aria-labelledby="account-data-heading">
+        <h2 id="account-data-heading" className="text-xl font-semibold text-gray-900">Your data</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Download a JSON copy of your account details and notification preferences.
+        </p>
+        <button
+          type="button"
+          onClick={handleExportData}
+          disabled={exporting}
+          className="mt-5 rounded border border-blue-600 px-4 py-2 font-bold text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {exporting ? 'Preparing download...' : 'Download My Data'}
+        </button>
+      </section>
     </div>
   );
 };

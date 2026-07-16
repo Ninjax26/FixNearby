@@ -171,6 +171,32 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+export const buildUserDataExport = (user, exportedAt = new Date()) => ({
+  schemaVersion: 1,
+  exportedAt: exportedAt.toISOString(),
+  account: {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    phone: user.phone || null,
+    role: user.role,
+    status: user.status,
+    notificationPreferences:
+      user.notificationPreferences?.toObject?.() || user.notificationPreferences || {},
+    createdAt: user.createdAt || null,
+    updatedAt: user.updatedAt || null,
+  },
+});
+
+export const exportUserData = (req, res) => {
+  const data = buildUserDataExport(req.user);
+  const date = data.exportedAt.slice(0, 10);
+
+  res.setHeader('Content-Disposition', `attachment; filename="fixnearby-account-${date}.json"`);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(200).json(data);
+};
+
 export const updateUserProfile = async (req, res) => {
   try {
     if (req.body.password && !isValidPassword(req.body.password)) {
