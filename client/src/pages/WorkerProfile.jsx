@@ -21,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
   Heart,
+  Share2,
 } from "lucide-react";
 
 import SkeletonLoader from "../components/SkeletonLoader";
@@ -35,7 +36,7 @@ import { getWorkerAvailability } from "../services/availabilityService";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import useToast from "../hooks/useToast";
 import ReviewBadge from "../components/ReviewBadge";
-import ReviewList from "../components/ReviewList";
+import { shareWorkerProfile } from "../utils/shareWorkerProfile";
 
 /* ✅ Move data outside component */
 const WORKERS = {
@@ -539,6 +540,20 @@ const WorkerProfile = () => {
     }
   };
 
+  const handleShareProfile = async () => {
+    try {
+      const result = await shareWorkerProfile({ worker });
+      showToast(
+        result === 'copied' ? 'Profile link copied to clipboard.' : 'Profile shared successfully.',
+        'success',
+      );
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        showToast(error.message || 'Unable to share this profile.', 'error');
+      }
+    }
+  };
+
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -852,6 +867,15 @@ const WorkerProfile = () => {
                       isSaved ? "fill-red-500 text-red-500" : "text-slate-400"
                     }`}
                   />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareProfile}
+                  className="p-2 rounded-full hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Share ${worker.name}'s profile`}
+                  title="Share profile"
+                >
+                  <Share2 className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
               <p className="text-blue-600 font-medium">{worker.profession}</p>
