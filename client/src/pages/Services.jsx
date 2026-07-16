@@ -1048,7 +1048,7 @@ const Services = () => {
             <div className="lg:col-span-7 space-y-6">
               {/* WORKER CARDS */}
               {loading ? (
-                <LoadingSpinner />
+                <SkeletonLoader type="worker" count={4} />
               ) : filteredWorkers.length === 0 ? (
                 <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50 py-20 text-center">
                   <h3 className="text-2xl font-bold text-gray-900">No services found</h3>
