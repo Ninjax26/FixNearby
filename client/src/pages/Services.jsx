@@ -34,6 +34,12 @@ import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import EstimateWizard from "../components/EstimateWizard";
 import WorkerMap from "../components/WorkerMap";
+import {
+  addRecentWorker,
+  clearRecentWorkers,
+  getRecentWorkers,
+  removeRecentWorker,
+} from "../services/recentWorkerService";
 
 const mockWorkers = [
   {
@@ -535,9 +541,7 @@ const Services = () => {
         console.error("Failed to fetch search results from backend, falling back to mock data", err);
         setWorkers(mockWorkers);
       } finally {
-        const storedRecent =
-          JSON.parse(localStorage.getItem("recentWorkers")) || [];
-        setRecentWorkers(storedRecent);
+        setRecentWorkers(getRecentWorkers());
         setLoading(false);
       }
     };
@@ -723,12 +727,15 @@ const Services = () => {
   };
 
   const handleRecentlyViewed = (worker) => {
-    let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
-    stored = stored.filter((i) => i.id !== worker.id);
-    stored.unshift(worker);
-    stored = stored.slice(0, 5);
-    localStorage.setItem("recentWorkers", JSON.stringify(stored));
-    setRecentWorkers(stored);
+    setRecentWorkers(addRecentWorker(worker));
+  };
+
+  const handleRemoveRecentWorker = (workerId) => {
+    setRecentWorkers(removeRecentWorker(workerId));
+  };
+
+  const handleClearRecentWorkers = () => {
+    setRecentWorkers(clearRecentWorkers());
   };
 
   const handleSearch = (query) => {
@@ -975,18 +982,35 @@ const Services = () => {
         {/* RECENTLY VIEWED */}
         {recentWorkers.length > 0 && (
           <div className="mb-14">
-            <div className="mb-6 flex items-center gap-2">
-              <span className="text-2xl">⭐</span>
-              <h2 className="text-2xl font-bold text-gray-900">
-                Recently Viewed Professionals
-              </h2>
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl" aria-hidden="true">⭐</span>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Recently Viewed Professionals
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearRecentWorkers}
+                className="text-sm font-semibold text-slate-500 hover:text-rose-600"
+              >
+                Clear all
+              </button>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {recentWorkers.map((worker) => (
                 <div
-                  key={worker.id}
-                  className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
+                  key={worker._id || worker.id}
+                  className="relative rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-lg"
                 >
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRecentWorker(worker._id || worker.id)}
+                    className="absolute right-3 top-3 rounded-full p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+                    aria-label={`Remove ${worker.name} from recently viewed`}
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
                   <div className="mb-4 text-4xl">
                     {(() => {
                       const Icon = iconMap[worker.profession];
