@@ -47,8 +47,7 @@ const ReportIssue         = lazy(() => import('./components/IssueSubmissionForm'
 const IssueDetail         = lazy(() => import('./pages/IssueDetail'));
 const NotFound            = lazy(() => import('./pages/NotFound'));
 const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notifications')));
-const NotFound            = lazy(() => import('./pages/NotFound'));
-const Notifications       = lazy(() => lazyWithRetry(() => import('./pages/Notifications')));
+const RequestService      = lazy(() => import('./pages/RequestService'));
 
 
 const AdminDashboard      = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -104,7 +103,6 @@ const ROUTES = [
   { path: '/worker/dashboard',    element: <WorkerDashboard /> }, 
   { path: '/worker/earnings',      element: <EarningsDashboard /> },
   { path: '/worker/schedule',     element: <ScheduleManager /> },
-  { path: '/worker/dashboard',    element: <WorkerDashboard /> },
   { path: '/worker/verification', element: <VerificationPage /> },
   { path: '/worker/:id',        element: <WorkerProfile /> },
   { path: '/saved-workers',     element: <SavedWorkers /> },
@@ -112,7 +110,7 @@ const ROUTES = [
   { path: '/request-service',   element: <RequestService /> },
   { path: '/civic-issues',           element: <CivicIssues /> },
   { path: '/civic-issues/report',    element: <ReportIssue /> },
-  { path: '/civic-issues',     element: <CivicIssues /> },
+  { path: '/civic-issues/:id',      element: <IssueDetail /> },
   { path: '/admin',            element: <AdminDashboard /> },
   { path: '/admin/users',      element: <AdminUsers /> },
   { path: '/admin/moderation', element: <ModerationPanel /> },
@@ -138,6 +136,10 @@ const ROUTES = [
     element: (
       <RequireAuth>
         <PaymentCheckout />
+      </RequireAuth>
+    ),
+  },
+  {
     path: "/notifications",
     element: (
       <RequireAuth>
