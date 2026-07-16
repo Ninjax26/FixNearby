@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import CenteredLoadingSpinner from "../components/CenteredLoadingSpinner";
 import StarRating from "../components/StarRating";
-import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X } from "lucide-react";
+import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X, History } from "lucide-react";
+import BookingTimeline from "../components/BookingTimeline";
+import useBookingTimeline from "../hooks/useBookingTimeline";
 import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
@@ -84,6 +86,25 @@ const normalizeBooking = (booking) => {
     formattedDate = new Date(booking.createdAt || Date.now()).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
   }
 
+  // Normalize backend `statusHistory` into unified `events` timeline.
+  // Each event is: { status, at, message }
+  const rawStatusHistory = Array.isArray(booking.statusHistory)
+    ? booking.statusHistory
+    : [];
+
+  const events = rawStatusHistory
+    .map((e) => ({
+      status: e?.status,
+      at: e?.changedAt ? new Date(e.changedAt).toISOString() : null,
+      message: e?.note || "",
+    }))
+    .filter((e) => e.status)
+    .sort((a, b) => {
+      const atA = a.at ? new Date(a.at).getTime() : 0;
+      const atB = b.at ? new Date(b.at).getTime() : 0;
+      return atA - atB;
+    });
+
   return {
     ...booking,
     id: booking._id || booking.id,
@@ -93,11 +114,122 @@ const normalizeBooking = (booking) => {
     date: formattedDate,
     estimateSpecs,
     status,
+    events,
   };
 };
 
+
 /* ── Estimate breakdown panel for a booking card ── */
+const TimelineDot = ({ variant }) => {
+  const className =
+    variant === "completed"
+      ? "bg-emerald-500"
+      : variant === "cancelled"
+        ? "bg-rose-500"
+        : variant === "active"
+          ? "bg-blue-500"
+          : "bg-slate-300";
+  return <span className={`inline-block w-2.5 h-2.5 rounded-full ${className}`} />;
+};
+
+const formatEventAt = (at) => {
+  if (!at) return "";
+  const d = new Date(at);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+};
+
+const BookingTimeline = ({ booking }) => {
+  const status = booking.status;
+
+  const steps = [
+    { key: "Pending", label: "Pending" },
+    { key: "Confirmed", label: "Confirmed" },
+    { key: "Technician En Route", label: "En Route" },
+    { key: "Completed", label: "Completed" },
+    { key: "Cancelled", label: "Cancelled" },
+  ];
+
+  // Prefer events; fallback to inferred timestamps.
+  const events = Array.isArray(booking.events) ? booking.events : [];
+
+  const eventByStatus = new Map(
+    events.map((e) => [e.status, e]).filter(([k]) => !!k)
+  );
+
+  const createdAt = booking.createdAt ? new Date(booking.createdAt).toISOString() : null;
+  const scheduledAt = booking.scheduledTime ? new Date(booking.scheduledTime).toISOString() : null;
+
+  const timelineItems = steps.map((s) => {
+    let at = eventByStatus.get(s.key)?.at || null;
+    let message = eventByStatus.get(s.key)?.message || "";
+
+    // Fallbacks
+    if (!at) {
+      if (s.key === "Pending") at = createdAt || null;
+      if (s.key === "Confirmed") at = scheduledAt || null;
+      if (s.key === "Technician En Route") at = null;
+      if (s.key === "Completed" || s.key === "Cancelled") at = booking.updatedAt ? new Date(booking.updatedAt).toISOString() : null;
+    }
+
+    return { ...s, at, message };
+  });
+
+  const currentIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.key === status) // if status matches one of the keys
+  );
+
+  return (
+    <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h4 className="text-sm font-bold text-slate-800">Booking Timeline</h4>
+        <span className="text-xs font-medium text-slate-500">{status}</span>
+      </div>
+
+      <div className="mt-3 space-y-3">
+        {timelineItems.map((item, idx) => {
+          const isReached = item.key === status || idx <= currentIndex;
+          const variant = item.key === "Completed" && status === "Completed"
+            ? "completed"
+            : item.key === "Cancelled" && status === "Cancelled"
+              ? "cancelled"
+              : isReached
+                ? "active"
+                : "pending";
+
+          // Hide En Route step if it has no event and booking isn't yet in that state.
+          const shouldHideEnRoute = item.key === "Technician En Route" && !item.at && status !== "Technician En Route";
+          if (shouldHideEnRoute) return null;
+
+          return (
+            <div key={item.key} className="flex items-start gap-3">
+              <div className="pt-1">
+                <TimelineDot variant={variant} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-sm font-semibold ${isReached ? "text-slate-900" : "text-slate-500"}`}>
+                    {item.label}
+                  </span>
+                  <span className={`text-xs ${isReached ? "text-slate-600" : "text-slate-400"}`}>
+                    {formatEventAt(item.at) || "—"}
+                  </span>
+                </div>
+                {item.message ? (
+                  <p className="mt-1 text-xs text-slate-600 leading-relaxed">{item.message}</p>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const EstimateBreakdown = ({ specs }) => {
+
   const [open, setOpen] = useState(false);
   // Guard against divide-by-zero when a malformed estimate has no total.
   const total = specs.totalCost > 0 ? specs.totalCost : 0;
@@ -177,6 +309,23 @@ const EstimateBreakdown = ({ specs }) => {
   );
 };
 
+const BookingTimelineInline = ({ bookingId, currentStatus }) => {
+  const { steps, loading, error } = useBookingTimeline(bookingId);
+
+  return (
+    <BookingTimeline
+      statusHistory={steps.map((s) => ({
+        status: s.status,
+        changedAt: s.timestamp,
+        changedBy: { name: s.actor },
+        note: s.note,
+      }))}
+      currentStatus={currentStatus}
+      loading={loading}
+    />
+  );
+};
+
 const Bookings = () => {
   const {
     bookings: rawBookings,
@@ -209,6 +358,9 @@ const Bookings = () => {
   const [newTime, setNewTime] = useState("");
   const [rescheduleError, setRescheduleError] = useState("");
   const [submittingReschedule, setSubmittingReschedule] = useState(null);
+
+  // Timeline toggle state
+  const [expandedTimelineId, setExpandedTimelineId] = useState(null);
 
   const filteredBookings = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -487,11 +639,26 @@ const Bookings = () => {
                     Rated {booking.review.rating}/5
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedTimelineId(
+                      expandedTimelineId === booking.id ? null : booking.id
+                    )
+                  }
+                  className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-slate-800 transition"
+                >
+                  <History size={14} />
+                  {expandedTimelineId === booking.id
+                    ? "Hide Timeline"
+                    : "View Timeline"}
+                </button>
               </div>
 
               {/* RESCHEDULE BOX */}
               {reschedulingId === booking.id && (
                 <div className="mt-4 p-5 rounded-2xl border border-blue-100 bg-blue-50/50 space-y-3 max-w-md transition-all duration-300">
+
                   <h4 className="text-sm font-bold text-slate-800">Reschedule Booking</h4>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <input
@@ -530,12 +697,22 @@ const Bookings = () => {
                 </div>
               )}
 
+              {/* STATUS TIMELINE */}
+              {expandedTimelineId === booking.id && (
+                <div className="mt-4">
+                  <BookingTimelineInline bookingId={booking.id} currentStatus={booking.status} />
+                </div>
+              )}
+              {/* BOOKING TIMELINE */}
+              <BookingTimeline booking={booking} />
+
               {/* ESTIMATE BREAKDOWN */}
               {booking.estimateSpecs && (
                 <EstimateBreakdown specs={booking.estimateSpecs} />
               )}
 
               {/* REVIEW BOX */}
+
               {activeReview === booking.id && (
                 <div className="mt-6 relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
 

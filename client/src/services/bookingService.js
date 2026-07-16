@@ -97,6 +97,19 @@ export const rescheduleBooking = async (id, scheduledTime) => {
 };
 
 /**
+ * Fetch the status change timeline for a specific booking.
+ * @param {string} bookingId
+ */
+export const getBookingTimeline = async (bookingId) => {
+  try {
+    const response = await api.get(`/bookings/${bookingId}/timeline`);
+    return response.data;
+  } catch (error) {
+    throw normalizeError(error, "Failed to load booking timeline");
+  }
+};
+
+/**
  * Map an axios error to the normalized service-layer error contract.
  * @param {import('axios').AxiosError} error
  * @param {string} fallbackMessage
@@ -119,4 +132,5 @@ export default {
   updateBookingStatus,
   cancelBooking,
   rescheduleBooking,
+  getBookingTimeline,
 };

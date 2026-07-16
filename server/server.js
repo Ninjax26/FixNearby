@@ -27,15 +27,32 @@ import { startBookingExpiryScheduler } from './workers/bookingExpiryWorker.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import { initKarmaScheduler } from './utils/karmaScheduler.js';
 import { startWorker } from './workers/notificationWorker.js';
-import { startBookingReminderScheduler } from './workers/bookingReminderWorker.js';
+import { checkUpcomingBookings } from './workers/bookingReminderWorker.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import estimateRoutes from './routes/estimateRoutes.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
+import earningRoutes from './routes/earningRoutes.js';
+import moderationRoutes from './routes/moderationRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
-
+import verificationRoutes from './routes/verificationRoutes.js';
 
 dotenv.config();
 
 validateEnv();
+
+process.on('unhandledRejection', (reason, promise) => {
+  if (reason && reason.message && (
+    reason.message.includes('ECONNREFUSED') ||
+    reason.message.includes('BullMQ') ||
+    reason.message.includes('ioredis') ||
+    reason.message.includes('Redis')
+  )) {
+    console.warn('[UnhandledRejection] Suppressed known Redis/BullMQ error:', reason.message);
+    return;
+  }
+  console.error('[UnhandledRejection]', reason);
+});
 
 const app = express();
 
@@ -107,8 +124,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Connect to Database
-// TODO: Uncomment when ready to connect to MongoDB
 connectDB();
 
 // Routes
@@ -122,20 +137,42 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/estimates', estimateRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/earnings', earningRoutes);
+app.use('/api/admin/moderation', moderationRoutes);
+app.use('/api/schedule', scheduleRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/verification', verificationRoutes);
 
+// Start background workers after DB connection is established
+(async () => {
+  // Wait for MongoDB to connect before initializing workers that depend on it
+  const MAX_WAIT_MS = 10000;
+  const POLL_MS = 200;
+  const startTime = Date.now();
+  while (Date.now() - startTime < MAX_WAIT_MS) {
+    const { default: mongoose } = await import('mongoose');
+    if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) break;
+    await new Promise(r => setTimeout(r, POLL_MS));
+  }
 
-// Start Booking Expiry Check Scheduler
-startBookingExpiryScheduler();
-// Initialize Weekly Karma Scheduler
-initKarmaScheduler();
-// Start Background Notification Worker
-startWorker();
-// Start Booking Reminder Scheduler
-startBookingReminderScheduler();
+  startBookingExpiryScheduler().catch(err =>
+    console.error('[Server] Booking expiry scheduler failed:', err.message)
+  );
+  // Initialize Weekly Karma Scheduler
+  initKarmaScheduler();
+  startWorker().catch(err =>
+    console.error('[Server] Notification worker failed:', err.message)
+  );
+})();
+
+// Start Booking Reminder Scheduler (Hourly check fallback)
+setInterval(() => {
+  checkUpcomingBookings().catch(err => console.error('Booking reminder check failed:', err));
+}, 60 * 60 * 1000);
 
 // Protected test route
 app.get('/api/protected', authMiddleware, (req, res) => {

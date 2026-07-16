@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Droplet,
   Hammer,
@@ -10,6 +10,10 @@ import {
   SprayCan,
   Heart,
   Star,
+  GitCompareArrows,
+  X,
+  Map,
+  List,
 } from "lucide-react";
 
 
@@ -27,6 +31,7 @@ import { useAuth } from "../context/AuthContext";
 import { getFavorites, toggleFavorite } from "../services/favoriteService";
 import { getEstimatorConfig } from "../utils/estimatorConfig";
 import EstimateWizard from "../components/EstimateWizard";
+import WorkerMap from "../components/WorkerMap";
 
 const mockWorkers = [
   {
@@ -205,12 +210,20 @@ const getDistanceKm = (lat1, lon1, lat2, lon2) => {
 const formatDistance = (d) =>
   d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`;
 
+import { useRef } from "react";
+import { getSocket } from "../utils/socketClient";
+
 const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [isSocketFallback, setIsSocketFallback] = useState(false);
+  const socketRef = useRef(null);
+
   useEffect(() => {
     let active = true;
+    let didReceiveSocketUpdate = false;
+
     const fetchSlots = async () => {
       try {
         const res = await getWorkerAvailability(workerId);
@@ -224,15 +237,70 @@ const WorkerSlots = ({ workerId, mockAvailability, mockResponseTime }) => {
       }
     };
 
+    // Always fetch once to render immediately.
     fetchSlots();
 
-    const interval = setInterval(fetchSlots, 10000);
+    // Subscribe to worker availability updates over WebSockets.
+    const socket = getSocket();
+    socketRef.current = socket;
+
+    const handleAvailabilityUpdate = (payload) => {
+      if (!payload) return;
+      const updatedWorkerId = payload.workerId;
+      if (!updatedWorkerId || updatedWorkerId.toString() !== workerId.toString()) return;
+
+      if (payload.availableSlots && Array.isArray(payload.availableSlots)) {
+        didReceiveSocketUpdate = true;
+        setIsSocketFallback(false);
+        setSlots(payload.availableSlots);
+        setLoading(false);
+      }
+    };
+
+    const startPollingFallback = () => {
+      setIsSocketFallback(true);
+      const interval = setInterval(() => {
+        if (!active) return;
+        if (didReceiveSocketUpdate) {
+          clearInterval(interval);
+          return;
+        }
+        fetchSlots();
+      }, 10000);
+
+      return interval;
+    };
+
+    let pollingInterval = null;
+
+    // Attempt socket connect; if it fails quickly, enable polling.
+    // Socket.IO will also retry, but this keeps UI fresh when backend/socket isn't reachable.
+    const timeoutMs = 4000;
+    let timeoutHandle = setTimeout(() => {
+      if (!didReceiveSocketUpdate) {
+        pollingInterval = startPollingFallback();
+      }
+    }, timeoutMs);
+
+    socket.on("availability:update", handleAvailabilityUpdate);
+
+    // Back-end is expected to emit updates; joining a room/subscription is optional depending on implementation.
+    // We still emit a subscribe hint if the server supports it.
+    socket.emit("availability:subscribe", { workerId });
+
+    if (!socket.connected) {
+      socket.connect();
+    }
 
     return () => {
       active = false;
-      clearInterval(interval);
+      clearTimeout(timeoutHandle);
+      if (pollingInterval) clearInterval(pollingInterval);
+      socket.off("availability:update", handleAvailabilityUpdate);
+      socket.emit("availability:unsubscribe", { workerId });
     };
   }, [workerId]);
+
 
   if (loading) {
     return (
@@ -313,6 +381,9 @@ const Services = () => {
   const [favoritedWorkerIds, setFavoritedWorkerIds] = useState(new Set());
   const [selectedWorkerForWizard, setSelectedWorkerForWizard] = useState(null);
   const [selectedWorkerId, setSelectedWorkerId] = useState(null);
+  const [compareIds, setCompareIds] = useState([]);
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState('list');
 
   const handleMarkerClick = (workerId) => {
     setSelectedWorkerId(workerId);
@@ -595,6 +666,33 @@ const Services = () => {
     return result;
   }, [workers, searchQuery, categoryFilter, sortBy, coords, advancedFilters, urgentFilter]);
 
+  const toggleCompare = (workerId) => {
+    setCompareIds(prev => {
+      if (prev.includes(workerId)) {
+        return prev.filter(id => id !== workerId);
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, workerId];
+    });
+  };
+
+  const removeCompare = (workerId) => {
+    setCompareIds(prev => prev.filter(id => id !== workerId));
+  };
+
+  const goToCompare = () => {
+    if (compareIds.length >= 2) {
+      navigate(`/compare-workers?ids=${compareIds.join(',')}`);
+    }
+  };
+
+  const getCompareWorkerNames = () => {
+    return compareIds.map(id => {
+      const w = filteredWorkers.find(worker => (worker._id || worker.id) === id);
+      return w ? w.name : id;
+    });
+  };
+
   const handleRecentlyViewed = (worker) => {
     let stored = JSON.parse(localStorage.getItem("recentWorkers")) || [];
     stored = stored.filter((i) => i.id !== worker.id);
@@ -740,6 +838,23 @@ const Services = () => {
               </span>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setViewMode(prev => prev === 'list' ? 'map' : 'list')}
+            className="flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            {viewMode === 'list' ? (
+              <>
+                <Map className="h-5 w-5" />
+                <span>Map View</span>
+              </>
+            ) : (
+              <>
+                <List className="h-5 w-5" />
+                <span>List View</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* CATEGORY CHIPS (FULL FIX) */}
@@ -851,7 +966,21 @@ const Services = () => {
 
           {/* MAIN CONTENT */}
           <div className="flex-grow lg:grid lg:grid-cols-12 lg:gap-8 items-start w-full">
-            {/* WORKER LIST (Left part of split) */}
+            {/* MAP VIEW */}
+            {viewMode === 'map' ? (
+              <div className="lg:col-span-12 h-[600px]">
+                <WorkerMap
+                  workers={filteredWorkers}
+                  center={coords ? { lat: coords.latitude, lng: coords.longitude } : { lat: 17.385, lng: 78.4867 }}
+                  zoom={1.2}
+                  onWorkerClick={(id) => {
+                    const el = document.getElementById(`worker-card-${id}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                />
+              </div>
+            ) : (
+            /* WORKER LIST (Left part of split) */
             <div className="lg:col-span-7 space-y-6">
               {/* WORKER CARDS */}
               {loading ? (
@@ -904,6 +1033,24 @@ const Services = () => {
                                 : "text-gray-400 hover:text-red-500"
                             }`}
                           />
+                        </button>
+
+                        {/* Compare Checkbox */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleCompare(worker._id || worker.id);
+                          }}
+                          className={`absolute top-4 left-4 p-2.5 rounded-full transition-all shadow-sm border z-10 focus:outline-none ${
+                            compareIds.includes(worker._id || worker.id)
+                              ? "bg-blue-600 border-blue-600 text-white"
+                              : "bg-white/95 hover:bg-white border-gray-100/60 text-gray-400 hover:text-blue-500"
+                          }`}
+                          title={compareIds.includes(worker._id || worker.id) ? "Remove from comparison" : "Add to comparison"}
+                        >
+                          <GitCompareArrows className="h-5 w-5" />
                         </button>
 
                         {/* WORKER IMAGE & BADGES */}
@@ -989,8 +1136,10 @@ const Services = () => {
                 </>
               )}
             </div>
+            )}
 
-            {/* MAP CONTAINER (Right part of split, sticky) */}
+            {/* MAP CONTAINER (Right part of split, sticky) - hidden when in map view */}
+            {viewMode !== 'map' && (
             <div className="hidden lg:block lg:col-span-5 sticky top-24 h-[calc(100vh-140px)] rounded-3xl overflow-hidden shadow-sm border border-slate-200">
               <MapView
                 workers={filteredWorkers}
@@ -998,9 +1147,44 @@ const Services = () => {
                 onMarkerClick={handleMarkerClick}
               />
             </div>
+            )}
           </div>
         </div>
       </div>
+      {/* Floating Compare Bar */}
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-200 px-5 py-3 flex items-center gap-4 animate-in slide-in-from-bottom-4">
+          <span className="text-sm font-bold text-gray-700">
+            Compare ({compareIds.length}/3)
+          </span>
+          <div className="flex gap-2">
+            {getCompareWorkerNames().map((name, idx) => (
+              <span key={idx} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                {name}
+                <button
+                  type="button"
+                  onClick={() => removeCompare(compareIds[idx])}
+                  className="hover:text-red-500 transition"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={goToCompare}
+            disabled={compareIds.length < 2}
+            className={`rounded-xl px-5 py-2 text-sm font-bold transition ${
+              compareIds.length >= 2
+                ? "bg-slate-900 text-white hover:bg-blue-600"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Compare Now
+          </button>
+        </div>
+      )}
       {selectedWorkerForWizard && (
         <EstimateWizard
           isOpen={!!selectedWorkerForWizard}

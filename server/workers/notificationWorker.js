@@ -1,5 +1,4 @@
 import { Worker } from 'bullmq';
-import IORedis from 'ioredis';
 import User from '../models/User.js';
 import WorkerModel from '../models/Worker.js';
 import Booking from '../models/Booking.js';
@@ -7,28 +6,13 @@ import Issue from '../models/Issue.js';
 import DeadLetterJob from '../models/DeadLetterJob.js';
 import sendEmail from '../utils/sendEmail.js';
 import sendSMS from '../utils/sendSMS.js';
+import { getRedis } from '../utils/redis.js';
 import dotenv from 'dotenv';
 import Notification from '../models/Notification.js';
 import { getIo } from '../socket.js';
 
 
 dotenv.config();
-
-const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-
-// Setup worker connection
-let connection = null;
-try {
-  connection = new IORedis(redisUrl, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false
-  });
-  connection.on('error', (err) => {
-    console.warn(`[Worker Redis Connection Warning] Redis unreachable: ${err.message}`);
-  });
-} catch (err) {
-  console.warn(`[Worker Redis Initialization Warning] Failed: ${err.message}`);
-}
 
 const processJob = async (job) => {
   const { name, data } = job;
@@ -86,7 +70,6 @@ const processJob = async (job) => {
       const user = booking.userId;
       const worker = booking.workerId;
 
-      // 1. Notify User
       if (user) {
         const userPrefs = user.notificationPreferences || { email: true, sms: true, push: true };
 
@@ -318,7 +301,6 @@ const processJob = async (job) => {
       const user = booking.userId;
       const worker = booking.workerId;
 
-      // 1. Notify User (Reschedule Confirmation)
       if (user) {
         const userPrefs = user.notificationPreferences || { email: true, sms: true, push: true };
 
@@ -358,7 +340,6 @@ const processJob = async (job) => {
         }
       }
 
-      // 2. Notify Worker
       if (worker) {
         const workerPrefs = worker.notificationPreferences || { email: true, sms: true, push: true };
 
@@ -467,16 +448,22 @@ const processJob = async (job) => {
 
 let worker = null;
 
-export const startWorker = () => {
-  if (!connection) {
+export const startWorker = async () => {
+  const conn = await getRedis();
+  if (!conn || conn.status !== 'ready') {
     console.warn('[Worker] Gracefully skipping worker start: Redis is offline.');
     return null;
   }
 
-  worker = new Worker('notification-queue', processJob, {
-    connection,
-    concurrency: 5
-  });
+  try {
+    worker = new Worker('notification-queue', processJob, {
+      connection: conn,
+      concurrency: 5
+    });
+  } catch (err) {
+    console.warn('[Worker] Failed to create BullMQ Worker:', err.message);
+    return null;
+  }
 
   worker.on('completed', (job) => {
     console.log(`[Worker] Job completed: ${job.id}`);
@@ -484,7 +471,7 @@ export const startWorker = () => {
 
   worker.on('failed', async (job, err) => {
     console.error(`[Worker] Job failed: ${job?.id || 'unknown'}, Error: ${err.message}`);
-    
+
     if (job && job.attemptsMade >= job.opts.attempts) {
       console.log(`[Worker] Logging job ${job.id} to Dead Letter Queue (MDB) after ${job.attemptsMade} failed attempts.`);
       try {

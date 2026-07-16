@@ -7,13 +7,14 @@ const normalizeApiBaseURL = (value) => {
 };
 
 const api = axios.create({
-   baseURL: normalizeApiBaseURL(import.meta.env.VITE_API_URL),
-    headers:{
-        "Content-Type":"application/json"
-    },
-    timeout:15000,
-    withCredentials: true,
+  baseURL: normalizeApiBaseURL(import.meta.env.VITE_API_URL),
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 15000,
+  withCredentials: true,
 });
+
 
 const TIMING_THRESHOLD_SLOW = 3000;
 
@@ -29,8 +30,11 @@ api.interceptors.response.use(
   (response) => {
     if (response.headers["x-csrf-token"]) {
       sessionStorage.setItem("csrf_token", response.headers["x-csrf-token"]);
+    }
+
     const startTime = response.config?.metadata?.startTime;
     if (startTime) {
+
       const duration = performance.now() - startTime;
       const method = (response.config.method || 'GET').toUpperCase();
       const url = response.config.url || '';
