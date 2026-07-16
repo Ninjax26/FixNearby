@@ -10,6 +10,7 @@ import { useBookings } from "../hooks/useBookings";
 import api from "../services/apiClient";
 import useToast from "../hooks/useToast";
 import { showApiError } from "../utils/apiErrorHandler";
+import CancelBookingModal from "../components/CancelBookingModal";
 
 const statusOptions = ["All", "Pending", "Confirmed", "Reminder Sent", "Technician En Route", "Completed", "Cancelled"];
 
@@ -358,6 +359,7 @@ const Bookings = () => {
   const [newTime, setNewTime] = useState("");
   const [rescheduleError, setRescheduleError] = useState("");
   const [submittingReschedule, setSubmittingReschedule] = useState(null);
+  const [submittingReview, setSubmittingReview] = useState(null);
 
   // Timeline toggle state
   const [expandedTimelineId, setExpandedTimelineId] = useState(null);
@@ -432,6 +434,7 @@ const Bookings = () => {
       formData.append("images", img);
     });
 
+    setSubmittingReview(id);
     try {
       const response = await api.post(`/bookings/${id}/review`, formData, {
         headers: {
@@ -449,6 +452,8 @@ const Bookings = () => {
     } catch (err) {
       console.error("Error submitting review:", err);
       showApiError(err, showToast);
+    } finally {
+      setSubmittingReview(null);
     }
   };
 
@@ -872,9 +877,10 @@ const Bookings = () => {
                       <button
                         type="button"
                         onClick={() => handleReviewSubmit(booking.id)}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-2xl font-semibold hover:opacity-90 transition shadow-lg shadow-blue-100"
+                        disabled={submittingReview === booking.id}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-2xl font-semibold hover:opacity-90 transition shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Submit Review
+                        {submittingReview === booking.id ? "Submitting..." : "Submit Review"}
                       </button>
                       <button
                         type="button"

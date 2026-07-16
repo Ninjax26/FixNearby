@@ -63,63 +63,76 @@ export const createBooking = async (req, res, next) => {
       };
     }
 
-    const overlap = session
-      ? await Booking.findOne(query).session(session)
-      : await Booking.findOne(query);
+    try {
+      const overlap = session
+        ? await Booking.findOne(query).session(session)
+        : await Booking.findOne(query);
 
-    if (overlap) {
-      releaseLock(workerId, start.getTime());
+      if (overlap) {
+        releaseLock(workerId, start.getTime());
+        if (session) {
+          await session.abortTransaction();
+          session.endSession();
+        }
+        return {
+          status: 409,
+          data: {
+            success: false,
+            message: 'Worker has an overlapping accepted or in-progress booking during this time slot.'
+          }
+        };
+      }
+
+      const bookingData = {
+        userId: req.user._id,
+        workerId,
+        service,
+        scheduledTime: start,
+        durationHours,
+        address,
+        price,
+        status: 'Pending',
+        statusHistory: [{
+          status: 'Pending',
+          changedBy: req.user._id,
+          changedByModel: 'User',
+          note: 'Booking created'
+        }]
+      };
+
+      const bookingArray = session
+        ? await Booking.create([bookingData], { session })
+        : [await Booking.create(bookingData)];
+
+      const booking = bookingArray[0];
+
       if (session) {
-        await session.abortTransaction();
+        await session.commitTransaction();
         session.endSession();
       }
+
+      releaseLock(workerId, start.getTime());
+
       return {
-        status: 409,
+        status: 201,
         data: {
-          success: false,
-          message: 'Worker has an overlapping accepted or in-progress booking during this time slot.'
+          success: true,
+          message: 'Booking created successfully',
+          booking
         }
       };
-    }
-
-    const bookingData = {
-      userId: req.user._id,
-      workerId,
-      service,
-      scheduledTime: start,
-      durationHours,
-      address,
-      price,
-      status: 'Pending',
-      statusHistory: [{
-        status: 'Pending',
-        changedBy: req.user._id,
-        changedByModel: 'User',
-        note: 'Booking created'
-      }]
-    };
-
-    const bookingArray = session
-      ? await Booking.create([bookingData], { session })
-      : [await Booking.create(bookingData)];
-
-    const booking = bookingArray[0];
-
-    if (session) {
-      await session.commitTransaction();
-      session.endSession();
-    }
-
-    releaseLock(workerId, start.getTime());
-
-    return {
-      status: 201,
-      data: {
-        success: true,
-        message: 'Booking created successfully',
-        booking
+    } catch (createErr) {
+      releaseLock(workerId, start.getTime());
+      if (session) {
+        try {
+          await session.abortTransaction();
+          session.endSession();
+        } catch (abortErr) {
+          // ignore
+        }
       }
-    };
+      throw createErr;
+    }
   };
 
   try {
