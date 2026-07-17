@@ -32,6 +32,7 @@ import favoriteRoutes from './routes/favoriteRoutes.js';
 import estimateRoutes from './routes/estimateRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
 import { createGracefulShutdown } from './utils/gracefulShutdown.js';
+import { healthHandlers } from './controllers/healthController.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 import earningRoutes from './routes/earningRoutes.js';
 import moderationRoutes from './routes/moderationRoutes.js';
@@ -183,10 +184,10 @@ app.get('/api/protected', authMiddleware, (req, res) => {
   });
 });
 
-// Basic health check route
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'success', message: 'FixNearby API is running' });
-});
+// Liveness remains available at the legacy path for platform compatibility.
+app.get('/api/health', healthHandlers.live);
+app.get('/api/health/live', healthHandlers.live);
+app.get('/api/health/ready', healthHandlers.ready);
 
 // Client-side UI error reporting endpoint
 app.post('/api/logs/error', (req, res) => {
