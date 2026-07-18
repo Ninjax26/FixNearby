@@ -25,6 +25,7 @@ const normalizeFromUserProfile = (profile, token) => {
     name: profile.name,
     email: profile.email,
     phone: profile.phone,
+    notificationPreferences: profile.notificationPreferences,
     token,
   };
 };
@@ -118,6 +119,7 @@ export const AuthProvider = ({ children }) => {
           name: authData.name,
           email: authData.email,
           phone: authData.phone,
+          notificationPreferences: authData.notificationPreferences,
         }
       : null,
     token: authData?.token ?? null,
@@ -140,4 +142,3 @@ export const useAuth = () => {
 };
 
 export default AuthContext;
-

@@ -9,7 +9,8 @@ import {
   resetUserPassword,
   forgotWorkerPassword,
   resetWorkerPassword,
-  logoutUser
+  logoutUser,
+  updateNotificationPreferences
 } from '../controllers/authController.js';
 import {
   registerWorker,
@@ -58,6 +59,7 @@ router.post('/register', userRegisterLimiter, validateRegistration, registerUser
 router.post('/login', userLoginLimiter, validateLogin, loginUser);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, profileUpdateLimiter, updateUserProfile);
+router.patch('/preferences/notifications', protect, profileUpdateLimiter, updateNotificationPreferences);
 router.post('/logout', protect, logoutLimiter, logoutUser);
 
 {/* WORKER AUTH ROUTES */}

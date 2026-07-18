@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile } from "../services/authService";
+import { updateNotificationPreferences, updateProfile } from "../services/authService";
 import useToast from "../hooks/useToast";
 
 const Profile = () => {
-  const { user, login } = useAuth();
+  const { user, token, login } = useAuth();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferences, setPreferences] = useState({
+    email: user?.notificationPreferences?.email ?? true,
+    sms: user?.notificationPreferences?.sms ?? true,
+    push: user?.notificationPreferences?.push ?? true,
+  });
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -36,6 +42,20 @@ const Profile = () => {
       showToast(error.message || "Failed to update profile", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    setPreferencesLoading(true);
+    try {
+      const updatedPreferences = await updateNotificationPreferences(preferences);
+      setPreferences(updatedPreferences);
+      login({ ...user, token, notificationPreferences: updatedPreferences });
+      showToast('Notification preferences updated!', 'success');
+    } catch (error) {
+      showToast(error.message || 'Failed to update notification preferences', 'error');
+    } finally {
+      setPreferencesLoading(false);
     }
   };
 
@@ -113,6 +133,39 @@ const Profile = () => {
           </div>
         </form>
       </div>
+
+      <section className="mt-6 bg-white shadow rounded-lg p-6" aria-labelledby="notification-settings-heading">
+        <h2 id="notification-settings-heading" className="text-xl font-semibold text-gray-900">Notifications</h2>
+        <p className="mt-1 text-sm text-gray-500">Choose how FixNearby may contact you.</p>
+        <div className="mt-5 space-y-4">
+          {[
+            ['email', 'Email notifications'],
+            ['sms', 'SMS notifications'],
+            ['push', 'Push notifications'],
+          ].map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium text-gray-700">{label}</span>
+              <input
+                type="checkbox"
+                checked={preferences[key]}
+                onChange={(event) => setPreferences((current) => ({
+                  ...current,
+                  [key]: event.target.checked,
+                }))}
+                className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            </label>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={handleSavePreferences}
+          disabled={preferencesLoading}
+          className="mt-6 rounded bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {preferencesLoading ? 'Saving...' : 'Save Notification Preferences'}
+        </button>
+      </section>
     </div>
   );
 };

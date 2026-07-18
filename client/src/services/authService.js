@@ -46,6 +46,15 @@ export const updateProfile = async (data) => {
   }
 };
 
+export const updateNotificationPreferences = async (preferences) => {
+  try {
+    const response = await api.patch('/auth/preferences/notifications', preferences);
+    return response.data.notificationPreferences;
+  } catch (error) {
+    throw createServiceError(error, 'Failed to update notification preferences');
+  }
+};
+
 
 export const forgotUserPassword = async (email) => {
   try {
@@ -99,4 +108,3 @@ export const resetWorkerPassword = async (token, password) => {
     throw createServiceError(error, "Failed to reset password");
   }
 };
-

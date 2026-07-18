@@ -105,6 +105,7 @@ export const registerUser = async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      notificationPreferences: user.notificationPreferences,
       token: generateToken(user._id),
     });
 
@@ -144,6 +145,7 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        notificationPreferences: user.notificationPreferences,
         token: generateToken(user._id),
       });
     } else {
@@ -164,10 +166,50 @@ export const getUserProfile = async (req, res) => {
       name: req.user.name,
       email: req.user.email,
       phone: req.user.phone,
+      notificationPreferences: req.user.notificationPreferences,
     });
 
   } catch (error) {
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const normalizeNotificationPreferences = (preferences) => {
+  const allowed = ['email', 'sms', 'push'];
+  if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
+    throw new TypeError('Notification preferences must be an object');
+  }
+
+  const entries = Object.entries(preferences).filter(([key]) => allowed.includes(key));
+  if (entries.length === 0 || entries.some(([, value]) => typeof value !== 'boolean')) {
+    throw new TypeError('At least one boolean notification preference is required');
+  }
+
+  return Object.fromEntries(entries);
+};
+
+export const updateNotificationPreferences = async (req, res) => {
+  let preferences;
+  try {
+    preferences = normalizeNotificationPreferences(req.body);
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const current = user.notificationPreferences?.toObject?.() || user.notificationPreferences || {};
+    user.notificationPreferences = { ...current, ...preferences };
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      notificationPreferences: user.notificationPreferences,
+    });
+  } catch {
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -196,6 +238,7 @@ export const updateUserProfile = async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         phone: updatedUser.phone,
+        notificationPreferences: updatedUser.notificationPreferences,
         token: generateToken(updatedUser._id),
       });
     } else {
