@@ -799,6 +799,11 @@ export const getWorkersBatch = async (req, res) => {
     const ordered = ids.map(id => workers.find(w => w._id.toString() === id)).filter(Boolean);
 
     res.json({ success: true, workers: ordered });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const getWorkersByBounds = async (req, res) => {
   try {
     const { north, south, east, west, category, availabilityStatus, minRating, maxPrice } = req.query;

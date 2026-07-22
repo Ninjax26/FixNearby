@@ -1,4 +1,6 @@
 import Notification from '../models/Notification.js';
+import mongoose from 'mongoose';
+import { getIo } from '../socket.js';
 
 // @desc    Get paginated notifications for the authenticated user/worker
 // @route   GET /api/notifications
@@ -174,10 +176,6 @@ export const createNotification = async (data) => {
     return null;
   }
 };
-import mongoose from 'mongoose';
-import Notification from '../models/Notification.js';
-import { getIo } from '../socket.js';
-
 const normalizeRecipient = ({ userId, userModel, workerId, workerModel, recipientId, recipientModel }) => {
   // Accept either direct recipientId/recipientModel OR userId/userModel OR workerId/workerModel
   const id = recipientId || userId || workerId;
@@ -315,4 +313,3 @@ export const markNotificationRead = async (req, res, next) => {
     next(err);
   }
 };
-

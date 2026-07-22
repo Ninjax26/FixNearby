@@ -7,7 +7,7 @@ import {
   getUnreadCount,
   deleteNotification
 } from '../controllers/notificationController.js';
-import { sendNotification, listMyNotifications, markNotificationRead } from '../controllers/notificationController.js';
+import { sendNotification } from '../controllers/notificationController.js';
 
 const router = express.Router();
 
@@ -29,15 +29,7 @@ router.patch('/:id/read', markAsRead);
 // Delete a notification
 router.delete('/:id', deleteNotification);
 
-export default router;
 // POST /api/notifications/send
 router.post('/send', sendNotification);
 
-// GET /api/notifications
-router.get('/', listMyNotifications);
-
-// PATCH /api/notifications/:id/read
-router.patch('/:id/read', markNotificationRead);
-
 export default router;
-

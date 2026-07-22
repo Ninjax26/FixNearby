@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import CenteredLoadingSpinner from "../components/CenteredLoadingSpinner";
 import SkeletonLoader from "../components/SkeletonLoader";
-import CancelBookingModal from "../components/CancelBookingModal";
 import StarRating from "../components/StarRating";
 import { Package, Clock, DollarSign, ChevronDown, ChevronUp, Zap, AlertCircle, X, History } from "lucide-react";
 import BookingTimeline from "../components/BookingTimeline";

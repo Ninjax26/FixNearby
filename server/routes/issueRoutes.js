@@ -15,8 +15,6 @@ import {
   respondToDispute,
   supportReviewDispute
 } from '../controllers/issueController.js';
-import { protect } from '../middleware/authMiddleware.js';
-
 const router = express.Router();
 
 // Guarantee upload directory exists

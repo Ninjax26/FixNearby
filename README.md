@@ -136,6 +136,24 @@ Before you start, make sure you have the following installed:
 
  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
+## 🐳 Run with Docker Compose
+
+The complete local stack includes the React client, Node.js API, MongoDB, and Redis.
+
+```bash
+JWT_SECRET="replace-with-a-long-random-value" docker compose up --build
+```
+
+Open `http://localhost:5173`. The client proxies API and Socket.IO traffic to the server inside the Compose network. Persistent Docker volumes retain MongoDB, Redis, and uploaded files.
+
+Stop the stack with:
+
+```bash
+docker compose down
+```
+
+Use `docker compose down -v` only when you intentionally want to remove all local persisted data.
+
 ## 🧪 Troubleshooting
 
 If you run into issues, try the following:

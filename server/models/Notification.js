@@ -55,6 +55,7 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     enum: ['low', 'normal', 'high', 'urgent'],
     default: 'normal'
+  },
   recipientId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -113,4 +114,3 @@ notificationSchema.index({ recipientId: 1, recipientModel: 1, createdAt: -1 });
 const Notification = mongoose.model('Notification', notificationSchema);
 
 export default Notification;
-
