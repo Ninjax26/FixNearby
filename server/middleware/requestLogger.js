@@ -9,6 +9,7 @@ const requestLogger = (req, res, next) => {
     const { statusCode } = res;
 
     const logData = {
+      requestId: req.requestId,
       method,
       url: originalUrl,
       statusCode,

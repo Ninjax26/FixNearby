@@ -20,6 +20,8 @@ import csrfProtection from './middleware/csrfMiddleware.js';
 import { compressionMiddleware } from './middleware/compression.js';
 import securityHeaders from './middleware/securityHeaders.js';
 import { sanitizeInput } from './middleware/securitySanitize.js';
+import requestContext from './middleware/requestContext.js';
+import requestLogger from './middleware/requestLogger.js';
 import allowedOrigins from './config/corsOrigins.js';
 import { initSocket } from './socket.js';
 import bookingRoutes from './routes/bookingRoutes.js';
@@ -58,6 +60,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 const app = express();
 
+app.use(requestContext);
+app.use(requestLogger);
 app.use(compressionMiddleware);
 app.use(cookieParser());
 app.use(securityHeaders);
@@ -112,6 +116,7 @@ app.use(
       return callback(null, true);
     },
     credentials: true,
+    exposedHeaders: ['X-Request-ID'],
   })
 );
 

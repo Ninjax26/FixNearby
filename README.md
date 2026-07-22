@@ -136,6 +136,17 @@ Before you start, make sure you have the following installed:
 
  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%">
 
+## 🔎 Request tracing
+
+Every API response includes an `X-Request-ID` header. Clients may send their own
+log-safe identifier in the same header (8–128 letters, numbers, `.`, `_`, `:`, or
+`-`); otherwise, the server creates a UUID. Include this value when reporting an
+API error so maintainers can correlate the request and error log entries.
+
+```bash
+curl -i -H "X-Request-ID: local-debug-123" http://localhost:5000/api/health/live
+```
+
 ## 🧪 Troubleshooting
 
 If you run into issues, try the following:

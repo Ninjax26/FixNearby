@@ -20,6 +20,7 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   const requestInfo = {
+    requestId: req?.requestId,
     method: req?.method,
     url: req?.originalUrl || req?.url,
     ip: req?.ip,
